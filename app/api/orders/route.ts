@@ -24,8 +24,9 @@ export async function POST(req: NextRequest) {
       phone:       data.phone ?? null,
       address:     data.address,
       city:        data.city,
-      province:    data.province,
+      province:    data.province ?? null,
       postal_code: data.postalCode,
+      country:     data.country,
       lang:        data.lang,
       why_locht:   data.whyLocht ?? null,
     })
