@@ -4,6 +4,7 @@ export type ConfirmationData = {
   firstName: string; bagName: string; quantity: number; priceTotal: number; lang: string
   pieces?: { modelName: string; pieceNum: number; price: number; src: string }[]
   address?: string; city?: string; province?: string; postalCode?: string; country?: string
+  interacAnswer?: string
 }
 
 // Email de confirmation de commande (template de marque)
@@ -14,7 +15,7 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
 }) {
   const isFr = data.lang === 'fr'
   const pieces = data.pieces ?? []
-  const pay = paymentInstructions(getPaymentMethod(data.country ?? ''), reference, isFr ? 'fr' : 'en')
+  const pay = paymentInstructions(getPaymentMethod(data.country ?? ''), reference, isFr ? 'fr' : 'en', data.interacAnswer)
 
   const pieceRows = pieces.map(p => {
     const num = String(p.pieceNum).padStart(2, '0')

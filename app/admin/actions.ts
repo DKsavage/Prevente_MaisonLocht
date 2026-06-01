@@ -191,6 +191,7 @@ export async function resendConfirmation(reference: string) {
           priceTotal: order.price_total, lang: order.lang, pieces: piecesData,
           address: order.address, city: order.city, province: order.province,
           postalCode: order.postal_code, country: order.country,
+          interacAnswer: order.interac_answer ?? undefined,
         },
         reference, baseUrl,
       }),

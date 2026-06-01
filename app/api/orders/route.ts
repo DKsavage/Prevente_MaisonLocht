@@ -5,6 +5,7 @@ import { generateReference } from '@/lib/generate-ref'
 import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
 import { buildConfirmationEmail } from '@/lib/email-confirmation'
+import { getPaymentMethod, generateInteracAnswer } from '@/lib/payment'
 
 // Libère des pièces réservées (rollback si la commande échoue)
 async function releasePieces(supabase: SupabaseClient, ids: string[]) {
@@ -41,6 +42,8 @@ export async function POST(req: NextRequest) {
     }
 
     const reference = await generateReference()
+    // Réponse de sécurité Interac (Canada uniquement)
+    const interacAnswer = getPaymentMethod(data.country) === 'interac' ? generateInteracAnswer() : null
 
     // ── Réservation atomique des pièces (anti double-vente) ──
     // UPDATE conditionnel : ne réserve que si encore disponible.
@@ -86,6 +89,7 @@ export async function POST(req: NextRequest) {
       country:     data.country,
       lang:        data.lang,
       why_locht:   data.whyLocht ?? null,
+      interac_answer: interacAnswer,
     })
 
     if (orderErr) {
@@ -109,7 +113,7 @@ export async function POST(req: NextRequest) {
         subject: data.lang === 'fr'
           ? `Maison Locht — Votre commande ${reference}`
           : `Maison Locht — Your order ${reference}`,
-        html: buildConfirmationEmail({ data, reference, baseUrl }),
+        html: buildConfirmationEmail({ data: { ...data, interacAnswer: interacAnswer ?? undefined }, reference, baseUrl }),
       })
     } catch (mailErr) {
       console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)

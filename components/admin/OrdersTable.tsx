@@ -25,6 +25,7 @@ export type Order = {
   notes_admin: string | null
   tracking_number: string | null
   carrier: string | null
+  interac_answer: string | null
   created_at: string
 }
 
@@ -284,6 +285,12 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
               <Detail label="Pièces" value={order.bag_name} />
               <Detail label="Quantité" value={String(order.quantity)} />
               <Detail label="Total" value={`${order.price_total} CAD`} />
+              {order.interac_answer && (
+                <div className="flex gap-2 items-center mt-1">
+                  <span className="text-[#7a7a8a] w-[70px] flex-shrink-0">Rép. Interac</span>
+                  <span className="text-[12px] font-mono text-[#043672] bg-[#b8965a]/12 border border-[#b8965a]/30 px-2 py-0.5">{order.interac_answer}</span>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-1">
               <Detail label="Courriel" value={order.email} />
