@@ -42,18 +42,19 @@ export async function POST(req: NextRequest) {
 
     if (!inserted) throw new Error('Impossible de générer une référence unique')
 
-    // Email client
-    const isDev = process.env.NODE_ENV !== 'production'
-    const toEmail = isDev ? process.env.RESEND_TEST_EMAIL! : data.email
-
-    await resend.emails.send({
-      from: process.env.RESEND_FROM!,
-      to:   toEmail,
-      subject: data.lang === 'fr'
-        ? `Maison Locht — Votre commande ${reference}`
-        : `Maison Locht — Your order ${reference}`,
-      html: buildEmailHtml({ data, reference }),
-    })
+    // Email client — non-bloquant : une commande reste valide même si l'email échoue
+    try {
+      await resend.emails.send({
+        from: (process.env.RESEND_FROM ?? 'onboarding@resend.dev').replace(/\s+$/, ''),
+        to:   data.email,
+        subject: data.lang === 'fr'
+          ? `Maison Locht — Votre commande ${reference}`
+          : `Maison Locht — Your order ${reference}`,
+        html: buildEmailHtml({ data, reference }),
+      })
+    } catch (mailErr) {
+      console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
+    }
 
     return NextResponse.json({ reference }, { status: 201 })
 
@@ -62,8 +63,7 @@ export async function POST(req: NextRequest) {
     if (err instanceof Error && err.name === 'ZodError') {
       return NextResponse.json({ error: 'Données invalides' }, { status: 400 })
     }
-    const detail = err instanceof Error ? err.message : JSON.stringify(err)
-    return NextResponse.json({ error: 'Erreur serveur', detail }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
