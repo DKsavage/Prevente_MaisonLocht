@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
 
   if (q.length < 3) return NextResponse.json([])
 
-  // Construire la requête avec contexte
   const parts = [q]
   if (city.trim()) parts.push(city.trim())
   if (province.trim() && country === 'CA') {
@@ -38,12 +37,11 @@ export async function GET(req: NextRequest) {
   }
   const query = parts.join(', ')
 
-  // Paramètres Nominatim
-  const countryInfo = getCountry(country)
+  const countryInfo   = getCountry(country)
   const countryFilter = countryInfo?.nominatim ? `&countrycodes=${countryInfo.nominatim}` : ''
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=7${countryFilter}&q=${encodeURIComponent(query)}`
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8${countryFilter}&q=${encodeURIComponent(query)}`
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'MaisonLocht-PreSale/1.0 (bitoungui32@gmail.com)',
@@ -57,9 +55,13 @@ export async function GET(req: NextRequest) {
 
     const results = raw
       .filter(r => {
-        // Filtrer par province si Canada et province déjà sélectionnée
+        const a = r.address
+        // Exiger une vraie rue — rejeter résultats administratifs (ville, province, pays)
+        const street = a.road ?? a.pedestrian ?? a.cycleway ?? a.path ?? a.footway ?? a.street ?? ''
+        if (!street.trim()) return false
+        // Filtrer par province si Canada
         if (country === 'CA' && province) {
-          const rp = toProvinceCode(r.address?.state ?? '')
+          const rp = toProvinceCode(a.state ?? '')
           if (rp && rp !== province) return false
         }
         return true
@@ -67,24 +69,23 @@ export async function GET(req: NextRequest) {
       .map(r => {
         const a          = r.address
         const streetNum  = a.house_number ?? ''
-        const street     = a.road ?? a.pedestrian ?? a.cycleway ?? a.path ?? a.footway ?? ''
+        const street     = a.road ?? a.pedestrian ?? a.cycleway ?? a.path ?? a.footway ?? a.street ?? ''
         const fullStreet = [streetNum, street].filter(Boolean).join(' ')
-        const resCity    = a.city ?? a.town ?? a.village ?? a.municipality ?? a.county ?? a.suburb ?? ''
+        const resCity    = a.city ?? a.town ?? a.village ?? a.municipality ?? a.suburb ?? ''
         const resProvince = country === 'CA' ? toProvinceCode(a.state ?? '') : (a.state ?? '')
         const postalCode  = a.postcode
           ? (country === 'CA'
               ? a.postcode.toUpperCase().replace(/([A-Z]\d[A-Z])(\d[A-Z]\d)/, '$1 $2')
               : a.postcode)
           : ''
-
         return { address: fullStreet, city: resCity, province: resProvince, postalCode }
       })
-      .filter(r => r.address || r.city)
+      .filter(r => r.address.trim().length > 1)
 
     // Dédupliquer
     const seen = new Set<string>()
     const unique = results.filter(r => {
-      const key = `${r.address}|${r.city}|${r.postalCode}`
+      const key = `${r.address}|${r.city}`
       if (seen.has(key)) return false
       seen.add(key)
       return true
@@ -99,8 +100,8 @@ export async function GET(req: NextRequest) {
 type NominatimResult = {
   address: {
     house_number?: string; road?: string; pedestrian?: string; cycleway?: string
-    path?: string; footway?: string; city?: string; town?: string; village?: string
-    municipality?: string; county?: string; suburb?: string; state?: string
+    path?: string; footway?: string; street?: string; city?: string; town?: string
+    village?: string; municipality?: string; suburb?: string; state?: string
     postcode?: string; country_code?: string
   }
 }
