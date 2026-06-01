@@ -59,6 +59,15 @@ export async function updateTracking(reference: string, tracking: string) {
   revalidatePath('/admin')
 }
 
+// Met à jour les notes internes admin
+export async function updateNotes(reference: string, notes: string) {
+  await requireAdmin()
+  const supabase = createServerClient()
+  const { error } = await supabase.from('orders').update({ notes_admin: notes }).eq('reference', reference)
+  if (error) throw error
+  revalidatePath('/admin')
+}
+
 // Envoie un email manuel au client (paiement reçu / expédié)
 export async function sendStatusEmail(reference: string, kind: 'payment' | 'shipped') {
   await requireAdmin()

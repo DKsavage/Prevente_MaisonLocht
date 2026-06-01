@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { updateOrderStatus, updateTracking, sendStatusEmail, type OrderStatus } from '@/app/admin/actions'
+import { useState, useTransition, useMemo } from 'react'
+import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, type OrderStatus } from '@/app/admin/actions'
 
 export type Order = {
   reference: string
@@ -20,8 +20,33 @@ export type Order = {
   country: string | null
   lang: string
   why_locht: string | null
+  notes_admin: string | null
   tracking_number: string | null
   created_at: string
+}
+
+// Une commande pending depuis +3 jours = paiement en retard
+function isLate(o: Order) {
+  if (o.status !== 'pending') return false
+  return Date.now() - new Date(o.created_at).getTime() > 3 * 24 * 60 * 60 * 1000
+}
+
+function exportCsv(orders: Order[]) {
+  const headers = ['Référence', 'Statut', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Pièces', 'Quantité', 'Total', 'Adresse', 'Ville', 'Province', 'Code postal', 'Pays', 'Suivi', 'Date']
+  const rows = orders.map(o => [
+    o.reference, o.status, o.first_name, o.last_name, o.email, o.phone ?? '', o.bag_name,
+    o.quantity, o.price_total, o.address, o.city, o.province ?? '', o.postal_code, o.country ?? '',
+    o.tracking_number ?? '', new Date(o.created_at).toLocaleString('fr-CA'),
+  ])
+  const esc = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
+  const csv = [headers, ...rows].map(r => r.map(esc).join(',')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `maison-locht-commandes-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -44,16 +69,50 @@ const ALL_STATUS: OrderStatus[] = ['pending', 'payment_received', 'confirmed', '
 
 export default function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
   const [orders] = useState(initialOrders)
-  const [filter, setFilter] = useState<'all' | OrderStatus>('all')
+  const [filter, setFilter] = useState<'all' | OrderStatus | 'late'>('all')
+  const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
 
-  const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter)
+  const lateCount = orders.filter(isLate).length
+
+  const filtered = useMemo(() => {
+    let list = filter === 'all' ? orders
+      : filter === 'late' ? orders.filter(isLate)
+      : orders.filter(o => o.status === filter)
+    const q = query.trim().toLowerCase()
+    if (q) list = list.filter(o =>
+      o.reference.toLowerCase().includes(q) ||
+      `${o.first_name} ${o.last_name}`.toLowerCase().includes(q) ||
+      o.email.toLowerCase().includes(q))
+    return list
+  }, [orders, filter, query])
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Recherche + export */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+        <input
+          value={query} onChange={e => setQuery(e.target.value)}
+          placeholder="Rechercher (référence, nom, email)…"
+          className="flex-1 max-w-md bg-[#faf7f2] border border-[#043672]/15 focus:border-[#b8965a] outline-none px-4 py-2.5 text-[12px] transition-colors"
+        />
+        <button onClick={() => exportCsv(filtered)}
+          className="text-label text-[8px] tracking-[2px] px-4 py-2.5 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors whitespace-nowrap">
+          ↓ Exporter CSV ({filtered.length})
+        </button>
+      </div>
+
       {/* Filtres */}
       <div className="flex flex-wrap gap-2">
         <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label={`Toutes (${orders.length})`} />
+        {lateCount > 0 && (
+          <button onClick={() => setFilter('late')}
+            className={`text-label text-[8px] tracking-[2px] px-3 py-2 border transition-colors ${
+              filter === 'late' ? 'bg-red-500 text-white border-red-500' : 'bg-red-50 text-red-600 border-red-200 hover:border-red-400'
+            }`}>
+            ⚠ Paiement en retard ({lateCount})
+          </button>
+        )}
         {ALL_STATUS.map(s => {
           const n = orders.filter(o => o.status === s).length
           if (n === 0) return null
@@ -92,7 +151,25 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
 function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boolean; onToggle: () => void }) {
   const [isPending, startTransition] = useTransition()
   const [tracking, setTracking] = useState(order.tracking_number ?? '')
+  const [notes, setNotes] = useState(order.notes_admin ?? '')
   const [msg, setMsg] = useState<string | null>(null)
+  const late = isLate(order)
+
+  const fullAddress = `${order.first_name} ${order.last_name}\n${order.address}\n${order.city}${order.province ? ', ' + order.province : ''} ${order.postal_code}\n${order.country ?? ''}`
+
+  const copyAddress = () => {
+    navigator.clipboard.writeText(fullAddress)
+    setMsg('Adresse copiée')
+    setTimeout(() => setMsg(null), 2000)
+  }
+
+  const saveNotes = () => {
+    startTransition(async () => {
+      await updateNotes(order.reference, notes)
+      setMsg('Note enregistrée')
+      setTimeout(() => setMsg(null), 2000)
+    })
+  }
 
   const changeStatus = (status: OrderStatus) => {
     startTransition(async () => {
@@ -124,8 +201,12 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
     <div className={`border bg-[#faf7f2] transition-colors ${expanded ? 'border-[#b8965a]/40' : 'border-[#043672]/10'}`}>
       {/* Ligne principale */}
       <button onClick={onToggle} className="w-full flex items-center gap-4 px-4 py-3 text-left">
+        {late && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" title="Paiement en retard" />}
         <span className="font-mono text-[11px] text-[#043672] w-[120px] flex-shrink-0">{order.reference}</span>
-        <span className="text-[13px] text-[#1a1a2e] flex-1 min-w-0 truncate">{order.first_name} {order.last_name}</span>
+        <span className="text-[13px] text-[#1a1a2e] flex-1 min-w-0 truncate flex items-center gap-2">
+          {order.first_name} {order.last_name}
+          {order.notes_admin && <span className="text-[#b8965a] text-[10px]" title="Note interne">✎</span>}
+        </span>
         <span className="hidden md:block text-[11px] text-[#7a7a8a] w-[60px]">{order.country ?? '—'}</span>
         <span className="hidden sm:block text-[12px] text-[#043672] w-[90px] text-right">{order.price_total} CAD</span>
         <span className={`text-label text-[7px] tracking-[1px] px-2 py-1 border ${STATUS_COLORS[order.status]} w-[110px] text-center flex-shrink-0`}>
@@ -146,7 +227,28 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
             <div className="flex flex-col gap-1">
               <Detail label="Courriel" value={order.email} />
               <Detail label="Téléphone" value={order.phone ?? '—'} />
-              <Detail label="Adresse" value={`${order.address}, ${order.city}${order.province ? ', ' + order.province : ''} ${order.postal_code}, ${order.country ?? ''}`} />
+              <div className="flex gap-2 items-start">
+                <span className="text-[#7a7a8a] w-[70px] flex-shrink-0">Adresse</span>
+                <div className="flex-1">
+                  <span className="text-[#1a1a2e]">{order.address}, {order.city}{order.province ? ', ' + order.province : ''} {order.postal_code}, {order.country ?? ''}</span>
+                  <button onClick={copyAddress}
+                    className="ml-2 text-label text-[7px] text-[#b8965a] hover:text-[#043672] tracking-[1px] border border-[#b8965a]/30 px-2 py-0.5 transition-colors">
+                    Copier
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes internes */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Note interne (privée)</span>
+            <div className="flex gap-2">
+              <input value={notes} onChange={e => setNotes(e.target.value)}
+                placeholder="Ex : cliente fidèle, adresse à vérifier…"
+                className="flex-1 bg-white border border-[#043672]/15 focus:border-[#b8965a] outline-none px-3 py-2 text-[12px]" />
+              <button onClick={saveNotes} disabled={isPending}
+                className="text-label text-[7px] tracking-[2px] px-3 py-2 bg-[#043672] text-white disabled:opacity-50">OK</button>
             </div>
           </div>
 
