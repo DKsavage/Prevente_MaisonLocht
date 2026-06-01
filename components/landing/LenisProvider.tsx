@@ -14,11 +14,10 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     if (window.matchMedia('(max-width: 768px)').matches) return
 
     const lenis = new Lenis({
-      lerp: 0.1,
+      lerp: 0.14,          // plus réactif, moins flottant
       smoothWheel: true,
-      wheelMultiplier: 1.05,
-      touchMultiplier: 1.5,
-      easing: (t: number) => 1 - Math.pow(1 - t, 3), // ease-out cubic, fluide
+      wheelMultiplier: 1.15, // un peu plus rapide
+      touchMultiplier: 1.6,
     })
     lenisRef.current = lenis
 
