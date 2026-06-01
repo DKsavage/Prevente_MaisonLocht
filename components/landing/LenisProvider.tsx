@@ -13,7 +13,13 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (window.matchMedia('(max-width: 768px)').matches) return
 
-    const lenis = new Lenis({ lerp: 0.08, smoothWheel: true })
+    const lenis = new Lenis({
+      lerp: 0.1,
+      smoothWheel: true,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 1.5,
+      easing: (t: number) => 1 - Math.pow(1 - t, 3), // ease-out cubic, fluide
+    })
     lenisRef.current = lenis
 
     let rafId: number

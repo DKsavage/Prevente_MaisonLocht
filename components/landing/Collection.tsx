@@ -38,24 +38,24 @@ const copy = {
     eyebrow: 'La Collection', title: 'LOCHT 01 · LES CERNES', limit: 'Max 2 par commande',
     unique: 'Pièce unique', order: 'Commander ce sac', reserved: 'Réservée',
     available: 'disponibles', details: 'Voir les détails', close: 'Fermer',
-    materials: 'Matières', materialsVal: 'Cuir · Tissé fouta · Pagne',
+    materials: 'Matières', materialsVal: 'Cuir végétal · Batik · Pagne tissé du Fouta',
     dimensions: 'Dimensions', format: 'Format', piece: 'Pièce',
     strip: [
       { label: 'Pièces uniques', sub: 'jamais reproduites' },
       { label: 'Canada uniquement', sub: 'livraison printemps 2026' },
-      { label: 'Max 2 par commande', sub: 'cuir · tissé fouta · pagne' },
+      { label: 'Max 2 par commande', sub: 'cuir végétal · batik · fouta' },
     ],
   },
   en: {
     eyebrow: 'The Collection', title: 'LOCHT 01 · LES CERNES', limit: 'Max 2 per order',
     unique: 'One-of-a-kind', order: 'Order this bag', reserved: 'Reserved',
     available: 'available', details: 'View details', close: 'Close',
-    materials: 'Materials', materialsVal: 'Leather · Woven fouta · Pagne',
+    materials: 'Materials', materialsVal: 'Vegetable leather · Batik · Woven Fouta pagne',
     dimensions: 'Dimensions', format: 'Size', piece: 'Piece',
     strip: [
       { label: 'Unique pieces', sub: 'never reproduced' },
       { label: 'Canada only', sub: 'spring 2026 delivery' },
-      { label: 'Max 2 per order', sub: 'leather · woven fouta · pagne' },
+      { label: 'Max 2 per order', sub: 'vegetable leather · batik · fouta' },
     ],
   },
 }
@@ -88,6 +88,7 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
         onClick={onClose}
       />
       <motion.div
+        data-lenis-prevent
         className="relative h-full w-full md:w-[460px] bg-[#faf7f2] flex flex-col overflow-y-auto overscroll-contain z-10"
         initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
         transition={{ duration: 0.5, ease }}

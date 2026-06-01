@@ -22,7 +22,7 @@ const content = {
       { value: 'Mémoire portée', label: 'Vision' },
     ],
     descTitle: "Ce que l'on porte",
-    desc: "La collection LES CERNES naît d'une géographie personnelle — Bruxelles, Port-au-Prince, Dakar, Conakry. Chaque pièce assemble du fouta tissé de Guinée, du pagne du Sénégal, du cuir travaillé à la main. Les lignes parallèles qui traversent chaque sac ne sont pas un motif. Ce sont des routes. Un hommage à Haïti — pays inaccessible, toujours présent. Maison Locht ne fait pas de la mode. Elle fait de la mémoire.",
+    desc: "La collection LES CERNES naît d'une géographie personnelle — Bruxelles, Port-au-Prince, Dakar, Conakry. Chaque pièce assemble du pagne tissé du Fouta, du batik et du cuir végétal, travaillés à la main. Les lignes parallèles qui traversent chaque sac ne sont pas un motif. Ce sont des routes. Un hommage à Haïti — pays inaccessible, toujours présent. Maison Locht ne fait pas de la mode. Elle fait de la mémoire.",
     pillars: [
       { label: 'Savoir-faire', value: 'Cousu à la main, pièce par pièce' },
       { label: 'Unicité', value: 'Jamais reproduite, jamais répétée' },
@@ -44,7 +44,7 @@ const content = {
       { value: 'Memory, carried', label: 'Vision' },
     ],
     descTitle: 'What we carry',
-    desc: "The LES CERNES collection is born from a personal geography — Brussels, Port-au-Prince, Dakar, Conakry. Each piece assembles woven fouta from Guinea, pagne from Senegal, hand-worked leather. The parallel lines that run through every bag are not a pattern. They are roads. A tribute to Haiti — unreachable, yet always present. Maison Locht does not make fashion. It makes memory.",
+    desc: "The LES CERNES collection is born from a personal geography — Brussels, Port-au-Prince, Dakar, Conakry. Each piece assembles woven Fouta pagne, batik and vegetable leather, worked by hand. The parallel lines that run through every bag are not a pattern. They are roads. A tribute to Haiti — unreachable, yet always present. Maison Locht does not make fashion. It makes memory.",
     pillars: [
       { label: 'Craft', value: 'Hand-sewn, piece by piece' },
       { label: 'Uniqueness', value: 'Never reproduced, never repeated' },
@@ -86,8 +86,13 @@ export default function Story() {
         data-theme="dark"
       >
         {/* Halos */}
-        <div className="absolute -top-32 -right-32 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.06)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.08)_0%,transparent_70%)] pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.03)_0%,transparent_70%)] pointer-events-none" />
+        {/* Texture grain */}
+        <div className="absolute inset-0 opacity-[0.5] pointer-events-none mix-blend-overlay"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")` }} />
+        {/* Guillemet décoratif */}
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 font-display text-[180px] leading-none text-[#b8965a]/10 pointer-events-none select-none">&ldquo;</div>
 
         {/* Logo blanc */}
         <motion.div

@@ -7,13 +7,13 @@ export default function Cursor() {
   const mouseX = useMotionValue(-100)
   const mouseY = useMotionValue(-100)
 
-  // Anneau intérieur — suit précisément
-  const innerX = useSpring(mouseX, { damping: 40, stiffness: 400, mass: 0.3 })
-  const innerY = useSpring(mouseY, { damping: 40, stiffness: 400, mass: 0.3 })
+  // Anneau intérieur — quasi instantané
+  const innerX = useSpring(mouseX, { damping: 30, stiffness: 900, mass: 0.2 })
+  const innerY = useSpring(mouseY, { damping: 30, stiffness: 900, mass: 0.2 })
 
-  // Anneau extérieur — lerp doux
-  const outerX = useSpring(mouseX, { damping: 28, stiffness: 180, mass: 0.6 })
-  const outerY = useSpring(mouseY, { damping: 28, stiffness: 180, mass: 0.6 })
+  // Anneau extérieur — suit de près, léger trail
+  const outerX = useSpring(mouseX, { damping: 26, stiffness: 420, mass: 0.35 })
+  const outerY = useSpring(mouseY, { damping: 26, stiffness: 420, mass: 0.35 })
 
   const innerSize = useMotionValue(8)
   const outerSize = useMotionValue(32)
