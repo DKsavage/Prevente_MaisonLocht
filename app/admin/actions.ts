@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createAuthClient } from '@/lib/supabase-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
+import { carrierName, trackingUrl } from '@/lib/carriers'
 
 // Vérifie qu'un admin est connecté avant toute mutation
 async function requireAdmin() {
@@ -50,11 +51,13 @@ export async function updateOrderStatus(reference: string, status: OrderStatus) 
   revalidatePath('/admin/inventaire')
 }
 
-// Met à jour le numéro de suivi
-export async function updateTracking(reference: string, tracking: string) {
+// Met à jour le numéro de suivi + le transporteur
+export async function updateTracking(reference: string, tracking: string, carrier?: string) {
   await requireAdmin()
   const supabase = createServerClient()
-  const { error } = await supabase.from('orders').update({ tracking_number: tracking }).eq('reference', reference)
+  const { error } = await supabase.from('orders')
+    .update({ tracking_number: tracking, carrier: carrier ?? null })
+    .eq('reference', reference)
   if (error) throw error
   revalidatePath('/admin')
 }
@@ -83,13 +86,21 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
     ? (isFr ? `Maison Locht — Paiement reçu (${reference})` : `Maison Locht — Payment received (${reference})`)
     : (isFr ? `Maison Locht — Votre commande est expédiée (${reference})` : `Maison Locht — Your order has shipped (${reference})`)
 
+  // Lien de suivi transporteur (si dispo)
+  const trkUrl = trackingUrl(order.carrier, order.tracking_number)
+  const trkLine = order.tracking_number
+    ? (isFr
+        ? `<p style="margin-top:12px">Transporteur : <strong>${carrierName(order.carrier) ?? '—'}</strong><br>Numéro de suivi : <strong>${order.tracking_number}</strong>${trkUrl ? `<br><a href="${trkUrl}" style="color:#043672">Suivre mon colis &rarr;</a>` : ''}</p>`
+        : `<p style="margin-top:12px">Carrier: <strong>${carrierName(order.carrier) ?? '—'}</strong><br>Tracking number: <strong>${order.tracking_number}</strong>${trkUrl ? `<br><a href="${trkUrl}" style="color:#043672">Track my parcel &rarr;</a>` : ''}</p>`)
+    : ''
+
   const body = kind === 'payment'
     ? (isFr
         ? `<p>Bonjour ${order.first_name},</p><p>Nous confirmons la réception de votre paiement pour la commande <strong>${reference}</strong>. Votre pièce est en préparation.</p>`
         : `<p>Hello ${order.first_name},</p><p>We confirm receipt of your payment for order <strong>${reference}</strong>. Your piece is being prepared.</p>`)
     : (isFr
-        ? `<p>Bonjour ${order.first_name},</p><p>Votre commande <strong>${reference}</strong> a été expédiée.${order.tracking_number ? ` Numéro de suivi : <strong>${order.tracking_number}</strong>.` : ''}</p>`
-        : `<p>Hello ${order.first_name},</p><p>Your order <strong>${reference}</strong> has shipped.${order.tracking_number ? ` Tracking number: <strong>${order.tracking_number}</strong>.` : ''}</p>`)
+        ? `<p>Bonjour ${order.first_name},</p><p>Votre commande <strong>${reference}</strong> a été expédiée.</p>${trkLine}`
+        : `<p>Hello ${order.first_name},</p><p>Your order <strong>${reference}</strong> has shipped.</p>${trkLine}`)
 
   try {
     await resend.emails.send({

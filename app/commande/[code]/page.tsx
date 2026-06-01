@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase-server'
 import { COUNTRIES } from '@/lib/countries'
+import { carrierName, trackingUrl } from '@/lib/carriers'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,7 +60,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
   const supabase = createServerClient()
   const { data: order } = await supabase
     .from('orders')
-    .select('reference, status, bag_name, quantity, price_total, first_name, city, country, lang, tracking_number, created_at')
+    .select('reference, status, bag_name, quantity, price_total, first_name, city, country, lang, tracking_number, carrier, created_at')
     .eq('reference', reference)
     .single()
 
@@ -134,9 +135,17 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
                       <p className="text-[14px] text-[#043672] font-light">{s.label}</p>
                       <p className="text-[11px] text-[#7a7a8a] mt-0.5">{s.desc}</p>
                       {step === 'shipped' && order.tracking_number && done && (
-                        <p className="text-label text-[8px] text-[#b8965a] tracking-[2px] mt-2">
-                          {t.tracking} : <span className="text-[#043672]">{order.tracking_number}</span>
-                        </p>
+                        <div className="mt-2">
+                          <p className="text-label text-[8px] text-[#b8965a] tracking-[2px]">
+                            {carrierName(order.carrier) ? `${carrierName(order.carrier)} · ` : ''}{t.tracking} : <span className="text-[#043672]">{order.tracking_number}</span>
+                          </p>
+                          {trackingUrl(order.carrier, order.tracking_number) && (
+                            <a href={trackingUrl(order.carrier, order.tracking_number)} target="_blank" rel="noopener noreferrer"
+                              className="inline-block mt-2 text-label text-[8px] text-white tracking-[2px] bg-[#043672] hover:bg-[#0a4d9e] px-4 py-2 transition-colors">
+                              {lang === 'fr' ? 'Suivre mon colis' : 'Track my parcel'} →
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

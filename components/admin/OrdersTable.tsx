@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from 'react'
 import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, type OrderStatus } from '@/app/admin/actions'
+import { CARRIERS, trackingUrl } from '@/lib/carriers'
 
 export type Order = {
   reference: string
@@ -22,6 +23,7 @@ export type Order = {
   why_locht: string | null
   notes_admin: string | null
   tracking_number: string | null
+  carrier: string | null
   created_at: string
 }
 
@@ -151,6 +153,7 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
 function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boolean; onToggle: () => void }) {
   const [isPending, startTransition] = useTransition()
   const [tracking, setTracking] = useState(order.tracking_number ?? '')
+  const [carrier, setCarrier] = useState(order.carrier ?? '')
   const [notes, setNotes] = useState(order.notes_admin ?? '')
   const [msg, setMsg] = useState<string | null>(null)
   const late = isLate(order)
@@ -181,7 +184,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
 
   const saveTracking = () => {
     startTransition(async () => {
-      await updateTracking(order.reference, tracking)
+      await updateTracking(order.reference, tracking, carrier)
       setMsg('Suivi enregistré')
       setTimeout(() => setMsg(null), 2000)
     })
@@ -277,13 +280,24 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
           {/* Suivi + emails */}
           <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
             <div className="flex flex-col gap-1 flex-1">
-              <span className="text-label text-[7px] text-[#b8965a] tracking-[2px]">N° de suivi</span>
+              <span className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Transporteur & n° de suivi</span>
               <div className="flex gap-2">
+                <select value={carrier} onChange={e => setCarrier(e.target.value)}
+                  className="bg-white border border-[#043672]/15 focus:border-[#b8965a] outline-none px-2 py-2 text-[11px]">
+                  <option value="">Transporteur</option>
+                  {CARRIERS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
                 <input value={tracking} onChange={e => setTracking(e.target.value)} placeholder="Numéro de suivi"
                   className="flex-1 bg-white border border-[#043672]/15 focus:border-[#b8965a] outline-none px-3 py-2 text-[12px]" />
                 <button onClick={saveTracking} disabled={isPending}
                   className="text-label text-[7px] tracking-[2px] px-3 py-2 bg-[#043672] text-white disabled:opacity-50">OK</button>
               </div>
+              {tracking && trackingUrl(carrier, tracking) && (
+                <a href={trackingUrl(carrier, tracking)} target="_blank" rel="noopener noreferrer"
+                  className="text-label text-[7px] text-[#b8965a] hover:text-[#043672] tracking-[1px] mt-0.5">
+                  Vérifier le lien de suivi →
+                </a>
+              )}
             </div>
             <div className="flex gap-2">
               <button onClick={() => email('payment')} disabled={isPending}
