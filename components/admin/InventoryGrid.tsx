@@ -32,7 +32,6 @@ function statusInfo(p: InvPiece) {
 export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
   return (
     <div className="flex flex-col gap-12">
-      <AddBagForm />
       {MODELS.map(model => {
         const list = pieces.filter(p => p.model === model.id)
         const c = {
@@ -40,6 +39,7 @@ export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
           reserved: list.filter(p => p.status === 'reserved').length,
           sold: list.filter(p => p.status === 'sold').length,
         }
+        const nextNum = list.reduce((max, p) => Math.max(max, pieceNum(p)), 0) + 1
         return (
           <div key={model.id}>
             <div className="flex items-baseline justify-between mb-5 pb-3 border-b border-[#043672]/10">
@@ -47,19 +47,16 @@ export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
                 <h2 className="font-display text-[24px] font-light text-[#043672]">{model.name}</h2>
                 <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">{list.length} pièces</span>
               </div>
-              <div className="flex items-center gap-3 text-label text-[8px] tracking-[1px]">
+              <div className="hidden sm:flex items-center gap-3 text-label text-[8px] tracking-[1px]">
                 <Legend dot="bg-emerald-500" n={c.available} label="dispo" />
                 <Legend dot="bg-[#b8965a]" n={c.reserved} label="réservées" />
                 <Legend dot="bg-[#043672]" n={c.sold} label="vendues" />
               </div>
             </div>
-            {list.length === 0 ? (
-              <p className="text-[12px] text-[#7a7a8a] font-light">Aucune pièce dans ce modèle.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-                {list.map(piece => <PieceCard key={piece.id} piece={piece} />)}
-              </div>
-            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+              {list.map(piece => <PieceCard key={piece.id} piece={piece} />)}
+              <AddBagCard model={model.id} modelName={model.name} nextNum={nextNum} />
+            </div>
           </div>
         )
       })}
@@ -75,7 +72,8 @@ function Legend({ dot, n, label }: { dot: string; n: number; label: string }) {
   )
 }
 
-function AddBagForm() {
+// Carte d'ajout intégrée à la grille — modèle pré-sélectionné, numéro auto
+function AddBagCard({ model, modelName, nextNum }: { model: string; modelName: string; nextNum: number }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [msg, setMsg] = useState<string | null>(null)
@@ -88,9 +86,9 @@ function AddBagForm() {
     startTransition(async () => {
       try {
         await addPiece(fd)
-        setMsg('Sac ajouté')
+        setMsg('Ajouté')
         formRef.current?.reset(); setPreview(null)
-        setTimeout(() => { setMsg(null); setOpen(false) }, 1400)
+        setTimeout(() => { setMsg(null); setOpen(false) }, 1200)
       } catch (err) { setMsg(err instanceof Error ? err.message : 'Erreur') }
     })
   }
@@ -98,46 +96,34 @@ function AddBagForm() {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)}
-        className="self-start inline-flex items-center gap-2 text-label text-[9px] tracking-[2px] px-6 py-3.5 bg-[#043672] text-white hover:bg-[#0a4d9e] transition-colors">
-        <span className="text-[14px] leading-none">+</span> Ajouter un sac
+        className="aspect-square border border-dashed border-[#043672]/25 hover:border-[#b8965a] hover:bg-[#b8965a]/05 transition-colors flex flex-col items-center justify-center gap-2 text-[#7a7a8a] hover:text-[#b8965a]">
+        <span className="text-[28px] font-light leading-none">+</span>
+        <span className="text-label text-[7px] tracking-[2px]">Ajouter {modelName.replace('Le ', '')}</span>
       </button>
     )
   }
 
   return (
     <form ref={formRef} onSubmit={submit}
-      className="flex flex-col sm:flex-row sm:items-end gap-4 p-6 bg-[#faf7f2] border border-[#b8965a]/30">
-      {/* Aperçu image */}
-      <label className="relative w-24 h-24 flex-shrink-0 bg-[#f0ebe0] border border-dashed border-[#043672]/25 cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#b8965a] transition-colors">
-        {preview ? (
-          <Image src={preview} alt="" fill className="object-cover" />
-        ) : (
-          <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] text-center px-2">Choisir<br/>photo</span>
-        )}
+      className="aspect-square border border-[#b8965a]/40 bg-[#faf7f2] p-3 flex flex-col gap-2">
+      <input type="hidden" name="model" value={model} />
+      <label className="relative flex-1 bg-[#f0ebe0] border border-dashed border-[#043672]/25 cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#b8965a] transition-colors">
+        {preview ? <Image src={preview} alt="" fill className="object-cover" />
+          : <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] text-center px-2">+ Photo</span>}
         <input name="image" type="file" accept="image/*" required hidden
           onChange={e => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)) }} />
       </label>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Modèle</label>
-        <select name="model" required className="text-[12px] border border-[#043672]/20 px-3 py-2.5 bg-white">
-          {MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Numéro</label>
-        <input name="displayNum" type="number" min={1} defaultValue={1} required
-          className="w-20 text-[12px] border border-[#043672]/20 px-3 py-2.5 bg-white" />
-      </div>
-      <div className="flex gap-2 sm:ml-auto">
+      <div className="flex items-center gap-1.5">
+        <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">N°</span>
+        <input name="displayNum" type="number" min={1} defaultValue={nextNum} required
+          className="w-12 text-[11px] border border-[#043672]/20 px-1.5 py-1 bg-white" />
         <button type="submit" disabled={isPending}
-          className="text-label text-[8px] tracking-[2px] px-6 py-3 bg-[#043672] text-white hover:bg-[#0a4d9e] transition-colors disabled:opacity-50">
-          {isPending ? 'Ajout…' : 'Ajouter'}
+          className="flex-1 text-label text-[7px] tracking-[1px] py-1.5 bg-[#043672] text-white hover:bg-[#0a4d9e] disabled:opacity-50">
+          {isPending ? '…' : (msg ?? 'Ajouter')}
         </button>
-        <button type="button" onClick={() => { setOpen(false); setPreview(null) }}
-          className="text-label text-[8px] tracking-[2px] text-[#7a7a8a] hover:text-[#043672] px-3 py-3 transition-colors">Annuler</button>
       </div>
-      {msg && <span className="text-[11px] text-emerald-600 self-center">{msg}</span>}
+      <button type="button" onClick={() => { setOpen(false); setPreview(null) }}
+        className="text-label text-[7px] text-[#7a7a8a] hover:text-[#043672] tracking-[1px]">Annuler</button>
     </form>
   )
 }
