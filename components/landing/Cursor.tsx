@@ -1,9 +1,16 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 
 export default function Cursor() {
+  // Désactive le curseur custom sur les appareils tactiles (pas de souris)
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    setEnabled(fine)
+  }, [])
+
   const mouseX = useMotionValue(-100)
   const mouseY = useMotionValue(-100)
 
@@ -21,6 +28,7 @@ export default function Cursor() {
   const outerOpacity = useMotionValue(1)
 
   useEffect(() => {
+    if (!enabled) return
     const onMove = (e: MouseEvent) => {
       mouseX.set(e.clientX)
       mouseY.set(e.clientY)
@@ -69,7 +77,9 @@ export default function Cursor() {
       document.removeEventListener('mouseover', onOver)
       document.removeEventListener('mouseout', onOut)
     }
-  }, [mouseX, mouseY, innerSize, outerSize, innerOpacity])
+  }, [enabled, mouseX, mouseY, innerSize, outerSize, innerOpacity])
+
+  if (!enabled) return null
 
   return (
     <>
