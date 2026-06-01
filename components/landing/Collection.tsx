@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLang } from './LangContext'
 import { useLenis } from './LenisProvider'
-import { MODELS, pieceNumFromId, fetchPieces, type DbPiece } from '@/lib/models'
+import { MODELS, pieceNum, fetchPieces, type DbPiece } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -23,7 +23,8 @@ function buildModels(db: DbPiece[]): Model[] {
   return MODELS.map(m => {
     const pieces = db
       .filter(p => p.model === m.id)
-      .map(p => ({ id: p.id, src: p.image_url, status: p.status as Status, num: pieceNumFromId(p.id) }))
+      .map(p => ({ id: p.id, src: p.image_url, status: p.status as Status, num: pieceNum(p) }))
+      .sort((a, b) => a.num - b.num)
     return {
       ...m,
       count: pieces.filter(p => p.status === 'available').length,

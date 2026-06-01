@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { OrderFormData } from '@/lib/schemas'
-import { MODELS, pieceNumFromId, fetchPieces, type DbPiece, type ModelId, type PieceStatus } from '@/lib/models'
+import { MODELS, pieceNum, fetchPieces, type DbPiece, type ModelId, type PieceStatus } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -73,9 +73,10 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
       .filter(p => p.model === m.id)
       .map<GridPiece>(p => ({
         id: p.id, model: p.model, modelName: m.name,
-        pieceNum: pieceNumFromId(p.id), price: m.price, src: p.image_url,
+        pieceNum: pieceNum(p), price: m.price, src: p.image_url,
         status: p.status,
-      })),
+      }))
+      .sort((a, b) => a.pieceNum - b.pieceNum),
   })).filter(g => g.pieces.length > 0)
 
   const isSelected   = (id: string) => selections.some(s => s.id === id)

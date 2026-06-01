@@ -9,7 +9,12 @@ export type DbPiece = {
   image_url: string
   status: PieceStatus
   sort_order: number
+  display_num: number | null
 }
+
+// Numéro affiché au client : display_num si défini, sinon dérivé de l'id
+export const pieceNum = (p: { id: string; display_num?: number | null }): number =>
+  p.display_num ?? pieceNumFromId(p.id)
 
 export const MODELS: {
   id: ModelId

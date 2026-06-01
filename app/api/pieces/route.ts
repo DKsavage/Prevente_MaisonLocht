@@ -9,8 +9,9 @@ export async function GET() {
     const supabase = createServerClient()
     const { data, error } = await supabase
       .from('pieces')
-      .select('id, model, image_url, status, sort_order')
+      .select('id, model, image_url, status, sort_order, display_num')
       .order('model', { ascending: true })
+      .order('display_num', { ascending: true, nullsFirst: false })
       .order('sort_order', { ascending: true })
 
     if (error) throw error

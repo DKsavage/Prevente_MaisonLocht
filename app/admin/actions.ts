@@ -113,4 +113,18 @@ export async function setPieceStatus(pieceId: string, status: 'available' | 'res
   const { error } = await supabase.from('pieces').update({ status }).eq('id', pieceId)
   if (error) throw error
   revalidatePath('/admin/inventaire')
+  revalidatePath('/')
+}
+
+// Réassigne une pièce à un autre modèle et/ou change son numéro d'affichage
+export async function reassignPiece(pieceId: string, model: 'kouna' | 'kami' | 'nafibe', displayNum: number) {
+  await requireAdmin()
+  if (!['kouna', 'kami', 'nafibe'].includes(model)) throw new Error('Modèle invalide')
+  const supabase = createServerClient()
+  const { error } = await supabase.from('pieces')
+    .update({ model, display_num: displayNum })
+    .eq('id', pieceId)
+  if (error) throw error
+  revalidatePath('/admin/inventaire')
+  revalidatePath('/')
 }

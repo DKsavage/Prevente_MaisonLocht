@@ -12,11 +12,20 @@ export default async function AdminInventoryPage() {
   const supabase = createServerClient()
   const { data: pieces } = await supabase
     .from('pieces')
-    .select('id, model, image_url, status, order_ref, sort_order')
+    .select('id, model, image_url, status, order_ref, sort_order, display_num')
     .order('model', { ascending: true })
+    .order('display_num', { ascending: true, nullsFirst: false })
     .order('sort_order', { ascending: true })
 
-  const list = (pieces ?? []) as InvPiece[]
+  // Statut des commandes liées (pour distinguer "réservée" de "en attente de paiement")
+  const { data: orders } = await supabase.from('orders').select('reference, status')
+  const orderStatus: Record<string, string> = {}
+  ;(orders ?? []).forEach(o => { orderStatus[o.reference] = o.status })
+
+  const list = (pieces ?? []).map(p => ({
+    ...p,
+    orderPending: p.order_ref ? orderStatus[p.order_ref] === 'pending' : false,
+  })) as InvPiece[]
 
   return (
     <AdminShell email={user?.email}>
