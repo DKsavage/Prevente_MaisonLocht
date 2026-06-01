@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLang } from './LangContext'
 import { useLenis } from './LenisProvider'
-import { MODELS, pieceNum, fetchPieces, type DbPiece } from '@/lib/models'
+import { usePieces } from './PiecesProvider'
+import { MODELS, pieceNum, type DbPiece } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -313,11 +314,8 @@ export default function Collection() {
   const { lang } = useLang()
   const c = copy[lang]
   const [drawer, setDrawer] = useState<{ piece: Piece; model: Model } | null>(null)
-  const [models, setModels] = useState<Model[]>([])
-
-  useEffect(() => {
-    fetchPieces().then(db => setModels(buildModels(db)))
-  }, [])
+  const { pieces } = usePieces()
+  const models = buildModels(pieces)
 
   return (
     <section id="collection" className="bg-[#faf7f2]">
