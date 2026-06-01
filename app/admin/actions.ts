@@ -82,33 +82,74 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
   const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
   const to = testEmail || order.email
 
-  const subject = kind === 'payment'
-    ? (isFr ? `Maison Locht — Paiement reçu (${reference})` : `Maison Locht — Payment received (${reference})`)
-    : (isFr ? `Maison Locht — Votre commande est expédiée (${reference})` : `Maison Locht — Your order has shipped (${reference})`)
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente-maison-locht.vercel.app').replace(/\s/g, '').replace(/\/$/, '')
 
-  // Lien de suivi transporteur (si dispo)
+  const subject = kind === 'payment'
+    ? (isFr ? `Maison Locht — Paiement reçu · ${reference}` : `Maison Locht — Payment received · ${reference}`)
+    : (isFr ? `Maison Locht — Votre commande est expédiée · ${reference}` : `Maison Locht — Your order has shipped · ${reference}`)
+
+  const eyebrow = kind === 'payment'
+    ? (isFr ? 'Paiement reçu' : 'Payment received')
+    : (isFr ? 'Commande expédiée' : 'Order shipped')
+
+  const greeting = isFr ? `Merci, ${order.first_name}.` : `Thank you, ${order.first_name}.`
+
+  const intro = kind === 'payment'
+    ? (isFr ? `Nous confirmons la réception de votre paiement. Votre pièce est désormais en préparation, cousue et vérifiée à la main.`
+            : `We confirm receipt of your payment. Your piece is now being prepared, hand-sewn and inspected.`)
+    : (isFr ? `Votre pièce est en route. Voici les informations pour suivre votre colis.`
+            : `Your piece is on its way. Here is the information to track your parcel.`)
+
+  // Bloc suivi transporteur
   const trkUrl = trackingUrl(order.carrier, order.tracking_number)
-  const trkLine = order.tracking_number
-    ? (isFr
-        ? `<p style="margin-top:12px">Transporteur : <strong>${carrierName(order.carrier) ?? '—'}</strong><br>Numéro de suivi : <strong>${order.tracking_number}</strong>${trkUrl ? `<br><a href="${trkUrl}" style="color:#043672">Suivre mon colis &rarr;</a>` : ''}</p>`
-        : `<p style="margin-top:12px">Carrier: <strong>${carrierName(order.carrier) ?? '—'}</strong><br>Tracking number: <strong>${order.tracking_number}</strong>${trkUrl ? `<br><a href="${trkUrl}" style="color:#043672">Track my parcel &rarr;</a>` : ''}</p>`)
+  const trackingBlock = (kind === 'shipped' && order.tracking_number)
+    ? `<tr><td style="padding:0 40px 8px">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ebe0;border-radius:0">
+          <tr><td style="padding:20px 24px">
+            <p style="margin:0 0 6px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Suivi du colis' : 'Parcel tracking'}</p>
+            <p style="margin:0;font-size:13px;color:#1a1a2e;line-height:1.7">${carrierName(order.carrier) ? `${carrierName(order.carrier)}<br>` : ''}<strong>${order.tracking_number}</strong></p>
+            ${trkUrl ? `<a href="${trkUrl}" style="display:inline-block;margin-top:12px;background:#043672;color:#fff;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:12px 24px;text-decoration:none">${isFr ? 'Suivre mon colis' : 'Track my parcel'} &rarr;</a>` : ''}
+          </td></tr>
+        </table>
+      </td></tr>`
     : ''
 
-  const body = kind === 'payment'
-    ? (isFr
-        ? `<p>Bonjour ${order.first_name},</p><p>Nous confirmons la réception de votre paiement pour la commande <strong>${reference}</strong>. Votre pièce est en préparation.</p>`
-        : `<p>Hello ${order.first_name},</p><p>We confirm receipt of your payment for order <strong>${reference}</strong>. Your piece is being prepared.</p>`)
-    : (isFr
-        ? `<p>Bonjour ${order.first_name},</p><p>Votre commande <strong>${reference}</strong> a été expédiée.</p>${trkLine}`
-        : `<p>Hello ${order.first_name},</p><p>Your order <strong>${reference}</strong> has shipped.</p>${trkLine}`)
+  const html = `
+<!DOCTYPE html>
+<html lang="${order.lang}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#ede8df;font-family:Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.08);max-width:580px;width:100%">
+        <!-- Header -->
+        <tr><td style="background:#043672;padding:40px;text-align:center">
+          <p style="margin:0 0 14px;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:#d4aa6a">${eyebrow}</p>
+          <h1 style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:3px">Maison Locht</h1>
+          <p style="margin:8px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4)">${reference}</p>
+        </td></tr>
+        <!-- Corps -->
+        <tr><td style="padding:36px 40px 24px">
+          <p style="margin:0;font-family:Georgia,serif;font-size:22px;font-weight:300;font-style:italic;color:#043672">${greeting}</p>
+          <p style="margin:12px 0 0;font-size:13px;line-height:1.8;color:#7a7a8a">${intro}</p>
+        </td></tr>
+        ${trackingBlock}
+        <!-- Suivi en ligne -->
+        <tr><td style="padding:16px 40px 28px;text-align:center">
+          <a href="${siteUrl}/commande/${reference}" style="display:inline-block;border:1px solid rgba(4,54,114,0.2);color:#043672;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:13px 28px;text-decoration:none">${isFr ? 'Voir ma commande' : 'View my order'} &rarr;</a>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="padding:24px 40px;background:#021f45;text-align:center">
+          <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">${isFr ? 'Pièce unique · ni reprise ni échange · ajustements possibles' : 'One-of-a-kind · no returns or exchanges · adjustments available'}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
 
   try {
-    await resend.emails.send({
-      from: 'Maison Locht <onboarding@resend.dev>',
-      to,
-      subject,
-      html: `<div style="font-family:Helvetica,Arial,sans-serif;color:#1a1a2e;font-size:14px;line-height:1.7">${body}<p style="margin-top:24px;font-size:11px;color:#7a7a8a">Maison Locht · Pièces uniques, jamais reproduites</p></div>`,
-    })
+    await resend.emails.send({ from: 'Maison Locht <onboarding@resend.dev>', to, subject, html })
   } catch (e) {
     console.error('[sendStatusEmail]', e)
     throw new Error('Échec envoi email')

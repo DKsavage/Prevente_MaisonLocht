@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, type OrderStatus } from '@/app/admin/actions'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
 
@@ -70,7 +71,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 const ALL_STATUS: OrderStatus[] = ['pending', 'payment_received', 'confirmed', 'shipped', 'cancelled']
 
 export default function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
-  const [orders] = useState(initialOrders)
+  const orders = initialOrders
   const [filter, setFilter] = useState<'all' | OrderStatus | 'late'>('all')
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -151,6 +152,7 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
 }
 
 function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boolean; onToggle: () => void }) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [tracking, setTracking] = useState(order.tracking_number ?? '')
   const [carrier, setCarrier] = useState(order.carrier ?? '')
@@ -169,6 +171,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const saveNotes = () => {
     startTransition(async () => {
       await updateNotes(order.reference, notes)
+      router.refresh()
       setMsg('Note enregistrée')
       setTimeout(() => setMsg(null), 2000)
     })
@@ -177,6 +180,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const changeStatus = (status: OrderStatus) => {
     startTransition(async () => {
       await updateOrderStatus(order.reference, status)
+      router.refresh()
       setMsg('Statut mis à jour')
       setTimeout(() => setMsg(null), 2000)
     })
@@ -185,6 +189,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const saveTracking = () => {
     startTransition(async () => {
       await updateTracking(order.reference, tracking, carrier)
+      router.refresh()
       setMsg('Suivi enregistré')
       setTimeout(() => setMsg(null), 2000)
     })
