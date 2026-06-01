@@ -7,6 +7,7 @@ import { resend } from '@/lib/resend'
 import { carrierName, trackingUrl } from '@/lib/carriers'
 import { buildConfirmationEmail } from '@/lib/email-confirmation'
 import { pieceNum } from '@/lib/models'
+import { EMAIL_FROM } from '@/lib/email-from'
 
 // Vérifie qu'un admin est connecté avant toute mutation
 async function requireAdmin() {
@@ -151,7 +152,7 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
 </html>`
 
   try {
-    await resend.emails.send({ from: 'Maison Locht <onboarding@resend.dev>', to, subject, html })
+    await resend.emails.send({ from: EMAIL_FROM, to, subject, html })
   } catch (e) {
     console.error('[sendStatusEmail]', e)
     throw new Error('Échec envoi email')
@@ -182,7 +183,7 @@ export async function resendConfirmation(reference: string) {
 
   try {
     await resend.emails.send({
-      from: 'Maison Locht <onboarding@resend.dev>',
+      from: EMAIL_FROM,
       to,
       subject: order.lang === 'fr' ? `Maison Locht — Votre commande ${reference}` : `Maison Locht — Your order ${reference}`,
       html: buildConfirmationEmail({

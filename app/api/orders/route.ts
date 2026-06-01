@@ -6,6 +6,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
 import { buildConfirmationEmail } from '@/lib/email-confirmation'
 import { getPaymentMethod, generateInteracAnswer } from '@/lib/payment'
+import { EMAIL_FROM } from '@/lib/email-from'
 
 // Libère des pièces réservées (rollback si la commande échoue)
 async function releasePieces(supabase: SupabaseClient, ids: string[]) {
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
     // Mode test : si RESEND_TEST_EMAIL est défini, tous les emails y sont redirigés.
     // Expéditeur — onboarding@resend.dev tant que maisonlocht.com n'est pas vérifié.
     // Quand le domaine est vérifié dans Resend, remplacer par 'Maison Locht <Ml@maisonlocht.com>'.
-    const FROM = 'Maison Locht <onboarding@resend.dev>'
+    const FROM = EMAIL_FROM
     const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
     const toEmail   = testEmail || data.email
     // URL absolue pour les images de l'email (les chemins relatifs ne marchent pas en email)
