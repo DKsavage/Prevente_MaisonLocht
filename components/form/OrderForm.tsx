@@ -14,18 +14,36 @@ const copy = {
   fr: {
     eyebrow: 'Pré-vente', title: 'Commander',
     steps: ['Sélection', 'Informations', 'Confirmation'],
-    successTitle: 'Commande reçue',
-    successSub: 'Vérifiez votre boîte mail — les instructions de paiement vous ont été envoyées.',
+    successEyebrow: 'Commande confirmée',
+    successTitle: 'Merci.',
+    successSub: 'Votre pièce vous attend. Conservez votre référence — elle vous suit jusqu\'à la livraison.',
     refLabel: 'Votre référence',
+    copied: 'Copié',
+    copy: 'Copier',
+    nextTitle: 'Les prochaines étapes',
+    nextSteps: [
+      { n: '01', label: 'Courriel envoyé', desc: 'Les instructions de virement Interac sont dans votre boîte mail.' },
+      { n: '02', label: 'Virement Interac', desc: 'Effectuez le paiement à Ml@maisonlocht.com avec votre référence en message.' },
+      { n: '03', label: 'Confirmation', desc: 'Dès réception, votre commande est confirmée et préparée à la main.' },
+    ],
     trackCta: 'Suivre ma commande',
     newOrder: 'Nouvelle commande',
   },
   en: {
     eyebrow: 'Pre-sale', title: 'Order',
     steps: ['Selection', 'Information', 'Confirmation'],
-    successTitle: 'Order received',
-    successSub: 'Check your inbox — payment instructions have been sent to you.',
+    successEyebrow: 'Order confirmed',
+    successTitle: 'Thank you.',
+    successSub: 'Your piece awaits. Keep your reference — it follows you all the way to delivery.',
     refLabel: 'Your reference',
+    copied: 'Copied',
+    copy: 'Copy',
+    nextTitle: 'Next steps',
+    nextSteps: [
+      { n: '01', label: 'Email sent', desc: 'Interac transfer instructions are in your inbox.' },
+      { n: '02', label: 'Interac transfer', desc: 'Send payment to Ml@maisonlocht.com with your reference as the message.' },
+      { n: '03', label: 'Confirmation', desc: 'Upon receipt, your order is confirmed and hand-prepared.' },
+    ],
     trackCta: 'Track my order',
     newOrder: 'New order',
   },
@@ -41,6 +59,7 @@ export default function OrderForm() {
   const [loading, setLoading]       = useState(false)
   const [reference, setReference]   = useState<string | null>(null)
   const [error, setError]           = useState<string | null>(null)
+  const [copied, setCopied]         = useState(false)
 
   const update = (d: Partial<OrderFormData>) => setData(prev => ({ ...prev, ...d }))
 
@@ -86,22 +105,100 @@ export default function OrderForm() {
   if (reference) {
     return (
       <motion.div
-        className="text-center flex flex-col items-center gap-6 py-8"
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease }}
+        className="flex flex-col items-center gap-10 py-4"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease }}
       >
-        <span className="text-[#b8965a] text-2xl">✦</span>
-        <div>
-          <h3 className="font-display text-[32px] font-light text-[#043672] mb-2">{t.successTitle}</h3>
-          <p className="text-[13px] text-[#7a7a8a] font-light max-w-[400px] mx-auto leading-relaxed">{t.successSub}</p>
-        </div>
+        {/* En-tête cérémonial */}
+        <motion.div
+          className="flex flex-col items-center text-center gap-4"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1, ease }}
+        >
+          {/* Sceau animé */}
+          <motion.div
+            className="relative w-16 h-16 flex items-center justify-center"
+            initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
+          >
+            <span className="absolute inset-0 rounded-full border border-[#b8965a]/40" />
+            <span className="absolute inset-2 rounded-full border border-[#b8965a]/20" />
+            <span className="text-[#b8965a] text-xl">✦</span>
+          </motion.div>
 
-        <div className="bg-[#043672] px-10 py-6 text-center" style={{ animation: 'badge-glow 2.8s ease-in-out infinite' }}>
-          <span className="text-label text-[8px] text-white/40 tracking-[3px] block mb-2">{t.refLabel}</span>
-          <span className="font-display text-[32px] font-light text-white tracking-[4px]">{reference}</span>
-        </div>
+          <span className="text-label text-[9px] text-[#b8965a] tracking-[5px]">{t.successEyebrow}</span>
+          <h3 className="font-display text-[44px] md:text-[52px] font-light italic text-[#043672] leading-none">{t.successTitle}</h3>
+          <p className="text-[13px] text-[#7a7a8a] font-light max-w-[420px] leading-relaxed">{t.successSub}</p>
+        </motion.div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-2">
+        {/* Bloc référence — copiable */}
+        <motion.div
+          className="relative w-full max-w-[400px]"
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4, ease }}
+        >
+          <div
+            className="relative bg-[#043672] overflow-hidden px-8 py-7 text-center"
+            data-theme="dark"
+            style={{ animation: 'badge-glow 3s ease-in-out infinite' }}
+          >
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.15)_0%,transparent_70%)] pointer-events-none" />
+            <span className="text-label text-[8px] text-white/40 tracking-[4px] block mb-3 relative">{t.refLabel}</span>
+            <span
+              className="font-display text-[34px] md:text-[38px] font-light text-white tracking-[4px] block relative"
+              style={{
+                background: 'linear-gradient(90deg,#fff 30%,#d4aa6a 50%,#fff 70%)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text', animation: 'shimmer-sweep 2.5s ease-in-out 1',
+              }}
+            >
+              {reference}
+            </span>
+            {/* Bouton copier */}
+            <button
+              onClick={() => { navigator.clipboard.writeText(reference); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+              className="mt-4 text-label text-[8px] text-[#d4aa6a] tracking-[3px] border border-[#b8965a]/30 hover:border-[#b8965a] px-4 py-2 transition-colors duration-200 cursor-none relative inline-flex items-center gap-2"
+              data-cursor="hover"
+            >
+              {copied ? `✓ ${t.copied}` : t.copy}
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Prochaines étapes */}
+        <motion.div
+          className="w-full max-w-[460px] flex flex-col gap-4"
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.55, ease }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="w-1 h-3 bg-[#b8965a]/60" />
+            <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.nextTitle}</span>
+            <span className="flex-1 h-px bg-[#043672]/06" />
+          </div>
+          {t.nextSteps.map((s, i) => (
+            <motion.div
+              key={s.n}
+              className="flex gap-4 items-start"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.65 + i * 0.12, ease }}
+            >
+              <span className="font-display text-[18px] font-light text-[#b8965a] leading-none pt-0.5 flex-shrink-0">{s.n}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-label text-[8px] text-[#043672] tracking-[2px]">{s.label}</span>
+                <span className="text-[12px] text-[#7a7a8a] font-light leading-relaxed">{s.desc}</span>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Actions */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center gap-4 pt-2"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 1.0 }}
+        >
           <a
             href={`/commande/${reference}`}
             className="group relative inline-flex items-center justify-center gap-3 bg-[#043672] text-white overflow-hidden px-8 py-4 cursor-none"
@@ -118,7 +215,7 @@ export default function OrderForm() {
           >
             {t.newOrder}
           </button>
-        </div>
+        </motion.div>
       </motion.div>
     )
   }

@@ -42,11 +42,14 @@ export async function POST(req: NextRequest) {
 
     if (!inserted) throw new Error('Impossible de générer une référence unique')
 
-    // Email client — non-bloquant : une commande reste valide même si l'email échoue
+    // Email client — non-bloquant : une commande reste valide même si l'email échoue.
+    // Mode test : si RESEND_TEST_EMAIL est défini, tous les emails y sont redirigés.
+    const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').trim()
+    const toEmail   = testEmail || data.email
     try {
       await resend.emails.send({
-        from: (process.env.RESEND_FROM ?? 'onboarding@resend.dev').replace(/\s+$/, ''),
-        to:   data.email,
+        from: (process.env.RESEND_FROM ?? 'onboarding@resend.dev').trim(),
+        to:   toEmail,
         subject: data.lang === 'fr'
           ? `Maison Locht — Votre commande ${reference}`
           : `Maison Locht — Your order ${reference}`,
