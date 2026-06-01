@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import type { OrderFormData } from '@/lib/schemas'
 import type { SelectedPiece } from './FormStep1'
 import { COUNTRIES } from '@/lib/countries'
+import { getPaymentMethod } from '@/lib/payment'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -46,6 +47,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
   const t = copy[lang]
   const countryName = COUNTRIES.find(c => c.code === data.country)
   const countryLabel = countryName ? (lang === 'fr' ? countryName.name : countryName.nameEn) : data.country
+  const payMethod = getPaymentMethod(data.country ?? '')
 
   return (
     <motion.div
@@ -148,11 +150,15 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
         </div>
       </div>
 
-      {/* ── Paiement ── */}
+      {/* ── Paiement (adapté au pays) ── */}
       <div className="bg-[#b8965a]/06 border border-[#b8965a]/20 p-5 flex gap-4">
         <span className="text-[#b8965a] text-lg flex-shrink-0 mt-0.5">✦</span>
         <div>
-          <p className="text-label text-[9px] text-[#043672] tracking-[3px] mb-1.5">{t.paymentTitle}</p>
+          <p className="text-label text-[9px] text-[#043672] tracking-[3px] mb-1.5">
+            {payMethod === 'interac'
+              ? (lang === 'fr' ? 'Paiement par virement Interac' : 'Payment by Interac transfer')
+              : (lang === 'fr' ? 'Paiement par virement bancaire' : 'Payment by bank transfer')}
+          </p>
           <p className="text-[12px] text-[#7a7a8a] font-light leading-relaxed">{t.paymentDesc}</p>
         </div>
       </div>

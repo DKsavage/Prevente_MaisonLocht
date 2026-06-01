@@ -4,6 +4,7 @@ import { orderSchema } from '@/lib/schemas'
 import { generateReference } from '@/lib/generate-ref'
 import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
+import { getPaymentMethod, paymentInstructions } from '@/lib/payment'
 
 // Libère des pièces réservées (rollback si la commande échoue)
 async function releasePieces(supabase: SupabaseClient, ids: string[]) {
@@ -117,6 +118,7 @@ function buildEmailHtml({ data, reference, baseUrl }: {
 }) {
   const isFr = data.lang === 'fr'
   const pieces = data.pieces ?? []
+  const pay = paymentInstructions(getPaymentMethod(data.country ?? ''), reference, isFr ? 'fr' : 'en')
 
   // Cartes pièces avec image (URL absolue)
   const pieceRows = pieces.map(p => {
@@ -184,14 +186,18 @@ function buildEmailHtml({ data, reference, baseUrl }: {
           <p style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:4px">${reference}</p>
         </td></tr>
 
-        <!-- Instructions paiement -->
+        <!-- Instructions paiement (selon le pays) -->
         <tr><td style="padding:28px 40px;background:#f0ebe0">
-          <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Paiement par virement Interac' : 'Payment by Interac transfer'}</p>
-          <p style="margin:0 0 10px;font-size:13px;color:#1a1a2e;line-height:1.8">${isFr
-            ? `Effectuez un <strong>virement Interac</strong> à <strong>Ml@maisonlocht.com</strong> en indiquant la référence <strong>${reference}</strong> dans le message.`
-            : `Send an <strong>Interac transfer</strong> to <strong>Ml@maisonlocht.com</strong> with reference <strong>${reference}</strong> in the message.`
-          }</p>
-          <p style="margin:0;font-size:12px;color:#7a7a8a">${isFr
+          <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${pay.title}</p>
+          ${pay.lines.map(l => `<p style="margin:0 0 10px;font-size:13px;color:#1a1a2e;line-height:1.8">${l}</p>`).join('')}
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 4px">
+            ${pay.fields.map(f => `
+              <tr>
+                <td style="font-size:11px;color:#7a7a8a;padding:3px 0">${f.label}</td>
+                <td style="font-size:13px;color:#043672;text-align:right;padding:3px 0;font-weight:600">${f.value}</td>
+              </tr>`).join('')}
+          </table>
+          <p style="margin:8px 0 0;font-size:12px;color:#7a7a8a">${isFr
             ? 'Votre commande sera confirmée dès réception du paiement.'
             : 'Your order will be confirmed upon receipt of payment.'}</p>
         </td></tr>

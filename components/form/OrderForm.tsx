@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLang } from '@/components/landing/LangContext'
 import FormStep1, { type SelectedPiece } from './FormStep1'
+import { getPaymentMethod, INTERAC_EMAIL, BANK_DETAILS } from '@/lib/payment'
 import FormStep2 from './FormStep2'
 import FormStep3 from './FormStep3'
 import type { OrderFormData } from '@/lib/schemas'
@@ -117,6 +118,21 @@ export default function OrderForm() {
 
   // ── Succès ────────────────────────────────────────────────
   if (reference) {
+    // Étape paiement adaptée au pays
+    const method = getPaymentMethod(data.country ?? '')
+    const payDesc = method === 'interac'
+      ? (lang === 'fr'
+          ? `Effectuez le paiement à ${INTERAC_EMAIL} avec votre référence en message.`
+          : `Send payment to ${INTERAC_EMAIL} with your reference as the message.`)
+      : (lang === 'fr'
+          ? `Effectuez un virement bancaire (IBAN ${BANK_DETAILS.iban}) avec votre référence en communication.`
+          : `Make a bank transfer (IBAN ${BANK_DETAILS.iban}) with your reference in the description.`)
+    const payLabel = method === 'interac'
+      ? (lang === 'fr' ? 'Virement Interac' : 'Interac transfer')
+      : (lang === 'fr' ? 'Virement bancaire' : 'Bank transfer')
+    const nextSteps = t.nextSteps.map((s, i) =>
+      i === 1 ? { ...s, label: payLabel, desc: payDesc } : s
+    )
     return (
       <motion.div
         className="flex flex-col items-center gap-10 py-4"
@@ -191,7 +207,7 @@ export default function OrderForm() {
             <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.nextTitle}</span>
             <span className="flex-1 h-px bg-[#043672]/06" />
           </div>
-          {t.nextSteps.map((s, i) => (
+          {nextSteps.map((s, i) => (
             <motion.div
               key={s.n}
               className="flex gap-4 items-start"
