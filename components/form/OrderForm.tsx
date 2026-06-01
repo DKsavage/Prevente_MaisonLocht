@@ -291,7 +291,7 @@ export default function OrderForm() {
         <motion.div key={step} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.35, ease }}>
           {step === 0 && <FormStep1 data={data} selections={selections} lang={lang} onChange={update} onSelectionsChange={setSelections} onNext={() => setStep(1)} />}
           {step === 1 && <FormStep2 data={data} lang={lang} onChange={update} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
-          {step === 2 && <FormStep3 data={data} selections={selections} lang={lang} loading={loading} onBack={() => setStep(1)} onSubmit={submit} />}
+          {step === 2 && <FormStep3 data={data} selections={selections} lang={lang} loading={loading} onBack={() => setStep(1)} onSubmit={submit} onEdit={(s) => setStep(s)} />}
         </motion.div>
       </AnimatePresence>
     </div>

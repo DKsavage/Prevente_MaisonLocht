@@ -41,9 +41,12 @@ type Props = {
   loading: boolean
   onBack: () => void
   onSubmit: () => void
+  onEdit: (step: number) => void
 }
 
-export default function FormStep3({ data, selections, lang, loading, onBack, onSubmit }: Props) {
+const editLabel = (lang: 'fr' | 'en') => (lang === 'fr' ? 'Modifier' : 'Edit')
+
+export default function FormStep3({ data, selections, lang, loading, onBack, onSubmit, onEdit }: Props) {
   const t = copy[lang]
   const countryName = COUNTRIES.find(c => c.code === data.country)
   const countryLabel = countryName ? (lang === 'fr' ? countryName.name : countryName.nameEn) : data.country
@@ -66,6 +69,10 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
           <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
           <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.pieces}</span>
           <span className="flex-1 h-px bg-[#043672]/06" />
+          <button onClick={() => onEdit(0)} data-cursor="hover"
+            className="text-label text-[8px] text-[#7a7a8a] hover:text-[#b8965a] tracking-[2px] transition-colors cursor-none">
+            {editLabel(lang)}
+          </button>
         </div>
 
         <div className={`grid gap-5 ${selections.length === 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-[300px] mx-auto md:mx-0'}`}>
@@ -131,7 +138,17 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
       </div>
 
       {/* ── Livraison ── */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
+          <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.delivery}</span>
+          <span className="flex-1 h-px bg-[#043672]/06" />
+          <button onClick={() => onEdit(1)} data-cursor="hover"
+            className="text-label text-[8px] text-[#7a7a8a] hover:text-[#b8965a] tracking-[2px] transition-colors cursor-none">
+            {editLabel(lang)}
+          </button>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6">
         <div className="flex flex-col gap-3">
           <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{t.recipient}</span>
           <div className="flex flex-col gap-1.5">
@@ -141,12 +158,13 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{t.delivery}</span>
+          <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{lang === 'fr' ? 'Adresse' : 'Address'}</span>
           <div className="flex flex-col gap-0.5 text-[12px] text-[#7a7a8a] font-light leading-relaxed">
             <span className="text-[#043672] text-[13px]">{data.address}</span>
             <span>{data.city}{data.province ? `, ${data.province}` : ''} {data.postalCode}</span>
             <span className="text-[#043672]">{countryLabel}</span>
           </div>
+        </div>
         </div>
       </div>
 
