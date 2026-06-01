@@ -5,4 +5,4 @@
 //
 // Une fois maisonlocht.com vérifié sur le compte Resend dont la clé est
 // utilisée → remplacer par :  'Maison Locht <ml@maisonlocht.com>'
-export const EMAIL_FROM = 'Maison Locht <onboarding@resend.dev>'
+export const EMAIL_FROM = 'Maison Locht <ml@maisonlocht.com>'
