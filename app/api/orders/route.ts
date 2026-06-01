@@ -107,8 +107,9 @@ export async function POST(req: NextRequest) {
     const toEmail   = testEmail || data.email
     // URL absolue pour les images de l'email (les chemins relatifs ne marchent pas en email)
     const baseUrl   = (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\s/g, '') || req.nextUrl.origin).replace(/\/$/, '')
+    let mailDebug: unknown = 'ok'
     try {
-      await resend.emails.send({
+      const { data: md, error: me } = await resend.emails.send({
         from: FROM,
         to:   toEmail,
         subject: data.lang === 'fr'
@@ -116,8 +117,13 @@ export async function POST(req: NextRequest) {
           : `Maison Locht — Your order ${reference}`,
         html: buildConfirmationEmail({ data: { ...data, interacAnswer: interacAnswer ?? undefined }, reference, baseUrl }),
       })
+      mailDebug = me ? { error: me, from: FROM, to: toEmail } : { id: md?.id, from: FROM, to: toEmail }
     } catch (mailErr) {
       console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
+      mailDebug = { thrown: mailErr instanceof Error ? mailErr.message : String(mailErr) }
+    }
+    if (req.nextUrl.searchParams.get('debug') === '1') {
+      return NextResponse.json({ reference, mail: mailDebug }, { status: 201 })
     }
 
     // ── Notification interne à la designeuse (nouvelle commande) ──
