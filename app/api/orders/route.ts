@@ -46,8 +46,9 @@ export async function POST(req: NextRequest) {
     // Mode test : si RESEND_TEST_EMAIL est défini, tous les emails y sont redirigés.
     const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').trim()
     const toEmail   = testEmail || data.email
+    let mailStatus: unknown = 'sent'
     try {
-      await resend.emails.send({
+      const { data: mData, error: mErr } = await resend.emails.send({
         from: (process.env.RESEND_FROM ?? 'onboarding@resend.dev').trim(),
         to:   toEmail,
         subject: data.lang === 'fr'
@@ -55,11 +56,14 @@ export async function POST(req: NextRequest) {
           : `Maison Locht — Your order ${reference}`,
         html: buildEmailHtml({ data, reference }),
       })
+      if (mErr) mailStatus = { error: mErr }
+      else mailStatus = { id: mData?.id, to: toEmail }
     } catch (mailErr) {
-      console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
+      console.error('[orders POST] email failed', mailErr)
+      mailStatus = { thrown: mailErr instanceof Error ? mailErr.message : String(mailErr) }
     }
 
-    return NextResponse.json({ reference }, { status: 201 })
+    return NextResponse.json({ reference, mail: mailStatus }, { status: 201 })
 
   } catch (err) {
     console.error('[orders POST]', err)
