@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase-server'
 import { COUNTRIES } from '@/lib/countries'
 import { carrierName, trackingUrl } from '@/lib/carriers'
+import AutoRefresh from '@/components/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
 
@@ -96,6 +97,8 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
 
   return (
     <main className="min-h-screen bg-[#ede8df] py-12 px-6">
+      {/* Rafraîchit le statut automatiquement (sauf si terminé/annulé) */}
+      {!isCancelled && order.status !== 'shipped' && <AutoRefresh seconds={30} />}
       <div className="max-w-[560px] mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
