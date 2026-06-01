@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { motion, useInView } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import { useLang } from './LangContext'
+import { fetchPieces } from '@/lib/models'
 
 const content = {
   fr: {
@@ -15,7 +16,7 @@ const content = {
     tag: 'Pièce unique · jamais reproduite',
     cta: 'Découvrir la collection',
     pulse: 'Pré-vente ouverte',
-    badgeTxt: 'pièces uniques',
+    badgeTxt: 'pièces disponibles',
     floatTag: 'Canada · 2026',
   },
   en: {
@@ -27,7 +28,7 @@ const content = {
     tag: 'One-of-a-kind · never reproduced',
     cta: 'Discover the collection',
     pulse: 'Pre-sale open',
-    badgeTxt: 'unique pieces',
+    badgeTxt: 'pieces available',
     floatTag: 'Canada · 2026',
   },
 }
@@ -70,7 +71,12 @@ function useCountUp(target: number, duration = 1400) {
 export default function Hero() {
   const { lang } = useLang()
   const t = content[lang]
-  const { count, done, ref: badgeRef } = useCountUp(19)
+  // Nombre réel de pièces disponibles depuis la DB (baisse à chaque vente)
+  const [available, setAvailable] = useState(0)
+  useEffect(() => {
+    fetchPieces().then(pcs => setAvailable(pcs.filter(p => p.status === 'available').length))
+  }, [])
+  const { count, done, ref: badgeRef } = useCountUp(available)
   const [hovered, setHovered] = useState(false)
 
   return (

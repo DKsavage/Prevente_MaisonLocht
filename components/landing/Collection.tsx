@@ -42,7 +42,7 @@ const copy = {
     dimensions: 'Dimensions', format: 'Format', piece: 'Pièce',
     strip: [
       { label: 'Pièces uniques', sub: 'jamais reproduites' },
-      { label: 'Canada uniquement', sub: 'livraison printemps 2026' },
+      { label: 'Livraison mondiale', sub: 'printemps 2026' },
       { label: 'Max 2 par commande', sub: 'cuir végétal · batik · fouta' },
     ],
   },
@@ -54,7 +54,7 @@ const copy = {
     dimensions: 'Dimensions', format: 'Size', piece: 'Piece',
     strip: [
       { label: 'Unique pieces', sub: 'never reproduced' },
-      { label: 'Canada only', sub: 'spring 2026 delivery' },
+      { label: 'Worldwide delivery', sub: 'spring 2026' },
       { label: 'Max 2 per order', sub: 'vegetable leather · batik · fouta' },
     ],
   },

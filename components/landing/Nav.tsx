@@ -9,14 +9,14 @@ const content = {
   fr: {
     announcement: 'Pré-vente exclusive',
     label: 'LOCHT 01 · LES CERNES',
-    note: 'Canada uniquement · Pièces uniques',
+    note: 'Pièces uniques · jamais reproduites',
     links: [{ label: 'Collection', href: '#collection' }, { label: 'Histoire', href: '#histoire' }, { label: 'Commander', href: '#commander' }],
     lang: 'EN',
   },
   en: {
     announcement: 'Exclusive pre-sale',
     label: 'LOCHT 01 · LES CERNES',
-    note: 'Canada only · One-of-a-kind pieces',
+    note: 'One-of-a-kind · never reproduced',
     links: [{ label: 'Collection', href: '#collection' }, { label: 'Story', href: '#histoire' }, { label: 'Order', href: '#commander' }],
     lang: 'FR',
   },
