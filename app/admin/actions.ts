@@ -10,6 +10,11 @@ async function requireAdmin() {
   const auth = await createAuthClient()
   const { data: { user } } = await auth.auth.getUser()
   if (!user) throw new Error('Non autorisé')
+  // Liste blanche optionnelle
+  const allowlist = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+  if (allowlist.length > 0 && !allowlist.includes((user.email ?? '').toLowerCase())) {
+    throw new Error('Non autorisé')
+  }
   return user
 }
 

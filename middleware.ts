@@ -29,12 +29,18 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isLogin = path === '/admin/login'
 
+  // Liste blanche optionnelle (ADMIN_EMAILS="a@x.com,b@y.com")
+  const allowlist = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+  const isAllowed = !user ? false
+    : allowlist.length === 0 ? true
+    : allowlist.includes((user.email ?? '').toLowerCase())
+
   // Protège /admin sauf la page de login
-  if (path.startsWith('/admin') && !isLogin && !user) {
+  if (path.startsWith('/admin') && !isLogin && !isAllowed) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
-  // Déjà connecté → éviter la page de login
-  if (isLogin && user) {
+  // Déjà connecté et autorisé → éviter la page de login
+  if (isLogin && isAllowed) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
