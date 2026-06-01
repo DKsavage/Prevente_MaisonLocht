@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createAuthClient } from '@/lib/supabase-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import AdminShell from '@/components/admin/AdminShell'
+import AutoRefresh from '@/components/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +39,7 @@ export default async function AdminHomePage() {
 
   return (
     <AdminShell email={user?.email}>
+      <AutoRefresh seconds={30} />
       <div className="flex flex-col gap-8">
         <h1 className="font-display text-[32px] font-light text-[#043672]">Accueil</h1>
 
