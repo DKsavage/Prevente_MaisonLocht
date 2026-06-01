@@ -129,16 +129,25 @@ export async function reassignPiece(pieceId: string, model: 'kouna' | 'kami' | '
   revalidatePath('/')
 }
 
-// Upload une image vers Supabase Storage → retourne l'URL publique
+// Upload une image vers Supabase Storage (compressée) → retourne l'URL publique
 async function uploadImage(file: File, keyHint: string): Promise<string> {
   const supabase = createServerClient()
-  const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase()
-  const path = `${keyHint}-${Date.now()}.${ext}`
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const { error } = await supabase.storage.from('bags').upload(path, buffer, {
-    contentType: file.type || 'image/jpeg',
-    upsert: true,
-  })
+  const raw = Buffer.from(await file.arrayBuffer())
+
+  // Compression : redimensionne à 1600px + JPEG qualité 80 (cohérent avec le site)
+  let out: Uint8Array = raw
+  let contentType = file.type || 'image/jpeg'
+  try {
+    const sharp = (await import('sharp')).default
+    out = await sharp(raw).rotate().resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80, mozjpeg: true }).toBuffer()
+    contentType = 'image/jpeg'
+  } catch {
+    // sharp indisponible → upload brut
+  }
+
+  const path = `${keyHint}-${Date.now()}.jpg`
+  const { error } = await supabase.storage.from('bags').upload(path, out, { contentType, upsert: true })
   if (error) throw error
   return supabase.storage.from('bags').getPublicUrl(path).data.publicUrl
 }
