@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
     if (err instanceof Error && err.name === 'ZodError') {
       return NextResponse.json({ error: 'Données invalides' }, { status: 400 })
     }
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    const detail = err instanceof Error ? err.message : JSON.stringify(err)
+    return NextResponse.json({ error: 'Erreur serveur', detail }, { status: 500 })
   }
 }
 
