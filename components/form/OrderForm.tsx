@@ -267,23 +267,25 @@ export default function OrderForm() {
       </div>
 
       {/* Indicateur de progression */}
-      <div className="flex items-center gap-0">
+      <div className="flex items-center">
         {t.steps.map((label, i) => (
           <div key={i} className="flex items-center">
-            <div className="flex items-center gap-2">
-              <div className={`w-6 h-6 flex items-center justify-center text-[10px] transition-all duration-300 ${
+            <div className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-light transition-all duration-400 ease-[cubic-bezier(.16,1,.3,1)] ${
                 i < step ? 'bg-[#b8965a] text-white' :
-                i === step ? 'bg-[#043672] text-white' :
+                i === step ? 'bg-[#043672] text-white ring-2 ring-[#b8965a]/30 ring-offset-2 ring-offset-[#faf7f2]' :
                 'border border-[#043672]/20 text-[#7a7a8a]'
               }`}>
                 {i < step ? '✓' : i + 1}
               </div>
-              <span className={`text-label text-[8px] tracking-[2px] transition-colors duration-300 hidden sm:block ${i === step ? 'text-[#043672]' : 'text-[#7a7a8a]'}`}>
+              <span className={`text-label text-[8px] tracking-[2px] transition-colors duration-300 hidden sm:block ${i <= step ? 'text-[#043672]' : 'text-[#7a7a8a]/60'}`}>
                 {label}
               </span>
             </div>
             {i < t.steps.length - 1 && (
-              <div className={`w-8 md:w-12 h-px mx-2 transition-colors duration-500 ${i < step ? 'bg-[#b8965a]' : 'bg-[#043672]/15'}`} />
+              <div className="w-8 md:w-14 h-px mx-3 bg-[#043672]/12 relative overflow-hidden">
+                <div className={`absolute inset-0 bg-[#b8965a] origin-left transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] ${i < step ? 'scale-x-100' : 'scale-x-0'}`} />
+              </div>
             )}
           </div>
         ))}
@@ -291,7 +293,11 @@ export default function OrderForm() {
 
       {/* Erreur */}
       {error && (
-        <div className="bg-red-50 border border-red-200 px-4 py-3 text-[12px] text-red-600">{error}</div>
+        <motion.div
+          initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-[#b8965a]/08 border-l-2 border-[#b8965a] px-4 py-3 text-[12px] text-[#9a7a3a]">
+          {error}
+        </motion.div>
       )}
 
       {/* Étapes */}
