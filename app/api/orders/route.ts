@@ -228,11 +228,18 @@ function buildEmailHtml({ data, reference, baseUrl }: {
         </td></tr>
 
         <!-- Suivi -->
-        <tr><td style="padding:28px 40px;text-align:center">
+        <tr><td style="padding:28px 40px 16px;text-align:center">
           <a href="${baseUrl}/commande/${reference}"
             style="display:inline-block;background:#043672;color:#fff;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:15px 32px;text-decoration:none">
             ${isFr ? 'Suivre ma commande' : 'Track my order'} &rarr;
           </a>
+        </td></tr>
+
+        <!-- Vente finale -->
+        <tr><td style="padding:0 40px 24px;text-align:center">
+          <p style="margin:0;font-size:10px;color:#7a7a8a;line-height:1.7">${isFr
+            ? 'Pièce unique &middot; ni reprise ni échange. Des ajustements sur le sac restent possibles sur demande.'
+            : 'One-of-a-kind &middot; no returns or exchanges. Adjustments to the bag remain available on request.'}</p>
         </td></tr>
 
         <!-- Footer -->

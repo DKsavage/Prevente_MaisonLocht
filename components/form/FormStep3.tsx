@@ -20,6 +20,7 @@ const copy = {
     back: 'Retour', confirm: 'Confirmer la commande', loading: 'Envoi…',
     unique: 'Pièce unique · jamais reproduite',
     piece: 'Pièce', engagement: 'Chaque pièce est cousue à la main et ne sera jamais reproduite.',
+    finalSale: 'Pièce unique · ni reprise ni échange. Des ajustements sur le sac restent possibles sur demande.',
   },
   en: {
     title: 'Your order',
@@ -31,6 +32,7 @@ const copy = {
     back: 'Back', confirm: 'Confirm order', loading: 'Sending…',
     unique: 'One-of-a-kind · never reproduced',
     piece: 'Piece', engagement: 'Each piece is hand-sewn and will never be reproduced.',
+    finalSale: 'One-of-a-kind · no returns or exchanges. Adjustments to the bag remain available on request.',
   },
 }
 
@@ -180,6 +182,11 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
           <p className="text-[12px] text-[#7a7a8a] font-light leading-relaxed">{t.paymentDesc}</p>
         </div>
       </div>
+
+      {/* ── Vente finale ── */}
+      <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed flex items-center justify-center gap-1.5">
+        <span className="text-[7px] text-[#b8965a]">✦</span>{t.finalSale}
+      </p>
 
       {/* ── Navigation ── */}
       <div className="flex items-center justify-between pt-2 border-t border-[#043672]/08">
