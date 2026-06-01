@@ -89,7 +89,7 @@ export default function OrderForm() {
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, lang }),
+        body: JSON.stringify({ ...data, pieces: selections, lang }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error ?? 'Erreur')

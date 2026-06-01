@@ -49,6 +49,8 @@ export async function POST(req: NextRequest) {
     const FROM = 'Maison Locht <onboarding@resend.dev>'
     const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
     const toEmail   = testEmail || data.email
+    // URL absolue pour les images de l'email (les chemins relatifs ne marchent pas en email)
+    const baseUrl   = (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\s/g, '') || req.nextUrl.origin).replace(/\/$/, '')
     try {
       await resend.emails.send({
         from: FROM,
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest) {
         subject: data.lang === 'fr'
           ? `Maison Locht — Votre commande ${reference}`
           : `Maison Locht — Your order ${reference}`,
-        html: buildEmailHtml({ data, reference }),
+        html: buildEmailHtml({ data, reference, baseUrl }),
       })
     } catch (mailErr) {
       console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
@@ -73,77 +75,113 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function buildEmailHtml({ data, reference }: {
-  data: { firstName: string; bagName: string; quantity: number; priceTotal: number; lang: string }
+function buildEmailHtml({ data, reference, baseUrl }: {
+  data: {
+    firstName: string; bagName: string; quantity: number; priceTotal: number; lang: string
+    pieces?: { modelName: string; pieceNum: number; price: number; src: string }[]
+    address?: string; city?: string; province?: string; postalCode?: string; country?: string
+  }
   reference: string
+  baseUrl: string
 }) {
   const isFr = data.lang === 'fr'
+  const pieces = data.pieces ?? []
+
+  // Cartes pièces avec image (URL absolue)
+  const pieceRows = pieces.map(p => {
+    const num = String(p.pieceNum).padStart(2, '0')
+    const img = `${baseUrl}${p.src}`
+    return `
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px">
+        <tr>
+          <td width="92" style="vertical-align:top">
+            <img src="${img}" width="80" height="80" alt="${p.modelName}" style="display:block;width:80px;height:80px;object-fit:cover;border:1px solid rgba(4,54,114,0.1)" />
+          </td>
+          <td style="vertical-align:middle;padding-left:4px">
+            <p style="margin:0;font-family:Georgia,serif;font-size:18px;font-weight:300;color:#043672;font-style:italic">${p.modelName}</p>
+            <p style="margin:4px 0 0;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b8965a">${isFr ? 'Pièce' : 'Piece'} N°${num} &middot; ${isFr ? 'unique' : 'unique'}</p>
+          </td>
+          <td style="vertical-align:middle;text-align:right">
+            <p style="margin:0;font-family:Georgia,serif;font-size:16px;font-weight:300;color:#043672">${p.price}<span style="font-size:10px;color:#7a7a8a"> CAD</span></p>
+          </td>
+        </tr>
+      </table>`
+  }).join('')
+
+  const fullAddress = [data.address, `${data.city ?? ''}${data.province ? ', ' + data.province : ''} ${data.postalCode ?? ''}`.trim(), data.country]
+    .filter(Boolean).join('<br>')
+
   return `
 <!DOCTYPE html>
 <html lang="${data.lang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#ede8df;font-family:'DM Sans',Arial,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px">
+<body style="margin:0;padding:0;background:#ede8df;font-family:Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
     <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.08)">
+      <table width="580" cellpadding="0" cellspacing="0" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.08);max-width:580px;width:100%">
 
         <!-- Header bleu -->
-        <tr><td style="background:#043672;padding:32px 40px;text-align:center">
-          <p style="margin:0;font-size:11px;letter-spacing:6px;text-transform:uppercase;color:rgba(255,255,255,0.5)">${isFr ? 'Confirmation de commande' : 'Order confirmation'}</p>
-          <h1 style="margin:12px 0 0;font-family:Georgia,serif;font-size:28px;font-weight:300;color:#fff;letter-spacing:2px">Maison Locht</h1>
+        <tr><td style="background:#043672;padding:40px;text-align:center">
+          <p style="margin:0 0 14px;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:#d4aa6a">${isFr ? 'Commande confirmée' : 'Order confirmed'}</p>
+          <h1 style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:3px">Maison Locht</h1>
+          <p style="margin:8px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4)">LOCHT 01 &middot; Les Cernes</p>
         </td></tr>
 
-        <!-- Code référence -->
-        <tr><td style="padding:36px 40px;text-align:center;border-bottom:1px solid rgba(4,54,114,0.06)">
-          <p style="margin:0 0 8px;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#b8965a">${isFr ? 'Votre référence' : 'Your reference'}</p>
-          <p style="margin:0;font-family:Georgia,serif;font-size:36px;font-weight:300;color:#043672;letter-spacing:4px">${reference}</p>
-          <p style="margin:10px 0 0;font-size:11px;color:#7a7a8a">${isFr ? 'Conservez ce code — il vous permettra de suivre votre commande.' : 'Keep this code — you will use it to track your order.'}</p>
+        <!-- Salutation -->
+        <tr><td style="padding:36px 40px 20px">
+          <p style="margin:0;font-family:Georgia,serif;font-size:22px;font-weight:300;font-style:italic;color:#043672">${isFr ? `Merci, ${data.firstName}.` : `Thank you, ${data.firstName}.`}</p>
+          <p style="margin:12px 0 0;font-size:13px;line-height:1.8;color:#7a7a8a">${isFr
+            ? 'Votre pièce vous attend. Voici le récapitulatif de votre commande.'
+            : 'Your piece awaits. Here is your order summary.'}</p>
         </td></tr>
 
-        <!-- Résumé -->
-        <tr><td style="padding:28px 40px;border-bottom:1px solid rgba(4,54,114,0.06)">
-          <p style="margin:0 0 16px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Résumé' : 'Summary'}</p>
-          <table width="100%" cellpadding="0" cellspacing="0">
+        <!-- Pièces -->
+        <tr><td style="padding:0 40px 24px">
+          <p style="margin:0 0 16px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Vos pièces' : 'Your pieces'}</p>
+          ${pieceRows}
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-top:2px solid rgba(4,54,114,0.1)">
             <tr>
-              <td style="font-size:13px;color:#7a7a8a;padding-bottom:8px">${isFr ? 'Sac' : 'Bag'}</td>
-              <td style="font-size:13px;color:#043672;text-align:right;padding-bottom:8px">${data.bagName}</td>
-            </tr>
-            <tr>
-              <td style="font-size:13px;color:#7a7a8a;padding-bottom:8px">${isFr ? 'Quantité' : 'Quantity'}</td>
-              <td style="font-size:13px;color:#043672;text-align:right;padding-bottom:8px">${data.quantity}</td>
-            </tr>
-            <tr>
-              <td style="font-size:15px;font-weight:600;color:#043672;padding-top:8px;border-top:1px solid rgba(4,54,114,0.06)">${isFr ? 'Total' : 'Total'}</td>
-              <td style="font-size:15px;font-weight:600;color:#043672;text-align:right;padding-top:8px;border-top:1px solid rgba(4,54,114,0.06)">${data.priceTotal} CAD</td>
+              <td style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#043672;padding-top:14px">${isFr ? 'Total' : 'Total'}</td>
+              <td style="text-align:right;font-family:Georgia,serif;font-size:24px;font-weight:300;color:#043672;padding-top:14px">${data.priceTotal}<span style="font-size:12px;color:#7a7a8a"> CAD</span></td>
             </tr>
           </table>
         </td></tr>
 
+        <!-- Référence -->
+        <tr><td style="padding:28px 40px;background:#043672;text-align:center">
+          <p style="margin:0 0 8px;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4)">${isFr ? 'Votre référence' : 'Your reference'}</p>
+          <p style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:4px">${reference}</p>
+        </td></tr>
+
         <!-- Instructions paiement -->
         <tr><td style="padding:28px 40px;background:#f0ebe0">
-          <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Instructions de paiement' : 'Payment instructions'}</p>
+          <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Paiement par virement Interac' : 'Payment by Interac transfer'}</p>
           <p style="margin:0 0 10px;font-size:13px;color:#1a1a2e;line-height:1.8">${isFr
-            ? `Veuillez effectuer un <strong>virement Interac</strong> à l'adresse <strong>Ml@maisonlocht.com</strong> avec la référence <strong>${reference}</strong> en message.`
-            : `Please send an <strong>Interac transfer</strong> to <strong>Ml@maisonlocht.com</strong> with reference <strong>${reference}</strong> as the message.`
+            ? `Effectuez un <strong>virement Interac</strong> à <strong>Ml@maisonlocht.com</strong> en indiquant la référence <strong>${reference}</strong> dans le message.`
+            : `Send an <strong>Interac transfer</strong> to <strong>Ml@maisonlocht.com</strong> with reference <strong>${reference}</strong> in the message.`
           }</p>
           <p style="margin:0;font-size:12px;color:#7a7a8a">${isFr
             ? 'Votre commande sera confirmée dès réception du paiement.'
-            : 'Your order will be confirmed upon receipt of payment.'
-          }</p>
+            : 'Your order will be confirmed upon receipt of payment.'}</p>
+        </td></tr>
+
+        <!-- Livraison -->
+        <tr><td style="padding:24px 40px;border-bottom:1px solid rgba(4,54,114,0.06)">
+          <p style="margin:0 0 10px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Livraison' : 'Delivery'}</p>
+          <p style="margin:0;font-size:13px;line-height:1.7;color:#043672">${fullAddress}</p>
         </td></tr>
 
         <!-- Suivi -->
-        <tr><td style="padding:24px 40px;text-align:center">
-          <p style="margin:0 0 14px;font-size:12px;color:#7a7a8a">${isFr ? 'Suivez votre commande en ligne :' : 'Track your order online:'}</p>
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maisonlocht.com'}/commande/${reference}"
-            style="display:inline-block;background:#043672;color:#fff;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:14px 28px;text-decoration:none">
-            ${isFr ? 'Suivre ma commande →' : 'Track my order →'}
+        <tr><td style="padding:28px 40px;text-align:center">
+          <a href="${baseUrl}/commande/${reference}"
+            style="display:inline-block;background:#043672;color:#fff;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:15px 32px;text-decoration:none">
+            ${isFr ? 'Suivre ma commande' : 'Track my order'} &rarr;
           </a>
         </td></tr>
 
         <!-- Footer -->
-        <tr><td style="padding:20px 40px;border-top:1px solid rgba(4,54,114,0.06);text-align:center">
-          <p style="margin:0;font-size:10px;color:#7a7a8a;letter-spacing:1px">Maison Locht · ${isFr ? 'Pièces uniques, jamais reproduites' : 'One-of-a-kind pieces, never reproduced'}</p>
+        <tr><td style="padding:24px 40px;background:#021f45;text-align:center">
+          <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">${isFr ? 'Pièces uniques, jamais reproduites' : 'One-of-a-kind pieces, never reproduced'}</p>
         </td></tr>
 
       </table>
