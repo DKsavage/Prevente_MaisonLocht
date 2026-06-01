@@ -7,45 +7,42 @@ import { COUNTRIES, getPostalFormat, formatPostalCode } from '@/lib/countries'
 import AddressAutocomplete from './AddressAutocomplete'
 
 const ease = [0.16, 1, 0.3, 1] as const
-
 const CA_PROVINCES = ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT']
 
 const copy = {
   fr: {
     title: 'Vos informations',
-    sub: 'Vos données sont confidentielles et utilisées uniquement pour la livraison.',
-    sectionIdentity: 'Identité',
-    sectionContact: 'Contact',
-    sectionDelivery: 'Adresse de livraison',
+    sub: 'Vos données sont utilisées uniquement pour la livraison.',
+    id: 'Identité', contact: 'Contact', delivery: 'Livraison',
     firstName: 'Prénom', lastName: 'Nom',
-    email: 'Courriel', phone: 'Téléphone (optionnel)',
-    country: 'Pays',
+    email: 'Courriel', phone: 'Téléphone',
+    country: 'Pays de livraison',
     address: 'Adresse', city: 'Ville',
-    province: 'Province', state: 'État / Région',
-    whyLocht: 'Qu\'est-ce qui vous a attiré ? (optionnel)',
-    whyPlaceholder: 'Une matière, une histoire, une rencontre...',
+    province: 'Province', region: 'État / Région',
+    postal: (c: string) => getPostalFormat(c).label.fr,
+    why: "Qu'est-ce qui vous a attiré ?",
+    whyPlaceholder: 'Une matière, une histoire, une rencontre… (optionnel)',
     back: 'Retour', next: 'Continuer',
-    selectCountry: '— Sélectionner —',
-    selectProvince: '— Province —',
-    addressHint: 'Commencez à taper pour voir les suggestions',
+    selectCountry: 'Sélectionner un pays',
+    selectProvince: 'Province',
+    optional: 'optionnel',
   },
   en: {
     title: 'Your information',
-    sub: 'Your data is confidential and used only for delivery.',
-    sectionIdentity: 'Identity',
-    sectionContact: 'Contact',
-    sectionDelivery: 'Delivery address',
+    sub: 'Your data is used only for delivery.',
+    id: 'Identity', contact: 'Contact', delivery: 'Delivery',
     firstName: 'First name', lastName: 'Last name',
-    email: 'Email', phone: 'Phone (optional)',
-    country: 'Country',
+    email: 'Email', phone: 'Phone',
+    country: 'Delivery country',
     address: 'Address', city: 'City',
-    province: 'Province', state: 'State / Region',
-    whyLocht: 'What drew you to Maison Locht? (optional)',
-    whyPlaceholder: 'A material, a story, an encounter...',
+    province: 'Province', region: 'State / Region',
+    postal: (c: string) => getPostalFormat(c).label.en,
+    why: 'What drew you to Maison Locht?',
+    whyPlaceholder: 'A material, a story, an encounter… (optional)',
     back: 'Back', next: 'Continue',
-    selectCountry: '— Select —',
-    selectProvince: '— Province —',
-    addressHint: 'Start typing to see suggestions',
+    selectCountry: 'Select a country',
+    selectProvince: 'Province',
+    optional: 'optional',
   },
 }
 
@@ -57,15 +54,36 @@ type Props = {
   onBack: () => void
 }
 
-const inputClass = "w-full bg-transparent border border-[#043672]/20 focus:border-[#b8965a] outline-none px-4 py-3 text-[13px] text-[#1a1a2e] placeholder:text-[#7a7a8a]/50 transition-colors duration-200 font-light"
-const labelClass = "text-label text-[8px] text-[#b8965a] tracking-[3px] block mb-1.5"
-const errorClass = "text-[10px] text-red-400 mt-1"
+// Styles de base
+const base = "w-full bg-transparent border-b border-[#043672]/20 focus:border-[#b8965a] outline-none px-0 py-3 text-[13px] text-[#1a1a2e] placeholder:text-[#7a7a8a]/40 transition-colors duration-200 font-light"
+const baseBox = "w-full bg-[#faf7f2] border border-[#043672]/15 focus:border-[#b8965a] outline-none px-4 py-3 text-[13px] text-[#1a1a2e] placeholder:text-[#7a7a8a]/40 transition-all duration-200 font-light focus:shadow-[0_0_0_3px_rgba(184,150,90,0.08)]"
+const labelBase = "text-label text-[8px] text-[#b8965a] tracking-[3px] block mb-2"
+const errBase = "text-[10px] text-red-400 mt-1.5 flex items-center gap-1"
 
-function SectionHeader({ label }: { label: string }) {
+function Field({ label, error, optional, lang, children }: {
+  label: string; error?: string; optional?: boolean; lang: 'fr' | 'en'; children: React.ReactNode
+}) {
   return (
-    <div className="flex items-center gap-4 pb-2 border-b border-[#043672]/08">
-      <span className="text-label text-[8px] text-[#043672] tracking-[4px]">{label}</span>
-      <span className="flex-1 h-px bg-[#043672]/06" />
+    <div className="flex flex-col">
+      <label className={labelBase}>
+        {label}
+        {optional && <span className="ml-1 text-[#7a7a8a]/60 normal-case tracking-normal" style={{ fontFamily: 'var(--font-dm-sans)' }}> — {lang === 'fr' ? 'optionnel' : 'optional'}</span>}
+      </label>
+      {children}
+      {error && <span className={errBase}><span className="text-[8px]">⚠</span>{error}</span>}
+    </div>
+  )
+}
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3 mb-1">
+        <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
+        <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{label}</span>
+        <span className="flex-1 h-px bg-[#043672]/06" />
+      </div>
+      {children}
     </div>
   )
 }
@@ -76,29 +94,23 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
 
   const set = (field: keyof OrderFormData, value: string) => onChange({ [field]: value })
 
-  const postalFormat = getPostalFormat(data.country ?? 'CA')
-  const isCanada = data.country === 'CA'
-  const countryInfo = COUNTRIES.find(c => c.code === data.country)
+  const isCanada    = data.country === 'CA'
+  const postalFmt   = getPostalFormat(data.country ?? 'CA')
+  const postalHint  = postalFmt.hint ? (lang === 'fr' ? postalFmt.hint.fr : postalFmt.hint.en) : ''
 
-  const handlePostal = (e: React.ChangeEvent<HTMLInputElement>) => {
-    set('postalCode', formatPostalCode(e.target.value, data.country ?? 'CA'))
-  }
-
-  const handleCountryChange = (code: string) => {
-    onChange({ country: code, province: '', postalCode: '' })
-  }
+  const handleCountry = (code: string) => onChange({ country: code, province: '', postalCode: '' })
+  const handlePostal  = (e: React.ChangeEvent<HTMLInputElement>) =>
+    set('postalCode', formatPostalCode(e.target.value, data.country ?? ''))
 
   const validate = () => {
     const result = orderSchema.pick({
       firstName: true, lastName: true, email: true,
       country: true, address: true, city: true, postalCode: true,
     }).safeParse(data)
-
     if (!result.success) {
       const errs: Record<string, string> = {}
       result.error.issues.forEach(e => {
-        const key = e.path[0]
-        if (key != null) errs[String(key)] = e.message
+        const k = e.path[0]; if (k != null) errs[String(k)] = e.message
       })
       setErrors(errs)
       return false
@@ -107,11 +119,9 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
     return true
   }
 
-  const handleNext = () => { if (validate()) onNext() }
-
   return (
     <motion.div
-      className="flex flex-col gap-7"
+      className="flex flex-col gap-8"
       initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease }}
     >
@@ -120,75 +130,68 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
         <p className="text-[12px] text-[#7a7a8a] font-light">{t.sub}</p>
       </div>
 
-      <div className="flex flex-col gap-6">
-
-        {/* ── Identité ── */}
-        <SectionHeader label={t.sectionIdentity} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex flex-col">
-            <label className={labelClass}>{t.firstName} *</label>
-            <input type="text" placeholder="Marie" autoComplete="given-name"
+      {/* ── Identité ── */}
+      <Section label={t.id}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <Field label={t.firstName} error={errors.firstName} lang={lang}>
+            <input type="text" autoComplete="given-name" placeholder="Marie"
               value={data.firstName ?? ''} onChange={e => set('firstName', e.target.value)}
-              className={`${inputClass} ${errors.firstName ? 'border-red-400' : ''}`} />
-            {errors.firstName && <span className={errorClass}>{errors.firstName}</span>}
-          </div>
-          <div className="flex flex-col">
-            <label className={labelClass}>{t.lastName} *</label>
-            <input type="text" placeholder="Dupont" autoComplete="family-name"
+              className={`${base} ${errors.firstName ? 'border-red-400' : ''}`} />
+          </Field>
+          <Field label={t.lastName} error={errors.lastName} lang={lang}>
+            <input type="text" autoComplete="family-name" placeholder="Dupont"
               value={data.lastName ?? ''} onChange={e => set('lastName', e.target.value)}
-              className={`${inputClass} ${errors.lastName ? 'border-red-400' : ''}`} />
-            {errors.lastName && <span className={errorClass}>{errors.lastName}</span>}
-          </div>
+              className={`${base} ${errors.lastName ? 'border-red-400' : ''}`} />
+          </Field>
         </div>
+      </Section>
 
-        {/* ── Contact ── */}
-        <SectionHeader label={t.sectionContact} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex flex-col">
-            <label className={labelClass}>{t.email} *</label>
-            <input type="email" placeholder="marie@exemple.com" autoComplete="email"
+      {/* ── Contact ── */}
+      <Section label={t.contact}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <Field label={t.email} error={errors.email} lang={lang}>
+            <input type="email" autoComplete="email" placeholder="marie@exemple.com"
               value={data.email ?? ''} onChange={e => set('email', e.target.value)}
-              className={`${inputClass} ${errors.email ? 'border-red-400' : ''}`} />
-            {errors.email && <span className={errorClass}>{errors.email}</span>}
-          </div>
-          <div className="flex flex-col">
-            <label className={labelClass}>{t.phone}</label>
-            <input type="tel" placeholder="+1 514 000 0000" autoComplete="tel"
+              className={`${base} ${errors.email ? 'border-red-400' : ''}`} />
+          </Field>
+          <Field label={t.phone} optional lang={lang}>
+            <input type="tel" autoComplete="tel" placeholder="+1 514 000 0000"
               value={data.phone ?? ''} onChange={e => set('phone', e.target.value)}
-              className={inputClass} />
-          </div>
+              className={base} />
+          </Field>
         </div>
+      </Section>
 
-        {/* ── Adresse ── */}
-        <SectionHeader label={t.sectionDelivery} />
+      {/* ── Livraison ── */}
+      <Section label={t.delivery}>
 
-        {/* Pays — en premier */}
-        <div className="flex flex-col">
-          <label className={labelClass}>{t.country} *</label>
+        {/* Pays — sélecteur prioritaire */}
+        <Field label={t.country} error={errors.country} lang={lang}>
           <select
             value={data.country ?? ''}
-            onChange={e => handleCountryChange(e.target.value)}
-            className={`${inputClass} ${errors.country ? 'border-red-400' : ''}`}
+            onChange={e => handleCountry(e.target.value)}
+            className={`${baseBox} ${errors.country ? 'border-red-400' : ''}`}
           >
             <option value="">{t.selectCountry}</option>
             {COUNTRIES.map(c => (
-              <option key={c.code} value={c.code}>
-                {lang === 'fr' ? c.name : c.nameEn}
-              </option>
+              <option key={c.code} value={c.code}>{lang === 'fr' ? c.name : c.nameEn}</option>
             ))}
           </select>
-          {errors.country && <span className={errorClass}>{errors.country}</span>}
-        </div>
+        </Field>
 
-        {/* Adresse — autocomplete si pays sélectionné */}
+        {/* Adresse + ville/province/postal — visibles après sélection pays */}
         {data.country && (
-          <>
-            <div className="flex flex-col">
-              <label className={labelClass}>{t.address} *</label>
+          <motion.div
+            className="flex flex-col gap-5"
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease }}
+          >
+            {/* Rue */}
+            <Field label={t.address} error={errors.address} lang={lang}>
               <AddressAutocomplete
                 value={data.address ?? ''}
                 placeholder={isCanada ? '123 Rue Principale' : '123 Main Street'}
-                inputClass={inputClass}
+                inputClass={baseBox}
                 hasError={!!errors.address}
                 lang={lang}
                 country={data.country}
@@ -202,84 +205,58 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
                   postalCode: r.postalCode  || data.postalCode,
                 })}
               />
-              {errors.address && <span className={errorClass}>{errors.address}</span>}
-              <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-1">{t.addressHint}</span>
-            </div>
+            </Field>
 
+            {/* Ville · Province · Code postal */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {/* Ville */}
-              <div className="flex flex-col">
-                <label className={labelClass}>{t.city} *</label>
+              <Field label={t.city} error={errors.city} lang={lang}>
                 <input type="text" autoComplete="address-level2"
                   value={data.city ?? ''} onChange={e => set('city', e.target.value)}
-                  className={`${inputClass} ${errors.city ? 'border-red-400' : ''}`} />
-                {errors.city && <span className={errorClass}>{errors.city}</span>}
-              </div>
+                  className={`${baseBox} ${errors.city ? 'border-red-400' : ''}`} />
+              </Field>
 
-              {/* Province/État */}
-              <div className="flex flex-col">
-                <label className={labelClass}>{isCanada ? t.province : t.state}</label>
+              <Field label={isCanada ? t.province : t.region} lang={lang}>
                 {isCanada ? (
-                  <select
-                    value={data.province ?? ''}
-                    onChange={e => set('province', e.target.value)}
-                    className={inputClass}
-                    autoComplete="address-level1"
-                  >
+                  <select value={data.province ?? ''} onChange={e => set('province', e.target.value)}
+                    autoComplete="address-level1" className={baseBox}>
                     <option value="">{t.selectProvince}</option>
                     {CA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 ) : (
                   <input type="text" autoComplete="address-level1"
                     value={data.province ?? ''} onChange={e => set('province', e.target.value)}
-                    className={inputClass} />
+                    className={baseBox} />
                 )}
-              </div>
+              </Field>
 
-              {/* Code postal — format dynamique */}
-              <div className="flex flex-col">
-                <label className={labelClass}>
-                  {lang === 'fr' ? postalFormat.label.fr : postalFormat.label.en} *
-                </label>
-                <input
-                  type="text"
-                  placeholder={postalFormat.placeholder}
-                  autoComplete="postal-code"
+              <Field label={t.postal(data.country)} error={errors.postalCode} lang={lang}>
+                <input type="text" autoComplete="postal-code"
                   maxLength={isCanada ? 7 : 12}
-                  value={data.postalCode ?? ''}
-                  onChange={handlePostal}
-                  className={`${inputClass} ${errors.postalCode ? 'border-red-400' : ''}`}
-                />
-                {errors.postalCode && <span className={errorClass}>{errors.postalCode}</span>}
-                {postalFormat.hint && (
-                  <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-1">
-                    {lang === 'fr' ? postalFormat.hint.fr : postalFormat.hint.en}
-                  </span>
-                )}
-              </div>
+                  placeholder={postalFmt.placeholder}
+                  value={data.postalCode ?? ''} onChange={handlePostal}
+                  className={`${baseBox} ${errors.postalCode ? 'border-red-400' : ''}`} />
+                {postalHint && <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-1">{postalHint}</span>}
+              </Field>
             </div>
-          </>
+          </motion.div>
         )}
+      </Section>
 
-        {/* Pourquoi Maison Locht */}
-        <div className="flex flex-col">
-          <label className={labelClass}>{t.whyLocht}</label>
-          <textarea
-            placeholder={t.whyPlaceholder}
-            value={data.whyLocht ?? ''}
-            onChange={e => set('whyLocht', e.target.value)}
-            rows={2}
-            className={`${inputClass} resize-none`}
-          />
-        </div>
-      </div>
+      {/* Pourquoi Maison Locht */}
+      <Field label={t.why} optional lang={lang}>
+        <textarea placeholder={t.whyPlaceholder} rows={2}
+          value={data.whyLocht ?? ''} onChange={e => set('whyLocht', e.target.value)}
+          className={`${baseBox} resize-none`} />
+      </Field>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-2 border-t border-[#043672]/08">
-        <button onClick={onBack} className="text-label text-[9px] text-[#7a7a8a] tracking-[3px] hover:text-[#043672] transition-colors flex items-center gap-2 cursor-none" data-cursor="hover">
+      <div className="flex items-center justify-between pt-4 border-t border-[#043672]/08">
+        <button onClick={onBack} data-cursor="hover"
+          className="text-label text-[9px] text-[#7a7a8a] tracking-[3px] hover:text-[#043672] transition-colors flex items-center gap-2 cursor-none">
           ← {t.back}
         </button>
-        <button onClick={handleNext} className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-4 cursor-none" data-cursor="hover">
+        <button onClick={() => { if (validate()) onNext() }} data-cursor="hover"
+          className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-4 cursor-none">
           <span className="absolute inset-0 bg-[#0a4d9e] -translate-x-full group-hover:translate-x-0 transition-transform duration-[420ms] ease-[cubic-bezier(.16,1,.3,1)]" />
           <span className="relative text-label text-[9px] tracking-[3px]">{t.next}</span>
           <span className="relative text-sm group-hover:translate-x-1.5 transition-transform duration-300">→</span>
