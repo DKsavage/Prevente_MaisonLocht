@@ -4,31 +4,32 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import type { OrderFormData } from '@/lib/schemas'
 import type { SelectedPiece } from './FormStep1'
+import { COUNTRIES } from '@/lib/countries'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
 const copy = {
   fr: {
-    title: 'Confirmez votre commande',
-    sub: 'Vérifiez les informations avant de confirmer.',
-    sac: 'Sac', qty: 'Quantité', total: 'Total',
-    name: 'Nom', email: 'Courriel', address: 'Adresse',
+    title: 'Votre commande',
+    sub: 'Un dernier regard avant de confirmer.',
+    pieces: 'Vos pièces', qty: 'Quantité', total: 'Total',
+    delivery: 'Livraison', recipient: 'Destinataire',
     paymentTitle: 'Paiement par virement Interac',
-    paymentDesc: 'Après confirmation, vous recevrez par email un code de référence et les instructions de paiement.',
-    back: 'Retour', confirm: 'Confirmer la commande',
-    loading: 'Envoi en cours...',
+    paymentDesc: 'Après confirmation, un code de référence et les instructions de paiement vous seront envoyés par courriel.',
+    back: 'Retour', confirm: 'Confirmer la commande', loading: 'Envoi…',
     unique: 'Pièce unique · jamais reproduite',
+    piece: 'Pièce', engagement: 'Chaque pièce est cousue à la main et ne sera jamais reproduite.',
   },
   en: {
-    title: 'Confirm your order',
-    sub: 'Review your information before confirming.',
-    sac: 'Bag', qty: 'Quantity', total: 'Total',
-    name: 'Name', email: 'Email', address: 'Address',
+    title: 'Your order',
+    sub: 'One last look before confirming.',
+    pieces: 'Your pieces', qty: 'Quantity', total: 'Total',
+    delivery: 'Delivery', recipient: 'Recipient',
     paymentTitle: 'Payment by Interac transfer',
-    paymentDesc: 'After confirmation, you will receive a reference code and payment instructions by email.',
-    back: 'Back', confirm: 'Confirm order',
-    loading: 'Sending...',
+    paymentDesc: 'After confirmation, a reference code and payment instructions will be sent to you by email.',
+    back: 'Back', confirm: 'Confirm order', loading: 'Sending…',
     unique: 'One-of-a-kind · never reproduced',
+    piece: 'Piece', engagement: 'Each piece is hand-sewn and will never be reproduced.',
   },
 }
 
@@ -41,19 +42,14 @@ type Props = {
   onSubmit: () => void
 }
 
-const Row = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between items-baseline border-b border-[#043672]/06 py-3 last:border-0">
-    <span className="text-label text-[8px] text-[#7a7a8a] tracking-[3px]">{label}</span>
-    <span className="text-[13px] text-[#043672] font-light text-right max-w-[60%]">{value}</span>
-  </div>
-)
-
 export default function FormStep3({ data, selections, lang, loading, onBack, onSubmit }: Props) {
   const t = copy[lang]
+  const countryName = COUNTRIES.find(c => c.code === data.country)
+  const countryLabel = countryName ? (lang === 'fr' ? countryName.name : countryName.nameEn) : data.country
 
   return (
     <motion.div
-      className="flex flex-col gap-7"
+      className="flex flex-col gap-8"
       initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease }}
     >
@@ -62,63 +58,98 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
         <p className="text-[12px] text-[#7a7a8a] font-light">{t.sub}</p>
       </div>
 
-      {/* Photos des pièces sélectionnées */}
-      <div className={`grid gap-4 ${selections.length === 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-[280px]'}`}>
-        {selections.map((piece) => (
-          <motion.div
-            key={piece.id}
-            className="flex flex-col gap-2"
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease }}
-          >
-            <div className="relative aspect-square overflow-hidden border border-[#b8965a]/30 bg-[#f0ebe0] shadow-[4px_4px_0_rgba(4,54,114,0.06)]">
-              <Image
-                src={piece.src}
-                alt={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
-                fill className="object-cover"
-                sizes="(max-width: 768px) 45vw, 260px"
-                priority
-              />
-              <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-[#043672]/30 to-transparent h-10 pointer-events-none" />
-              <div className="absolute top-2.5 left-2.5 bg-[#faf7f2]/90 backdrop-blur-sm px-2 py-1">
-                <span className="text-label text-[7px] text-[#043672] tracking-[2px]">
-                  N°{String(piece.pieceNum).padStart(2, '0')}
-                </span>
+      {/* ── Showcase des pièces ── */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
+          <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.pieces}</span>
+          <span className="flex-1 h-px bg-[#043672]/06" />
+        </div>
+
+        <div className={`grid gap-5 ${selections.length === 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-[300px] mx-auto md:mx-0'}`}>
+          {selections.map((piece, i) => (
+            <motion.div
+              key={piece.id}
+              className="group relative"
+              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: i * 0.12, ease }}
+            >
+              {/* Cadre photo avec ombre éditoriale */}
+              <div className="relative aspect-[4/5] overflow-hidden bg-[#f0ebe0] shadow-[8px_8px_0_rgba(4,54,114,0.06)]">
+                <Image
+                  src={piece.src}
+                  alt={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
+                  fill className="object-cover"
+                  sizes="(max-width: 768px) 45vw, 280px"
+                  priority
+                />
+                {/* Voile bas pour lisibilité */}
+                <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#021f45]/85 via-[#021f45]/20 to-transparent pointer-events-none" />
+
+                {/* Tag N° en haut */}
+                <div className="absolute top-3 left-3 bg-[#faf7f2]/90 backdrop-blur-sm px-2.5 py-1">
+                  <span className="text-label text-[7px] text-[#043672] tracking-[2px]">
+                    {t.piece} N°{String(piece.pieceNum).padStart(2, '0')}
+                  </span>
+                </div>
+
+                {/* Nom + prix en bas sur le voile */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-display text-[22px] font-light text-white leading-none italic">{piece.modelName}</span>
+                    <span className="text-label text-[7px] text-[#d4aa6a] tracking-[3px] mt-1.5 flex items-center gap-1.5">
+                      <span className="text-[6px]">✦</span>{lang === 'fr' ? 'Unique' : 'Unique'}
+                    </span>
+                  </div>
+                  <span className="font-display text-[16px] font-light text-white/90">{piece.price}<span className="text-[10px] text-white/50 ml-0.5">CAD</span></span>
+                </div>
               </div>
-            </div>
-            <div className="flex items-baseline justify-between px-0.5">
-              <span className="font-display text-[18px] font-light text-[#043672]">{piece.modelName}</span>
-              <span className="text-label text-[9px] text-[#7a7a8a] tracking-[2px]">{piece.price} CAD</span>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Engagement marque */}
+        <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed pt-1">
+          {t.engagement}
+        </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Total */}
-        <div className="bg-[#f0ebe0] p-5 flex flex-col gap-3">
-          <p className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{lang === 'fr' ? 'Commande' : 'Order'}</p>
-          <Row label={t.qty} value={String(data.quantity ?? 1)} />
-          <div className="flex justify-between items-baseline pt-3 border-t-2 border-[#043672]/10">
-            <span className="text-label text-[9px] text-[#043672] tracking-[3px]">{t.total}</span>
-            <span className="font-display text-[26px] font-light text-[#043672]">{data.priceTotal} <span className="text-[14px] text-[#7a7a8a]">CAD</span></span>
-          </div>
-          <span className="text-label text-[7px] text-[#b8965a] tracking-[2px] flex items-center gap-1.5">
-            <span className="text-[6px]">✦</span>{t.unique}
+      {/* ── Total ── */}
+      <div className="relative bg-[#043672] overflow-hidden p-6 flex items-center justify-between" data-theme="dark">
+        <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.12)_0%,transparent_70%)] pointer-events-none" />
+        <div className="flex flex-col gap-1 relative">
+          <span className="text-label text-[8px] text-white/40 tracking-[4px]">{t.total}</span>
+          <span className="text-label text-[8px] text-[#d4aa6a] tracking-[2px]">
+            {selections.length} {lang === 'fr' ? (selections.length > 1 ? 'pièces' : 'pièce') : (selections.length > 1 ? 'pieces' : 'piece')}
           </span>
         </div>
+        <span className="font-display text-[38px] font-light text-white relative leading-none">
+          {data.priceTotal}<span className="text-[16px] text-white/50 ml-1">CAD</span>
+        </span>
+      </div>
 
-        {/* Infos client */}
-        <div className="flex flex-col gap-1">
-          <p className="text-label text-[8px] text-[#b8965a] tracking-[4px] mb-2">{lang === 'fr' ? 'Livraison' : 'Delivery'}</p>
-          <Row label={t.name}    value={`${data.firstName} ${data.lastName}`} />
-          <Row label={t.email}   value={data.email ?? ''} />
-          <Row label={t.address} value={`${data.address}, ${data.city} ${data.province} ${data.postalCode}`} />
+      {/* ── Livraison ── */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-3">
+          <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{t.recipient}</span>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[14px] text-[#043672] font-light">{data.firstName} {data.lastName}</span>
+            <span className="text-[12px] text-[#7a7a8a] font-light">{data.email}</span>
+            {data.phone && <span className="text-[12px] text-[#7a7a8a] font-light">{data.phone}</span>}
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{t.delivery}</span>
+          <div className="flex flex-col gap-0.5 text-[12px] text-[#7a7a8a] font-light leading-relaxed">
+            <span className="text-[#043672] text-[13px]">{data.address}</span>
+            <span>{data.city}{data.province ? `, ${data.province}` : ''} {data.postalCode}</span>
+            <span className="text-[#043672]">{countryLabel}</span>
+          </div>
         </div>
       </div>
 
-      {/* Paiement */}
-      <div className="bg-[#043672]/04 border border-[#043672]/10 p-5 flex gap-4">
+      {/* ── Paiement ── */}
+      <div className="bg-[#b8965a]/06 border border-[#b8965a]/20 p-5 flex gap-4">
         <span className="text-[#b8965a] text-lg flex-shrink-0 mt-0.5">✦</span>
         <div>
           <p className="text-label text-[9px] text-[#043672] tracking-[3px] mb-1.5">{t.paymentTitle}</p>
@@ -126,27 +157,16 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* ── Navigation ── */}
       <div className="flex items-center justify-between pt-2 border-t border-[#043672]/08">
-        <button
-          onClick={onBack}
-          disabled={loading}
-          className="text-label text-[9px] text-[#7a7a8a] tracking-[3px] hover:text-[#043672] transition-colors duration-200 flex items-center gap-2 cursor-none disabled:opacity-40"
-          data-cursor="hover"
-        >
+        <button onClick={onBack} disabled={loading} data-cursor="hover"
+          className="text-label text-[9px] text-[#7a7a8a] tracking-[3px] hover:text-[#043672] transition-colors flex items-center gap-2 cursor-none disabled:opacity-40">
           ← {t.back}
         </button>
-
-        <button
-          onClick={onSubmit}
-          disabled={loading}
-          className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-4 cursor-none disabled:opacity-60"
-          data-cursor="hover"
-        >
+        <button onClick={onSubmit} disabled={loading} data-cursor="hover"
+          className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-4 cursor-none disabled:opacity-60">
           <span className="absolute inset-0 bg-[#0a4d9e] -translate-x-full group-hover:translate-x-0 transition-transform duration-[420ms] ease-[cubic-bezier(.16,1,.3,1)] group-disabled:hidden" />
-          <span className="relative text-label text-[9px] tracking-[3px]">
-            {loading ? t.loading : t.confirm}
-          </span>
+          <span className="relative text-label text-[9px] tracking-[3px]">{loading ? t.loading : t.confirm}</span>
           {!loading && <span className="relative text-sm group-hover:translate-x-1.5 transition-transform duration-300">→</span>}
         </button>
       </div>
