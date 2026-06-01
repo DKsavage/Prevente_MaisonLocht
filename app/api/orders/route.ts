@@ -44,26 +44,25 @@ export async function POST(req: NextRequest) {
 
     // Email client — non-bloquant : une commande reste valide même si l'email échoue.
     // Mode test : si RESEND_TEST_EMAIL est défini, tous les emails y sont redirigés.
-    const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').trim()
+    // Expéditeur — onboarding@resend.dev tant que maisonlocht.com n'est pas vérifié.
+    // Quand le domaine est vérifié dans Resend, remplacer par 'Maison Locht <Ml@maisonlocht.com>'.
+    const FROM = 'Maison Locht <onboarding@resend.dev>'
+    const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
     const toEmail   = testEmail || data.email
-    let mailStatus: unknown = 'sent'
     try {
-      const { data: mData, error: mErr } = await resend.emails.send({
-        from: (process.env.RESEND_FROM ?? 'onboarding@resend.dev').trim(),
+      await resend.emails.send({
+        from: FROM,
         to:   toEmail,
         subject: data.lang === 'fr'
           ? `Maison Locht — Votre commande ${reference}`
           : `Maison Locht — Your order ${reference}`,
         html: buildEmailHtml({ data, reference }),
       })
-      if (mErr) mailStatus = { error: mErr }
-      else mailStatus = { id: mData?.id, to: toEmail }
     } catch (mailErr) {
-      console.error('[orders POST] email failed', mailErr)
-      mailStatus = { thrown: mailErr instanceof Error ? mailErr.message : String(mailErr) }
+      console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
     }
 
-    return NextResponse.json({ reference, mail: mailStatus }, { status: 201 })
+    return NextResponse.json({ reference }, { status: 201 })
 
   } catch (err) {
     console.error('[orders POST]', err)
