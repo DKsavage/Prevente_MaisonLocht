@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Maison Locht — couleurs principales */
+  --color-blue:       #043672;
+  --color-blue-mid:   #0a4d9e;
+  --color-blue-deep:  #021f45;
+  --color-cream:      #faf7f2;
+  --color-warm:       #f0ebe0;
+  --color-gold:       #b8965a;
+  --color-gold-light: #d4aa6a;
+  --color-muted:      #7a7a8a;
+  --color-text:       #1a1a2e;
+  --color-page:       #ede8df;
+
+  /* Shadcn mappings */
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary:          var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent:             var(--accent);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-muted-foreground:   var(--muted-foreground);
+  --color-border:             var(--border);
+  --color-input:              var(--input);
+  --color-ring:               var(--ring);
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-popover:            var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-destructive:        var(--destructive);
+
+  /* Typographie */
+  --font-display: var(--font-cormorant);
+  --font-sans:    var(--font-dm-sans);
+  --font-mono:    var(--font-jetbrains);
+
+  /* Radius */
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.8);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+:root {
+  /* Background / texte */
+  --background:         #faf7f2;
+  --foreground:         #1a1a2e;
+
+  /* Cards */
+  --card:               #faf7f2;
+  --card-foreground:    #1a1a2e;
+  --popover:            #faf7f2;
+  --popover-foreground: #1a1a2e;
+
+  /* Primary = bleu marine */
+  --primary:            #043672;
+  --primary-foreground: #faf7f2;
+
+  /* Secondary = warm */
+  --secondary:          #f0ebe0;
+  --secondary-foreground: #1a1a2e;
+
+  /* Muted */
+  --muted:              #f0ebe0;
+  --muted-foreground:   #7a7a8a;
+
+  /* Accent = or */
+  --accent:             #b8965a;
+  --accent-foreground:  #faf7f2;
+
+  /* Système */
+  --destructive:        oklch(0.577 0.245 27.325);
+  --border:             #e2ddd4;
+  --input:              #e2ddd4;
+  --ring:               #b8965a;
+  --radius:             0.375rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    background-color: #ede8df;
+    color: #1a1a2e;
+    font-family: var(--font-dm-sans), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-cormorant), serif;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Keyframes Maison Locht */
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184,150,90,0); }
+  50%       { box-shadow: 0 0 0 8px rgba(184,150,90,0.18), 0 16px 40px rgba(4,54,114,0.35); }
+}
+@keyframes shimmer-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes urgency-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* Utilitaires Maison Locht */
+@layer utilities {
+  .font-display {
+    font-family: var(--font-cormorant), serif;
+  }
+
+  .text-label {
+    font-family: var(--font-dm-sans), sans-serif;
+    font-weight: 400;
+    font-size: 0.6875rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* Reveal animation */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 600ms cubic-bezier(.16,1,.3,1), transform 600ms cubic-bezier(.16,1,.3,1);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
