@@ -56,11 +56,15 @@ export default function Cursor() {
       }
     }
 
+    // Masque le curseur natif uniquement quand ce composant est monté (site vitrine)
+    document.body.style.cursor = 'none'
+
     window.addEventListener('mousemove', onMove)
     document.addEventListener('mouseover', onOver)
     document.addEventListener('mouseout', onOut)
 
     return () => {
+      document.body.style.cursor = ''
       window.removeEventListener('mousemove', onMove)
       document.removeEventListener('mouseover', onOver)
       document.removeEventListener('mouseout', onOut)

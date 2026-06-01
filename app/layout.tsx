@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, DM_Sans, JetBrains_Mono } from 'next/font/google'
-import Cursor from '@/components/landing/Cursor'
-import LenisProvider from '@/components/landing/LenisProvider'
+import SiteChrome from '@/components/SiteChrome'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const cormorant = Cormorant_Garamond({
@@ -46,11 +46,9 @@ export default function RootLayout({
       lang="fr"
       className={`${cormorant.variable} ${dmSans.variable} ${jetbrains.variable}`}
     >
-      <body className="cursor-none">
-        <Cursor />
-        <LenisProvider>
-          {children}
-        </LenisProvider>
+      <body>
+        <SiteChrome>{children}</SiteChrome>
+        <Analytics />
       </body>
     </html>
   )
