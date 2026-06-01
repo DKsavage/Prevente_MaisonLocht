@@ -9,29 +9,38 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = orderSchema.parse(body)
 
-    const reference = await generateReference()
-    const supabase  = createServerClient()
+    const supabase = createServerClient()
 
-    const { error } = await supabase.from('orders').insert({
-      reference,
-      status:      'pending',
-      bag_name:    data.bagName,
-      quantity:    data.quantity,
-      price_total: data.priceTotal,
-      first_name:  data.firstName,
-      last_name:   data.lastName,
-      email:       data.email,
-      phone:       data.phone ?? null,
-      address:     data.address,
-      city:        data.city,
-      province:    data.province ?? null,
-      postal_code: data.postalCode,
-      country:     data.country,
-      lang:        data.lang,
-      why_locht:   data.whyLocht ?? null,
-    })
+    // Insertion avec retry anti-collision sur la référence (commandes simultanées)
+    let reference = ''
+    let inserted = false
+    for (let attempt = 0; attempt < 4 && !inserted; attempt++) {
+      reference = await generateReference()
+      const { error } = await supabase.from('orders').insert({
+        reference,
+        status:      'pending',
+        bag_name:    data.bagName,
+        quantity:    data.quantity,
+        price_total: data.priceTotal,
+        first_name:  data.firstName,
+        last_name:   data.lastName,
+        email:       data.email,
+        phone:       data.phone ?? null,
+        address:     data.address,
+        city:        data.city,
+        province:    data.province ?? null,
+        postal_code: data.postalCode,
+        country:     data.country,
+        lang:        data.lang,
+        why_locht:   data.whyLocht ?? null,
+      })
 
-    if (error) throw error
+      if (!error) { inserted = true; break }
+      // 23505 = violation de contrainte unique → on régénère et réessaie
+      if (error.code !== '23505') throw error
+    }
+
+    if (!inserted) throw new Error('Impossible de générer une référence unique')
 
     // Email client
     const isDev = process.env.NODE_ENV !== 'production'
