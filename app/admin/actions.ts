@@ -128,3 +128,66 @@ export async function reassignPiece(pieceId: string, model: 'kouna' | 'kami' | '
   revalidatePath('/admin/inventaire')
   revalidatePath('/')
 }
+
+// Upload une image vers Supabase Storage → retourne l'URL publique
+async function uploadImage(file: File, keyHint: string): Promise<string> {
+  const supabase = createServerClient()
+  const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase()
+  const path = `${keyHint}-${Date.now()}.${ext}`
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const { error } = await supabase.storage.from('bags').upload(path, buffer, {
+    contentType: file.type || 'image/jpeg',
+    upsert: true,
+  })
+  if (error) throw error
+  return supabase.storage.from('bags').getPublicUrl(path).data.publicUrl
+}
+
+// Ajoute une nouvelle pièce (avec upload d'image)
+export async function addPiece(formData: FormData) {
+  await requireAdmin()
+  const model = String(formData.get('model'))
+  const displayNum = parseInt(String(formData.get('displayNum')), 10) || 1
+  const file = formData.get('image') as File | null
+  if (!['kouna', 'kami', 'nafibe'].includes(model)) throw new Error('Modèle invalide')
+  if (!file || file.size === 0) throw new Error('Image requise')
+
+  const id = `${model}-${Date.now().toString(36)}`
+  const imageUrl = await uploadImage(file, id)
+
+  const supabase = createServerClient()
+  const { error } = await supabase.from('pieces').insert({
+    id, model, image_url: imageUrl, status: 'available',
+    display_num: displayNum, sort_order: displayNum,
+  })
+  if (error) throw error
+  revalidatePath('/admin/inventaire')
+  revalidatePath('/')
+}
+
+// Change l'image d'une pièce existante
+export async function changePieceImage(pieceId: string, formData: FormData) {
+  await requireAdmin()
+  const file = formData.get('image') as File | null
+  if (!file || file.size === 0) throw new Error('Image requise')
+  const imageUrl = await uploadImage(file, pieceId)
+  const supabase = createServerClient()
+  const { error } = await supabase.from('pieces').update({ image_url: imageUrl }).eq('id', pieceId)
+  if (error) throw error
+  revalidatePath('/admin/inventaire')
+  revalidatePath('/')
+}
+
+// Supprime une pièce (seulement si pas liée à une commande active)
+export async function deletePiece(pieceId: string) {
+  await requireAdmin()
+  const supabase = createServerClient()
+  const { data: piece } = await supabase.from('pieces').select('status').eq('id', pieceId).single()
+  if (piece && piece.status !== 'available') {
+    throw new Error('Impossible de supprimer une pièce réservée ou vendue')
+  }
+  const { error } = await supabase.from('pieces').delete().eq('id', pieceId)
+  if (error) throw error
+  revalidatePath('/admin/inventaire')
+  revalidatePath('/')
+}

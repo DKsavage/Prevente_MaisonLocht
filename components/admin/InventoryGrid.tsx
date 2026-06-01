@@ -1,8 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useTransition } from 'react'
-import { setPieceStatus, releasePiece, reassignPiece } from '@/app/admin/actions'
+import { useState, useRef, useTransition } from 'react'
+import { setPieceStatus, releasePiece, reassignPiece, addPiece, changePieceImage, deletePiece } from '@/app/admin/actions'
 import { pieceNum } from '@/lib/models'
 
 export type InvPiece = {
@@ -34,6 +34,7 @@ function statusInfo(p: InvPiece) {
 export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
   return (
     <div className="flex flex-col gap-10">
+      <AddBagForm />
       {MODELS.map(model => {
         const list = pieces.filter(p => p.model === model.id)
         const c = {
@@ -63,20 +64,89 @@ export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
   )
 }
 
+function AddBagForm() {
+  const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [msg, setMsg] = useState<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const fd = new FormData(e.currentTarget)
+    startTransition(async () => {
+      try {
+        await addPiece(fd)
+        setMsg('Sac ajouté ✓')
+        formRef.current?.reset()
+        setTimeout(() => { setMsg(null); setOpen(false) }, 1500)
+      } catch (err) {
+        setMsg(err instanceof Error ? err.message : 'Erreur')
+      }
+    })
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)}
+        className="self-start text-label text-[9px] tracking-[2px] px-5 py-3 bg-[#043672] text-white hover:bg-[#0a4d9e] transition-colors">
+        + Ajouter un sac
+      </button>
+    )
+  }
+
+  return (
+    <form ref={formRef} onSubmit={submit}
+      className="flex flex-col sm:flex-row sm:items-end gap-3 p-5 bg-[#faf7f2] border border-[#b8965a]/30">
+      <div className="flex flex-col gap-1">
+        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Modèle</label>
+        <select name="model" required className="text-[12px] border border-[#043672]/20 px-2 py-2 bg-white">
+          {MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+        </select>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">N°</label>
+        <input name="displayNum" type="number" min={1} defaultValue={1} required
+          className="w-16 text-[12px] border border-[#043672]/20 px-2 py-2 bg-white" />
+      </div>
+      <div className="flex flex-col gap-1 flex-1">
+        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Photo</label>
+        <input name="image" type="file" accept="image/*" required
+          className="text-[11px] file:mr-2 file:border-0 file:bg-[#043672] file:text-white file:px-3 file:py-1.5 file:text-[10px]" />
+      </div>
+      <button type="submit" disabled={isPending}
+        className="text-label text-[8px] tracking-[2px] px-5 py-2.5 bg-[#043672] text-white disabled:opacity-50">
+        {isPending ? 'Ajout…' : 'Ajouter'}
+      </button>
+      <button type="button" onClick={() => setOpen(false)}
+        className="text-label text-[8px] tracking-[2px] text-[#7a7a8a] px-3 py-2.5">Annuler</button>
+      {msg && <span className="text-[11px] text-emerald-600 self-center">{msg}</span>}
+    </form>
+  )
+}
+
 function PieceCard({ piece }: { piece: InvPiece }) {
   const [isPending, startTransition] = useTransition()
   const [editing, setEditing] = useState(false)
   const [model, setModel] = useState(piece.model)
   const [num, setNum] = useState(String(pieceNum(piece)))
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const info = statusInfo(piece)
   const displayN = pieceNum(piece)
 
-  const act = (fn: () => Promise<void>) => startTransition(async () => { await fn() })
+  const act = (fn: () => Promise<void>) => startTransition(async () => { try { await fn() } catch (e) { alert(e instanceof Error ? e.message : 'Erreur') } })
 
   const saveReassign = () => act(async () => {
     await reassignPiece(piece.id, model as 'kouna' | 'kami' | 'nafibe', parseInt(num, 10) || 1)
     setEditing(false)
   })
+
+  const onImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const fd = new FormData()
+    fd.append('image', file)
+    act(() => changePieceImage(piece.id, fd))
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -86,10 +156,13 @@ function PieceCard({ piece }: { piece: InvPiece }) {
         <div className="absolute top-2 left-2 bg-[#faf7f2]/90 px-2 py-0.5">
           <span className="text-label text-[7px] text-[#043672] tracking-[1px]">N°{String(displayN).padStart(2, '0')}</span>
         </div>
-        <button onClick={() => setEditing(e => !e)}
-          className="absolute top-2 right-2 bg-[#043672]/80 text-white text-[9px] w-5 h-5 flex items-center justify-center hover:bg-[#043672]">
-          ✎
-        </button>
+        <div className="absolute top-2 right-2 flex gap-1">
+          <button onClick={() => imageInputRef.current?.click()} disabled={isPending} title="Changer la photo"
+            className="bg-[#043672]/80 text-white text-[9px] w-5 h-5 flex items-center justify-center hover:bg-[#043672]">📷</button>
+          <button onClick={() => setEditing(e => !e)} title="Modifier"
+            className="bg-[#043672]/80 text-white text-[9px] w-5 h-5 flex items-center justify-center hover:bg-[#043672]">✎</button>
+        </div>
+        <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={onImagePick} />
       </div>
 
       <span className={`text-label text-[7px] tracking-[1px] px-2 py-1 border text-center ${info.cls}`}>
@@ -112,6 +185,12 @@ function PieceCard({ piece }: { piece: InvPiece }) {
               Enregistrer
             </button>
           </div>
+          {piece.status === 'available' && (
+            <button onClick={() => { if (confirm('Supprimer cette pièce ?')) act(() => deletePiece(piece.id)) }} disabled={isPending}
+              className="text-label text-[7px] tracking-[1px] px-1 py-1 border border-red-200 text-red-500 hover:bg-red-50">
+              Supprimer
+            </button>
+          )}
         </div>
       )}
 
