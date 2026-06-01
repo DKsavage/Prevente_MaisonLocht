@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, type OrderStatus } from '@/app/admin/actions'
+import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, type OrderStatus } from '@/app/admin/actions'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
 
 export type Order = {
@@ -75,8 +75,9 @@ export default function OrdersTable({ initialOrders }: { initialOrders: Order[] 
   const orders = initialOrders
   const [filter, setFilter] = useState<'all' | OrderStatus | 'late'>('all')
   const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc'>('date_desc')
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [autoRefresh, setAutoRefresh] = useState(true)
+  const [autoRefresh] = useState(true)
 
   // Rafraîchissement automatique toutes les 25s (nouvelles commandes)
   useEffect(() => {
@@ -96,8 +97,18 @@ export default function OrdersTable({ initialOrders }: { initialOrders: Order[] 
       o.reference.toLowerCase().includes(q) ||
       `${o.first_name} ${o.last_name}`.toLowerCase().includes(q) ||
       o.email.toLowerCase().includes(q))
-    return list
-  }, [orders, filter, query])
+    // Tri
+    const sorted = [...list]
+    sorted.sort((a, b) => {
+      switch (sort) {
+        case 'date_asc':    return +new Date(a.created_at) - +new Date(b.created_at)
+        case 'amount_desc': return Number(b.price_total) - Number(a.price_total)
+        case 'amount_asc':  return Number(a.price_total) - Number(b.price_total)
+        default:            return +new Date(b.created_at) - +new Date(a.created_at)
+      }
+    })
+    return sorted
+  }, [orders, filter, query, sort])
 
   return (
     <div className="flex flex-col gap-4">
@@ -109,6 +120,13 @@ export default function OrdersTable({ initialOrders }: { initialOrders: Order[] 
           className="flex-1 max-w-md bg-[#faf7f2] border border-[#043672]/15 focus:border-[#b8965a] outline-none px-4 py-2.5 text-[12px] transition-colors"
         />
         <div className="flex items-center gap-2">
+          <select value={sort} onChange={e => setSort(e.target.value as typeof sort)}
+            className="text-label text-[8px] tracking-[1px] px-3 py-2.5 border border-[#043672]/20 bg-[#faf7f2] text-[#043672] outline-none focus:border-[#b8965a]">
+            <option value="date_desc">Plus récentes</option>
+            <option value="date_asc">Plus anciennes</option>
+            <option value="amount_desc">Montant ↓</option>
+            <option value="amount_asc">Montant ↑</option>
+          </select>
           <button onClick={() => router.refresh()}
             className="text-label text-[8px] tracking-[2px] px-4 py-2.5 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors whitespace-nowrap">
             ↻ Rafraîchir
@@ -218,25 +236,45 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
     })
   }
 
+  const resend = () => {
+    startTransition(async () => {
+      try { await resendConfirmation(order.reference); setMsg('Confirmation renvoyée') }
+      catch { setMsg('Échec email') }
+      setTimeout(() => setMsg(null), 2500)
+    })
+  }
+
   const date = new Date(order.created_at).toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' })
 
   return (
     <div className={`border bg-[#faf7f2] transition-colors ${expanded ? 'border-[#b8965a]/40' : 'border-[#043672]/10'}`}>
       {/* Ligne principale */}
-      <button onClick={onToggle} className="w-full flex items-center gap-4 px-4 py-3 text-left">
-        {late && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" title="Paiement en retard" />}
-        <span className="font-mono text-[11px] text-[#043672] w-[120px] flex-shrink-0">{order.reference}</span>
-        <span className="text-[13px] text-[#1a1a2e] flex-1 min-w-0 truncate flex items-center gap-2">
-          {order.first_name} {order.last_name}
-          {order.notes_admin && <span className="text-[#b8965a] text-[10px]" title="Note interne">✎</span>}
-        </span>
-        <span className="hidden md:block text-[11px] text-[#7a7a8a] w-[60px]">{order.country ?? '—'}</span>
-        <span className="hidden sm:block text-[12px] text-[#043672] w-[90px] text-right">{order.price_total} CAD</span>
-        <span className={`text-label text-[7px] tracking-[1px] px-2 py-1 border ${STATUS_COLORS[order.status]} w-[110px] text-center flex-shrink-0`}>
-          {STATUS_LABELS[order.status]}
-        </span>
-        <span className="hidden md:block text-[10px] text-[#7a7a8a] w-[80px] text-right">{date}</span>
-      </button>
+      <div className="w-full flex items-center gap-4 px-4 py-3">
+        <button onClick={onToggle} className="flex items-center gap-4 flex-1 min-w-0 text-left">
+          {late && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" title="Paiement en retard" />}
+          <span className="font-mono text-[11px] text-[#043672] w-[120px] flex-shrink-0">{order.reference}</span>
+          <span className="text-[13px] text-[#1a1a2e] flex-1 min-w-0 truncate flex items-center gap-2">
+            {order.first_name} {order.last_name}
+            {order.notes_admin && <span className="text-[#b8965a] text-[10px]" title="Note interne">✎</span>}
+          </span>
+          <span className="hidden md:block text-[11px] text-[#7a7a8a] w-[60px]">{order.country ?? '—'}</span>
+          <span className="hidden sm:block text-[12px] text-[#043672] w-[90px] text-right">{order.price_total} CAD</span>
+        </button>
+        {/* Marquer payé rapide (commandes en attente) */}
+        {order.status === 'pending' && (
+          <button onClick={() => changeStatus('payment_received')} disabled={isPending}
+            className="text-label text-[7px] tracking-[1px] px-2.5 py-1.5 border border-emerald-300 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors disabled:opacity-50 flex-shrink-0"
+            title="Marquer comme payé">
+            ✓ Payé
+          </button>
+        )}
+        <button onClick={onToggle} className="flex items-center gap-4 flex-shrink-0">
+          <span className={`text-label text-[7px] tracking-[1px] px-2 py-1 border ${STATUS_COLORS[order.status]} w-[110px] text-center`}>
+            {STATUS_LABELS[order.status]}
+          </span>
+          <span className="hidden md:block text-[10px] text-[#7a7a8a] w-[80px] text-right">{date}</span>
+        </button>
+      </div>
 
       {/* Détails */}
       {expanded && (
@@ -328,7 +366,11 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                 </a>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button onClick={resend} disabled={isPending}
+                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
+                Renvoyer confirmation
+              </button>
               <button onClick={() => email('payment')} disabled={isPending}
                 className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
                 Email paiement

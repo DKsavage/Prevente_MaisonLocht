@@ -5,6 +5,8 @@ import { createAuthClient } from '@/lib/supabase-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
 import { carrierName, trackingUrl } from '@/lib/carriers'
+import { buildConfirmationEmail } from '@/lib/email-confirmation'
+import { pieceNum } from '@/lib/models'
 
 // Vérifie qu'un admin est connecté avant toute mutation
 async function requireAdmin() {
@@ -152,6 +154,49 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
     await resend.emails.send({ from: 'Maison Locht <onboarding@resend.dev>', to, subject, html })
   } catch (e) {
     console.error('[sendStatusEmail]', e)
+    throw new Error('Échec envoi email')
+  }
+}
+
+// Renvoie l'email de confirmation original au client
+export async function resendConfirmation(reference: string) {
+  await requireAdmin()
+  const supabase = createServerClient()
+  const { data: order } = await supabase.from('orders').select('*').eq('reference', reference).single()
+  if (!order) throw new Error('Commande introuvable')
+
+  // Récupère les pièces (images) liées à la commande
+  const { data: pieces } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
+  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
+  const prices: Record<string, number> = { kouna: 285, kami: 328, nafibe: 395 }
+  const piecesData = (pieces ?? []).map(p => ({
+    modelName: modelNames[p.model] ?? p.model,
+    pieceNum: pieceNum(p),
+    price: prices[p.model] ?? 0,
+    src: p.image_url,
+  }))
+
+  const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
+  const to = testEmail || order.email
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente-maison-locht.vercel.app').replace(/\s/g, '').replace(/\/$/, '')
+
+  try {
+    await resend.emails.send({
+      from: 'Maison Locht <onboarding@resend.dev>',
+      to,
+      subject: order.lang === 'fr' ? `Maison Locht — Votre commande ${reference}` : `Maison Locht — Your order ${reference}`,
+      html: buildConfirmationEmail({
+        data: {
+          firstName: order.first_name, bagName: order.bag_name, quantity: order.quantity,
+          priceTotal: order.price_total, lang: order.lang, pieces: piecesData,
+          address: order.address, city: order.city, province: order.province,
+          postalCode: order.postal_code, country: order.country,
+        },
+        reference, baseUrl,
+      }),
+    })
+  } catch (e) {
+    console.error('[resendConfirmation]', e)
     throw new Error('Échec envoi email')
   }
 }
