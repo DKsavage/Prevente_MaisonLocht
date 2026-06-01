@@ -1,49 +1,24 @@
 'use client'
 
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { OrderFormData } from '@/lib/schemas'
+import { MODELS, pieceNumFromId, fetchPieces, type DbPiece, type ModelId, type PieceStatus } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
 // ── Données ──────────────────────────────────────────────────
 export type SelectedPiece = {
   id: string
-  model: 'kouna' | 'kami' | 'nafibe'
+  model: ModelId
   modelName: string
   pieceNum: number
   price: number
   src: string
 }
 
-const allModels = [
-  {
-    model: 'kouna' as const, name: 'Le Kouna',
-    format: { fr: 'Le Petit', en: 'The Small' },
-    price: 285, count: 8,
-  },
-  {
-    model: 'kami' as const, name: 'Le Kami',
-    format: { fr: 'Le Moyen', en: 'The Medium' },
-    price: 328, count: 3,
-  },
-  {
-    model: 'nafibe' as const, name: 'Le Nafibe',
-    format: { fr: 'Le Grand', en: 'The Large' },
-    price: 395, count: 8,
-  },
-]
-
-const allPieces: SelectedPiece[] = allModels.flatMap(m =>
-  Array.from({ length: m.count }, (_, i) => ({
-    id: `${m.model}-${String(i + 1).padStart(2, '0')}`,
-    model: m.model,
-    modelName: m.name,
-    pieceNum: i + 1,
-    price: m.price,
-    src: `/images/${m.model}-${String(i + 1).padStart(2, '0')}.jpg`,
-  }))
-)
+type GridPiece = SelectedPiece & { status: PieceStatus }
 
 // ── Copy ────────────────────────────────────────────────────
 const copy = {
@@ -86,6 +61,22 @@ type Props = {
 export default function FormStep1({ data, selections, lang, onChange, onSelectionsChange, onNext }: Props) {
   const t = copy[lang]
   const MAX = 2
+
+  // Pièces depuis la DB (statut réel)
+  const [dbPieces, setDbPieces] = useState<DbPiece[]>([])
+  useEffect(() => { fetchPieces().then(setDbPieces) }, [])
+
+  // Groupées par modèle, dans l'ordre des MODELS
+  const grouped = MODELS.map(m => ({
+    meta: m,
+    pieces: dbPieces
+      .filter(p => p.model === m.id)
+      .map<GridPiece>(p => ({
+        id: p.id, model: p.model, modelName: m.name,
+        pieceNum: pieceNumFromId(p.id), price: m.price, src: p.image_url,
+        status: p.status,
+      })),
+  })).filter(g => g.pieces.length > 0)
 
   const isSelected   = (id: string) => selections.some(s => s.id === id)
   const isFull       = selections.length >= MAX
@@ -155,28 +146,28 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
 
       {/* Pièces par modèle */}
       <div className="flex flex-col gap-8">
-        {allModels.map((model, mi) => {
-          const pieces = allPieces.filter(p => p.model === model.model)
-          const isRare = model.count <= 3
+        {grouped.map(({ meta, pieces }, mi) => {
+          const available = pieces.filter(p => p.status === 'available').length
+          const isRare = available > 0 && available <= 3
           return (
-            <div key={model.model}>
+            <div key={meta.id}>
               {/* En-tête modèle */}
               <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-[#043672]/08">
                 <div className="flex items-baseline gap-3">
-                  <span className="font-display text-[20px] font-light text-[#043672]">{model.name}</span>
+                  <span className="font-display text-[20px] font-light text-[#043672]">{meta.name}</span>
                   <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">
-                    {lang === 'fr' ? model.format.fr : model.format.en}
+                    {lang === 'fr' ? meta.format.fr : meta.format.en}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   {isRare && (
                     <span className="flex items-center gap-1.5 text-label text-[8px] text-[#b8965a] tracking-[2px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
-                      {model.count} {t.rare}
+                      {available} {t.rare}
                     </span>
                   )}
                   <span className="font-display text-[16px] font-light text-[#043672]">
-                    {model.price} <span className="text-[11px] text-[#7a7a8a]">CAD</span>
+                    {meta.price} <span className="text-[11px] text-[#7a7a8a]">CAD</span>
                   </span>
                 </div>
               </div>
@@ -185,19 +176,20 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                 {pieces.map((piece, pi) => {
                   const sel = isSelected(piece.id)
-                  const disabled = isFull && !sel
+                  const taken = piece.status !== 'available'
+                  const disabled = taken || (isFull && !sel)
                   return (
                     <motion.button
                       key={piece.id}
-                      onClick={() => toggle(piece)}
+                      onClick={() => !taken && toggle(piece)}
                       disabled={disabled}
                       className={`relative aspect-square overflow-hidden cursor-none transition-all duration-200 ${
                         sel ? 'ring-2 ring-[#b8965a] ring-offset-1' : 'ring-0'
-                      } ${disabled ? 'opacity-30 cursor-not-allowed' : 'hover:opacity-90'}`}
+                      } ${disabled ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
                       whileHover={!disabled ? { scale: 1.05 } : {}}
                       whileTap={!disabled ? { scale: 0.96 } : {}}
                       initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: disabled ? 0.3 : 1, y: 0 }}
+                      animate={{ opacity: taken ? 0.4 : (isFull && !sel ? 0.35 : 1), y: 0 }}
                       transition={{ duration: 0.3, delay: (mi * 8 + pi) * 0.02, ease }}
                       data-cursor="hover"
                       title={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
@@ -205,6 +197,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
                       <Image
                         src={piece.src} alt={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
                         fill className="object-cover" sizes="80px"
+                        style={{ filter: taken ? 'grayscale(1)' : 'none' }}
                       />
                       {/* Overlay sélectionné */}
                       {sel && (
@@ -212,10 +205,20 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
                           <span className="w-5 h-5 bg-[#b8965a] flex items-center justify-center text-white text-[10px]">✓</span>
                         </div>
                       )}
+                      {/* Overlay indisponible */}
+                      {taken && (
+                        <div className="absolute inset-0 bg-[#043672]/35 flex items-center justify-center">
+                          <span className="text-[6px] text-white/90 tracking-[1px] uppercase -rotate-12">
+                            {piece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : (lang === 'fr' ? 'Réservée' : 'Reserved')}
+                          </span>
+                        </div>
+                      )}
                       {/* Numéro */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-[#043672]/60 py-0.5 text-center">
-                        <span className="text-[7px] text-white/70">N°{String(piece.pieceNum).padStart(2, '0')}</span>
-                      </div>
+                      {!taken && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-[#043672]/60 py-0.5 text-center">
+                          <span className="text-[7px] text-white/70">N°{String(piece.pieceNum).padStart(2, '0')}</span>
+                        </div>
+                      )}
                     </motion.button>
                   )
                 })}

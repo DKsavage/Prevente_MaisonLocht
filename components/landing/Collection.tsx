@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLang } from './LangContext'
 import { useLenis } from './LenisProvider'
+import { MODELS, pieceNumFromId, fetchPieces, type DbPiece } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
-type Status = 'available' | 'reserved'
-type Piece  = { id: string; src: string; status: Status }
+type Status = 'available' | 'reserved' | 'sold'
+type Piece  = { id: string; src: string; status: Status; num: number }
 type Model  = {
   id: string; name: string
   format: { fr: string; en: string }
@@ -17,38 +18,19 @@ type Model  = {
   pieces: Piece[]
 }
 
-const models: Model[] = [
-  {
-    id: 'kouna', name: 'Le Kouna',
-    format: { fr: 'Le Petit', en: 'The Small' },
-    price: 285, dims: '35 × 21 × 15 cm', count: 8,
-    pieces: Array.from({ length: 8 }, (_, i) => ({
-      id: `kouna-${String(i + 1).padStart(2, '0')}`,
-      src: `/images/kouna-${String(i + 1).padStart(2, '0')}.jpg`,
-      status: 'available',
-    })),
-  },
-  {
-    id: 'kami', name: 'Le Kami',
-    format: { fr: 'Le Moyen', en: 'The Medium' },
-    price: 328, dims: '45 × 25 × 22 cm', count: 3,
-    pieces: Array.from({ length: 3 }, (_, i) => ({
-      id: `kami-${String(i + 1).padStart(2, '0')}`,
-      src: `/images/kami-${String(i + 1).padStart(2, '0')}.jpg`,
-      status: 'available',
-    })),
-  },
-  {
-    id: 'nafibe', name: 'Le Nafibe',
-    format: { fr: 'Le Grand', en: 'The Large' },
-    price: 395, dims: '55 × 29 × 22 cm', count: 8,
-    pieces: Array.from({ length: 8 }, (_, i) => ({
-      id: `nafibe-${String(i + 1).padStart(2, '0')}`,
-      src: `/images/nafibe-${String(i + 1).padStart(2, '0')}.jpg`,
-      status: 'available',
-    })),
-  },
-]
+// Construit les modèles à partir des pièces DB + métadonnées
+function buildModels(db: DbPiece[]): Model[] {
+  return MODELS.map(m => {
+    const pieces = db
+      .filter(p => p.model === m.id)
+      .map(p => ({ id: p.id, src: p.image_url, status: p.status as Status, num: pieceNumFromId(p.id) }))
+    return {
+      ...m,
+      count: pieces.filter(p => p.status === 'available').length,
+      pieces,
+    }
+  }).filter(m => m.pieces.length > 0)
+}
 
 const copy = {
   fr: {
@@ -81,7 +63,7 @@ const copy = {
 function BagDrawer({ piece, model, c, lang, onClose }: {
   piece: Piece; model: Model; c: typeof copy['fr']; lang: string; onClose: () => void
 }) {
-  const num = model.pieces.findIndex(p => p.id === piece.id) + 1
+  const num = piece.num
   const { stop, start } = useLenis()
 
   useEffect(() => {
@@ -123,9 +105,11 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
         {/* Photo */}
         <div className="relative aspect-square w-full flex-shrink-0 bg-[#f0ebe0]">
           <Image src={piece.src} alt={`${model.name} N°${String(num).padStart(2, '0')}`} fill className="object-cover" sizes="460px" priority />
-          {piece.status === 'reserved' && (
-            <div className="absolute inset-0 bg-[#043672]/50 flex items-center justify-center">
-              <span className="text-label text-[11px] text-white/80 tracking-[5px] -rotate-12">{c.reserved}</span>
+          {piece.status !== 'available' && (
+            <div className="absolute inset-0 bg-[#043672]/55 flex items-center justify-center">
+              <span className="text-label text-[11px] text-white/80 tracking-[5px] -rotate-12">
+                {piece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : c.reserved}
+              </span>
             </div>
           )}
         </div>
@@ -157,13 +141,12 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
           {piece.status === 'available' ? (
             <button
               onClick={() => {
-                const pieceNum = model.pieces.findIndex(p => p.id === piece.id) + 1
                 window.dispatchEvent(new CustomEvent('preselect-bag', {
                   detail: {
                     id: piece.id,
                     model: model.id,
                     modelName: model.name,
-                    pieceNum,
+                    pieceNum: piece.num,
                     price: model.price,
                     src: piece.src,
                   }
@@ -181,7 +164,9 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
               <span className="relative text-sm group-hover:translate-x-1.5 transition-transform duration-300">→</span>
             </button>
           ) : (
-            <div className="flex items-center justify-center px-6 py-4 border border-[#043672]/20 text-label text-[9px] text-[#7a7a8a] tracking-[3px]">{c.reserved}</div>
+            <div className="flex items-center justify-center px-6 py-4 border border-[#043672]/20 text-label text-[9px] text-[#7a7a8a] tracking-[3px]">
+              {piece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : c.reserved}
+            </div>
           )}
 
           <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed">
@@ -198,8 +183,9 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
   model: Model; c: typeof copy['fr']; lang: string
   onOpenDrawer: (piece: Piece) => void; isFirst: boolean; index: number
 }) {
-  const [active, setActive] = useState(0)
-  const isRare = model.count <= 3
+  const firstAvailable = Math.max(0, model.pieces.findIndex(p => p.status === 'available'))
+  const [active, setActive] = useState(firstAvailable)
+  const isRare = model.count > 0 && model.count <= 3
   const activePiece = model.pieces[active]
   const isEven = index % 2 === 0
 
@@ -241,7 +227,7 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
           {/* Tag */}
           <div className="absolute bottom-5 left-5 z-10 bg-[#faf7f2]/85 backdrop-blur-sm px-3 py-1.5">
             <span className="text-label text-[7px] text-[#043672] tracking-[2px]">
-              {c.unique} · N°{String(active + 1).padStart(2, '0')}
+              {activePiece.status === 'available' ? c.unique : (activePiece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : c.reserved)} · N°{String(activePiece.num).padStart(2, '0')}
             </span>
           </div>
 
@@ -271,29 +257,37 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
               <span className="font-display text-[32px] font-light text-[#043672]">
                 {model.price} <span className="text-[16px] text-[#7a7a8a]">CAD</span>
               </span>
-              <span className={`flex items-center gap-1.5 text-label text-[8px] tracking-[2px] ${isRare ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>
-                {isRare && <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />}
-                {model.count} {c.available}
+              <span className={`flex items-center gap-1.5 text-label text-[8px] tracking-[2px] ${model.count === 0 ? 'text-[#7a7a8a]' : isRare ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>
+                {isRare && model.count > 0 && <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />}
+                {model.count === 0 ? (lang === 'fr' ? 'Épuisé' : 'Sold out') : `${model.count} ${c.available}`}
               </span>
             </div>
           </motion.div>
 
           {/* Thumbnails */}
           <div className="grid grid-cols-4 gap-2">
-            {model.pieces.map((piece, i) => (
-              <motion.button
-                key={piece.id}
-                onClick={() => setActive(i)}
-                className="relative aspect-square overflow-hidden transition-all duration-200 cursor-none"
-                style={{ outline: i === active ? '2px solid #b8965a' : '2px solid transparent', outlineOffset: '2px' }}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
-                initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.05, ease }}
-                data-cursor="hover"
-              >
-                <Image src={piece.src} alt="" fill className="object-cover" sizes="80px" />
-              </motion.button>
-            ))}
+            {model.pieces.map((piece, i) => {
+              const taken = piece.status !== 'available'
+              return (
+                <motion.button
+                  key={piece.id}
+                  onClick={() => setActive(i)}
+                  className="relative aspect-square overflow-hidden transition-all duration-200 cursor-none"
+                  style={{ outline: i === active ? '2px solid #b8965a' : '2px solid transparent', outlineOffset: '2px' }}
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
+                  initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.05, ease }}
+                  data-cursor="hover"
+                >
+                  <Image src={piece.src} alt="" fill className="object-cover" sizes="80px" style={{ filter: taken ? 'grayscale(1)' : 'none', opacity: taken ? 0.45 : 1 }} />
+                  {taken && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-[#043672]/20">
+                      <span className="w-3 h-3 rounded-full bg-[#faf7f2]/80 flex items-center justify-center text-[6px] text-[#043672]">●</span>
+                    </span>
+                  )}
+                </motion.button>
+              )
+            })}
           </div>
 
           {/* CTA */}
@@ -317,6 +311,11 @@ export default function Collection() {
   const { lang } = useLang()
   const c = copy[lang]
   const [drawer, setDrawer] = useState<{ piece: Piece; model: Model } | null>(null)
+  const [models, setModels] = useState<Model[]>([])
+
+  useEffect(() => {
+    fetchPieces().then(db => setModels(buildModels(db)))
+  }, [])
 
   return (
     <section id="collection" className="bg-[#faf7f2]">

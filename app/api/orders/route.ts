@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { orderSchema } from '@/lib/schemas'
 import { generateReference } from '@/lib/generate-ref'
 import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
+
+// Libère des pièces réservées (rollback si la commande échoue)
+async function releasePieces(supabase: SupabaseClient, ids: string[]) {
+  if (ids.length === 0) return
+  await supabase
+    .from('pieces')
+    .update({ status: 'available', order_ref: null, reserved_at: null })
+    .in('id', ids)
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,37 +20,58 @@ export async function POST(req: NextRequest) {
     const data = orderSchema.parse(body)
 
     const supabase = createServerClient()
+    const reference = await generateReference()
 
-    // Insertion avec retry anti-collision sur la référence (commandes simultanées)
-    let reference = ''
-    let inserted = false
-    for (let attempt = 0; attempt < 4 && !inserted; attempt++) {
-      reference = await generateReference()
-      const { error } = await supabase.from('orders').insert({
-        reference,
-        status:      'pending',
-        bag_name:    data.bagName,
-        quantity:    data.quantity,
-        price_total: data.priceTotal,
-        first_name:  data.firstName,
-        last_name:   data.lastName,
-        email:       data.email,
-        phone:       data.phone ?? null,
-        address:     data.address,
-        city:        data.city,
-        province:    data.province ?? null,
-        postal_code: data.postalCode,
-        country:     data.country,
-        lang:        data.lang,
-        why_locht:   data.whyLocht ?? null,
-      })
+    // ── Réservation atomique des pièces (anti double-vente) ──
+    // UPDATE conditionnel : ne réserve que si encore disponible.
+    const reservedIds: string[] = []
+    for (const piece of data.pieces) {
+      const { data: updated, error: resErr } = await supabase
+        .from('pieces')
+        .update({ status: 'reserved', order_ref: reference, reserved_at: new Date().toISOString() })
+        .eq('id', piece.id)
+        .eq('status', 'available')
+        .select('id')
 
-      if (!error) { inserted = true; break }
-      // 23505 = violation de contrainte unique → on régénère et réessaie
-      if (error.code !== '23505') throw error
+      if (resErr) {
+        await releasePieces(supabase, reservedIds)
+        throw resErr
+      }
+      if (!updated || updated.length === 0) {
+        // Déjà prise par quelqu'un d'autre → rollback + 409
+        await releasePieces(supabase, reservedIds)
+        return NextResponse.json(
+          { error: 'piece_unavailable', pieceId: piece.id, modelName: piece.modelName, pieceNum: piece.pieceNum },
+          { status: 409 }
+        )
+      }
+      reservedIds.push(piece.id)
     }
 
-    if (!inserted) throw new Error('Impossible de générer une référence unique')
+    // ── Insertion de la commande ──
+    const { error: orderErr } = await supabase.from('orders').insert({
+      reference,
+      status:      'pending',
+      bag_name:    data.bagName,
+      quantity:    data.quantity,
+      price_total: data.priceTotal,
+      first_name:  data.firstName,
+      last_name:   data.lastName,
+      email:       data.email,
+      phone:       data.phone ?? null,
+      address:     data.address,
+      city:        data.city,
+      province:    data.province ?? null,
+      postal_code: data.postalCode,
+      country:     data.country,
+      lang:        data.lang,
+      why_locht:   data.whyLocht ?? null,
+    })
+
+    if (orderErr) {
+      await releasePieces(supabase, reservedIds)
+      throw orderErr
+    }
 
     // Email client — non-bloquant : une commande reste valide même si l'email échoue.
     // Mode test : si RESEND_TEST_EMAIL est défini, tous les emails y sont redirigés.
