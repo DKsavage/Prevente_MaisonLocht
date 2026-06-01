@@ -251,13 +251,22 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
           {/* Notes internes */}
           <div className="flex flex-col gap-1.5">
             <span className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Note interne (privée)</span>
+            {/* Note enregistrée — visible */}
+            {order.notes_admin && (
+              <div className="bg-[#043672]/05 border-l-2 border-[#b8965a] px-3 py-2">
+                <span className="text-[12px] text-[#043672] font-light italic">{order.notes_admin}</span>
+              </div>
+            )}
             <div className="flex gap-2">
               <input value={notes} onChange={e => setNotes(e.target.value)}
-                placeholder="Ex : cliente fidèle, adresse à vérifier…"
+                placeholder={order.notes_admin ? 'Modifier la note…' : 'Ex : cliente fidèle, adresse à vérifier…'}
                 className="flex-1 bg-white border border-[#043672]/15 focus:border-[#b8965a] outline-none px-3 py-2 text-[12px]" />
               <button onClick={saveNotes} disabled={isPending}
-                className="text-label text-[7px] tracking-[2px] px-3 py-2 bg-[#043672] text-white disabled:opacity-50">OK</button>
+                className="text-label text-[7px] tracking-[2px] px-3 py-2 bg-[#043672] text-white disabled:opacity-50">
+                {isPending ? '…' : 'Enregistrer'}
+              </button>
             </div>
+            {msg && <span className="text-[11px] text-emerald-600">{msg}</span>}
           </div>
 
           {order.why_locht && (
