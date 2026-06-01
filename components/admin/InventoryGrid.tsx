@@ -21,19 +21,17 @@ const MODELS = [
   { id: 'kami', name: 'Le Kami' },
   { id: 'nafibe', name: 'Le Nafibe' },
 ]
-const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
 function statusInfo(p: InvPiece) {
-  if (p.status === 'available') return { label: 'Disponible', cls: 'text-emerald-700 bg-emerald-50 border-emerald-200' }
-  if (p.status === 'sold')      return { label: 'Vendue', cls: 'text-[#043672] bg-[#043672]/10 border-[#043672]/20' }
-  // reserved
-  if (p.orderPending) return { label: 'En attente paiement', cls: 'text-[#9a7a3a] bg-[#b8965a]/15 border-[#b8965a]/40' }
-  return { label: 'Réservée', cls: 'text-[#9a7a3a] bg-[#b8965a]/10 border-[#b8965a]/25' }
+  if (p.status === 'available') return { label: 'Disponible', dot: 'bg-emerald-500', cls: 'text-emerald-700 bg-emerald-50' }
+  if (p.status === 'sold')      return { label: 'Vendue', dot: 'bg-[#043672]', cls: 'text-[#043672] bg-[#043672]/08' }
+  if (p.orderPending)           return { label: 'En attente paiement', dot: 'bg-[#b8965a]', cls: 'text-[#9a7a3a] bg-[#b8965a]/12' }
+  return { label: 'Réservée', dot: 'bg-[#b8965a]/60', cls: 'text-[#9a7a3a] bg-[#b8965a]/08' }
 }
 
 export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-12">
       <AddBagForm />
       {MODELS.map(model => {
         const list = pieces.filter(p => p.model === model.id)
@@ -44,16 +42,21 @@ export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
         }
         return (
           <div key={model.id}>
-            <div className="flex items-baseline justify-between mb-4 pb-2 border-b border-[#043672]/10">
-              <h2 className="font-display text-[22px] font-light text-[#043672]">{model.name}</h2>
-              <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">
-                {list.length} pièces · {c.available} dispo · {c.reserved} réservées · {c.sold} vendues
-              </span>
+            <div className="flex items-baseline justify-between mb-5 pb-3 border-b border-[#043672]/10">
+              <div className="flex items-baseline gap-4">
+                <h2 className="font-display text-[24px] font-light text-[#043672]">{model.name}</h2>
+                <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">{list.length} pièces</span>
+              </div>
+              <div className="flex items-center gap-3 text-label text-[8px] tracking-[1px]">
+                <Legend dot="bg-emerald-500" n={c.available} label="dispo" />
+                <Legend dot="bg-[#b8965a]" n={c.reserved} label="réservées" />
+                <Legend dot="bg-[#043672]" n={c.sold} label="vendues" />
+              </div>
             </div>
             {list.length === 0 ? (
               <p className="text-[12px] text-[#7a7a8a] font-light">Aucune pièce dans ce modèle.</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
                 {list.map(piece => <PieceCard key={piece.id} piece={piece} />)}
               </div>
             )}
@@ -64,10 +67,19 @@ export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
   )
 }
 
+function Legend({ dot, n, label }: { dot: string; n: number; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-[#7a7a8a]">
+      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />{n} {label}
+    </span>
+  )
+}
+
 function AddBagForm() {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [msg, setMsg] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -76,51 +88,66 @@ function AddBagForm() {
     startTransition(async () => {
       try {
         await addPiece(fd)
-        setMsg('Sac ajouté ✓')
-        formRef.current?.reset()
-        setTimeout(() => { setMsg(null); setOpen(false) }, 1500)
-      } catch (err) {
-        setMsg(err instanceof Error ? err.message : 'Erreur')
-      }
+        setMsg('Sac ajouté')
+        formRef.current?.reset(); setPreview(null)
+        setTimeout(() => { setMsg(null); setOpen(false) }, 1400)
+      } catch (err) { setMsg(err instanceof Error ? err.message : 'Erreur') }
     })
   }
 
   if (!open) {
     return (
       <button onClick={() => setOpen(true)}
-        className="self-start text-label text-[9px] tracking-[2px] px-5 py-3 bg-[#043672] text-white hover:bg-[#0a4d9e] transition-colors">
-        + Ajouter un sac
+        className="self-start inline-flex items-center gap-2 text-label text-[9px] tracking-[2px] px-6 py-3.5 bg-[#043672] text-white hover:bg-[#0a4d9e] transition-colors">
+        <span className="text-[14px] leading-none">+</span> Ajouter un sac
       </button>
     )
   }
 
   return (
     <form ref={formRef} onSubmit={submit}
-      className="flex flex-col sm:flex-row sm:items-end gap-3 p-5 bg-[#faf7f2] border border-[#b8965a]/30">
+      className="flex flex-col sm:flex-row sm:items-end gap-4 p-6 bg-[#faf7f2] border border-[#b8965a]/30">
+      {/* Aperçu image */}
+      <label className="relative w-24 h-24 flex-shrink-0 bg-[#f0ebe0] border border-dashed border-[#043672]/25 cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#b8965a] transition-colors">
+        {preview ? (
+          <Image src={preview} alt="" fill className="object-cover" />
+        ) : (
+          <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] text-center px-2">Choisir<br/>photo</span>
+        )}
+        <input name="image" type="file" accept="image/*" required hidden
+          onChange={e => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)) }} />
+      </label>
+
       <div className="flex flex-col gap-1">
         <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Modèle</label>
-        <select name="model" required className="text-[12px] border border-[#043672]/20 px-2 py-2 bg-white">
+        <select name="model" required className="text-[12px] border border-[#043672]/20 px-3 py-2.5 bg-white">
           {MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">N°</label>
+        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Numéro</label>
         <input name="displayNum" type="number" min={1} defaultValue={1} required
-          className="w-16 text-[12px] border border-[#043672]/20 px-2 py-2 bg-white" />
+          className="w-20 text-[12px] border border-[#043672]/20 px-3 py-2.5 bg-white" />
       </div>
-      <div className="flex flex-col gap-1 flex-1">
-        <label className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Photo</label>
-        <input name="image" type="file" accept="image/*" required
-          className="text-[11px] file:mr-2 file:border-0 file:bg-[#043672] file:text-white file:px-3 file:py-1.5 file:text-[10px]" />
+      <div className="flex gap-2 sm:ml-auto">
+        <button type="submit" disabled={isPending}
+          className="text-label text-[8px] tracking-[2px] px-6 py-3 bg-[#043672] text-white hover:bg-[#0a4d9e] transition-colors disabled:opacity-50">
+          {isPending ? 'Ajout…' : 'Ajouter'}
+        </button>
+        <button type="button" onClick={() => { setOpen(false); setPreview(null) }}
+          className="text-label text-[8px] tracking-[2px] text-[#7a7a8a] hover:text-[#043672] px-3 py-3 transition-colors">Annuler</button>
       </div>
-      <button type="submit" disabled={isPending}
-        className="text-label text-[8px] tracking-[2px] px-5 py-2.5 bg-[#043672] text-white disabled:opacity-50">
-        {isPending ? 'Ajout…' : 'Ajouter'}
-      </button>
-      <button type="button" onClick={() => setOpen(false)}
-        className="text-label text-[8px] tracking-[2px] text-[#7a7a8a] px-3 py-2.5">Annuler</button>
       {msg && <span className="text-[11px] text-emerald-600 self-center">{msg}</span>}
     </form>
+  )
+}
+
+function IconBtn({ onClick, title, children, disabled }: { onClick: () => void; title: string; children: React.ReactNode; disabled?: boolean }) {
+  return (
+    <button onClick={onClick} disabled={disabled} title={title}
+      className="w-8 h-8 flex items-center justify-center bg-[#faf7f2]/95 text-[#043672] hover:bg-white hover:text-[#b8965a] shadow-sm transition-colors disabled:opacity-50 text-[13px]">
+      {children}
+    </button>
   )
 }
 
@@ -133,7 +160,9 @@ function PieceCard({ piece }: { piece: InvPiece }) {
   const info = statusInfo(piece)
   const displayN = pieceNum(piece)
 
-  const act = (fn: () => Promise<void>) => startTransition(async () => { try { await fn() } catch (e) { alert(e instanceof Error ? e.message : 'Erreur') } })
+  const act = (fn: () => Promise<void>) => startTransition(async () => {
+    try { await fn() } catch (e) { alert(e instanceof Error ? e.message : 'Erreur') }
+  })
 
   const saveReassign = () => act(async () => {
     await reassignPiece(piece.id, model as 'kouna' | 'kami' | 'nafibe', parseInt(num, 10) || 1)
@@ -143,75 +172,85 @@ function PieceCard({ piece }: { piece: InvPiece }) {
   const onImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const fd = new FormData()
-    fd.append('image', file)
+    const fd = new FormData(); fd.append('image', file)
     act(() => changePieceImage(piece.id, fd))
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="relative aspect-square overflow-hidden border border-[#043672]/10 bg-[#f0ebe0]">
-        <Image src={piece.image_url} alt={piece.id} fill className="object-cover"
-          style={{ filter: piece.status === 'sold' ? 'grayscale(0.6)' : 'none' }} sizes="160px" />
-        <div className="absolute top-2 left-2 bg-[#faf7f2]/90 px-2 py-0.5">
-          <span className="text-label text-[7px] text-[#043672] tracking-[1px]">N°{String(displayN).padStart(2, '0')}</span>
+    <div className="group flex flex-col">
+      {/* Image + overlay actions */}
+      <div className="relative aspect-square overflow-hidden bg-[#f0ebe0]">
+        <Image src={piece.image_url} alt={piece.id} fill
+          className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          style={{ filter: piece.status === 'sold' ? 'grayscale(0.5)' : 'none' }} sizes="200px" />
+
+        {/* Numéro */}
+        <div className="absolute top-0 left-0 bg-[#043672] text-white px-2.5 py-1">
+          <span className="font-display text-[13px] font-light leading-none">{String(displayN).padStart(2, '0')}</span>
         </div>
-        <div className="absolute top-2 right-2 flex gap-1">
-          <button onClick={() => imageInputRef.current?.click()} disabled={isPending} title="Changer la photo"
-            className="bg-[#043672]/80 text-white text-[9px] w-5 h-5 flex items-center justify-center hover:bg-[#043672]">📷</button>
-          <button onClick={() => setEditing(e => !e)} title="Modifier"
-            className="bg-[#043672]/80 text-white text-[9px] w-5 h-5 flex items-center justify-center hover:bg-[#043672]">✎</button>
+
+        {/* Actions au hover */}
+        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <IconBtn onClick={() => imageInputRef.current?.click()} title="Changer la photo" disabled={isPending}>⟳</IconBtn>
+          <IconBtn onClick={() => setEditing(e => !e)} title="Modifier modèle / numéro">✎</IconBtn>
         </div>
         <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={onImagePick} />
+
+        {/* Voile pendant chargement */}
+        {isPending && <div className="absolute inset-0 bg-[#faf7f2]/50 flex items-center justify-center">
+          <span className="w-5 h-5 border-2 border-[#b8965a] border-t-transparent rounded-full animate-spin" /></div>}
       </div>
 
-      <span className={`text-label text-[7px] tracking-[1px] px-2 py-1 border text-center ${info.cls}`}>
-        {info.label}
-      </span>
+      {/* Statut */}
+      <div className={`flex items-center gap-1.5 px-2.5 py-1.5 ${info.cls}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${info.dot}`} />
+        <span className="text-label text-[7px] tracking-[1px]">{info.label}</span>
+      </div>
 
-      {/* Édition réassignation */}
+      {/* Panneau édition */}
       {editing && (
-        <div className="flex flex-col gap-1.5 p-2 bg-[#f0ebe0] border border-[#b8965a]/30">
+        <div className="flex flex-col gap-2 p-3 bg-[#faf7f2] border-x border-b border-[#b8965a]/30">
           <select value={model} onChange={e => setModel(e.target.value)}
-            className="text-[10px] border border-[#043672]/20 px-1.5 py-1 bg-white">
+            className="text-[11px] border border-[#043672]/20 px-2 py-1.5 bg-white">
             {MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
-          <div className="flex gap-1 items-center">
-            <span className="text-[8px] text-[#7a7a8a]">N°</span>
+          <div className="flex gap-1.5 items-center">
+            <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">N°</span>
             <input type="number" min={1} value={num} onChange={e => setNum(e.target.value)}
-              className="w-12 text-[10px] border border-[#043672]/20 px-1.5 py-1 bg-white" />
+              className="w-14 text-[11px] border border-[#043672]/20 px-2 py-1.5 bg-white" />
             <button onClick={saveReassign} disabled={isPending}
-              className="flex-1 text-label text-[7px] tracking-[1px] px-1 py-1 bg-[#043672] text-white disabled:opacity-50">
+              className="flex-1 text-label text-[7px] tracking-[1px] py-1.5 bg-[#043672] text-white hover:bg-[#0a4d9e] disabled:opacity-50">
               Enregistrer
             </button>
           </div>
           {piece.status === 'available' && (
             <button onClick={() => { if (confirm('Supprimer cette pièce ?')) act(() => deletePiece(piece.id)) }} disabled={isPending}
-              className="text-label text-[7px] tracking-[1px] px-1 py-1 border border-red-200 text-red-500 hover:bg-red-50">
+              className="text-label text-[7px] tracking-[1px] py-1.5 border border-red-200 text-red-500 hover:bg-red-50">
               Supprimer
             </button>
           )}
         </div>
       )}
 
-      {/* Actions statut */}
-      {!editing && (
-        <div className="flex gap-1">
+      {/* Actions statut rapides */}
+      {!editing && (piece.status !== 'available' || piece.status === 'available') && (
+        <div className="flex gap-px mt-1.5">
           {piece.status !== 'available' && (
             <button onClick={() => act(() => releasePiece(piece.id))} disabled={isPending}
-              className="flex-1 text-label text-[6px] tracking-[1px] px-1 py-1.5 border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors disabled:opacity-50">
+              className="flex-1 text-label text-[7px] tracking-[1px] py-2 border border-emerald-200 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors disabled:opacity-50">
               Libérer
             </button>
           )}
           {piece.status !== 'sold' && (
             <button onClick={() => act(() => setPieceStatus(piece.id, 'sold'))} disabled={isPending}
-              className="flex-1 text-label text-[6px] tracking-[1px] px-1 py-1.5 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
-              Vendue
+              className="flex-1 text-label text-[7px] tracking-[1px] py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
+              Marquer vendue
             </button>
           )}
         </div>
       )}
-      {piece.order_ref && <span className="text-[8px] text-[#7a7a8a] font-mono text-center">{piece.order_ref}</span>}
+
+      {piece.order_ref && <span className="text-[8px] text-[#7a7a8a] font-mono text-center mt-1">{piece.order_ref}</span>}
     </div>
   )
 }
