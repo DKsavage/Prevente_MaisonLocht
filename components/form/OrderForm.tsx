@@ -92,6 +92,20 @@ export default function OrderForm() {
         body: JSON.stringify({ ...data, pieces: selections, lang }),
       })
       const json = await res.json()
+
+      // Pièce prise par quelqu'un d'autre pendant la commande
+      if (res.status === 409 && json.error === 'piece_unavailable') {
+        const label = `${json.modelName} N°${String(json.pieceNum).padStart(2, '0')}`
+        // Retirer la pièce indisponible de la sélection
+        setSelections(prev => prev.filter(p => p.id !== json.pieceId))
+        setError(lang === 'fr'
+          ? `${label} vient d'être réservée par une autre personne. Elle a été retirée de votre sélection — choisissez-en une autre.`
+          : `${label} was just reserved by someone else. It has been removed from your selection — please choose another.`)
+        setStep(0)
+        setLoading(false)
+        return
+      }
+
       if (!res.ok) throw new Error(json.error ?? 'Erreur')
       setReference(json.reference)
     } catch (e) {
