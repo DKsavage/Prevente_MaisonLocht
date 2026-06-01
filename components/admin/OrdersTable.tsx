@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useMemo } from 'react'
+import { useState, useTransition, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, type OrderStatus } from '@/app/admin/actions'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
@@ -71,10 +71,19 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 const ALL_STATUS: OrderStatus[] = ['pending', 'payment_received', 'confirmed', 'shipped', 'cancelled']
 
 export default function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
+  const router = useRouter()
   const orders = initialOrders
   const [filter, setFilter] = useState<'all' | OrderStatus | 'late'>('all')
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+
+  // Rafraîchissement automatique toutes les 25s (nouvelles commandes)
+  useEffect(() => {
+    if (!autoRefresh) return
+    const id = setInterval(() => router.refresh(), 25000)
+    return () => clearInterval(id)
+  }, [autoRefresh, router])
 
   const lateCount = orders.filter(isLate).length
 
@@ -99,10 +108,16 @@ export default function OrdersTable({ initialOrders }: { initialOrders: Order[] 
           placeholder="Rechercher (référence, nom, email)…"
           className="flex-1 max-w-md bg-[#faf7f2] border border-[#043672]/15 focus:border-[#b8965a] outline-none px-4 py-2.5 text-[12px] transition-colors"
         />
-        <button onClick={() => exportCsv(filtered)}
-          className="text-label text-[8px] tracking-[2px] px-4 py-2.5 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors whitespace-nowrap">
-          ↓ Exporter CSV ({filtered.length})
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => router.refresh()}
+            className="text-label text-[8px] tracking-[2px] px-4 py-2.5 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors whitespace-nowrap">
+            ↻ Rafraîchir
+          </button>
+          <button onClick={() => exportCsv(filtered)}
+            className="text-label text-[8px] tracking-[2px] px-4 py-2.5 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors whitespace-nowrap">
+            ↓ CSV ({filtered.length})
+          </button>
+        </div>
       </div>
 
       {/* Filtres */}
