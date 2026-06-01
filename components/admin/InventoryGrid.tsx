@@ -24,8 +24,13 @@ const MODELS = [
 
 function statusInfo(p: InvPiece) {
   if (p.status === 'available') return { label: 'Disponible', dot: 'bg-emerald-500', cls: 'text-emerald-700 bg-emerald-50' }
-  if (p.status === 'sold')      return { label: 'Vendue', dot: 'bg-[#043672]', cls: 'text-[#043672] bg-[#043672]/08' }
-  if (p.orderPending)           return { label: 'En attente paiement', dot: 'bg-[#b8965a]', cls: 'text-[#9a7a3a] bg-[#b8965a]/12' }
+  if (p.status === 'sold') {
+    // Vendue via le site (order_ref) vs vendue en boutique/physiquement (pas de commande)
+    return p.order_ref
+      ? { label: 'Vendue · en ligne', dot: 'bg-[#043672]', cls: 'text-[#043672] bg-[#043672]/08' }
+      : { label: 'Vendue · boutique', dot: 'bg-[#7a7a8a]', cls: 'text-[#5a5a6a] bg-[#7a7a8a]/10' }
+  }
+  if (p.orderPending) return { label: 'En attente paiement', dot: 'bg-[#b8965a]', cls: 'text-[#9a7a3a] bg-[#b8965a]/12' }
   return { label: 'Réservée', dot: 'bg-[#b8965a]/60', cls: 'text-[#9a7a3a] bg-[#b8965a]/08' }
 }
 

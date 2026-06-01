@@ -10,7 +10,7 @@ export default async function AdminStatsPage() {
 
   const supabase = createServerClient()
   const { data: orders } = await supabase.from('orders').select('status, price_total, country, bag_name, created_at')
-  const { data: pieces } = await supabase.from('pieces').select('model, status')
+  const { data: pieces } = await supabase.from('pieces').select('model, status, order_ref')
 
   const o = orders ?? []
   const p = pieces ?? []
@@ -24,11 +24,14 @@ export default async function AdminStatsPage() {
   o.forEach(x => { const c = x.country ?? '—'; byCountry[c] = (byCountry[c] ?? 0) + 1 })
 
   // Inventaire
+  const sold = p.filter(x => x.status === 'sold')
   const inv = {
     total: p.length,
     available: p.filter(x => x.status === 'available').length,
     reserved: p.filter(x => x.status === 'reserved').length,
-    sold: p.filter(x => x.status === 'sold').length,
+    sold: sold.length,
+    soldOnline: sold.filter(x => x.order_ref).length,
+    soldShop: sold.filter(x => !x.order_ref).length,
   }
 
   return (
@@ -50,6 +53,12 @@ export default async function AdminStatsPage() {
           <Card label="Disponibles" value={String(inv.available)} />
           <Card label="Réservées" value={String(inv.reserved)} />
           <Card label="Vendues" value={String(inv.sold)} accent />
+        </Section>
+
+        {/* Détail ventes */}
+        <Section title="Détail des ventes">
+          <Card label="Vendues en ligne" value={String(inv.soldOnline)} />
+          <Card label="Vendues boutique" value={String(inv.soldShop)} />
         </Section>
 
         {/* Par pays */}
