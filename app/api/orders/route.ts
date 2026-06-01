@@ -18,9 +18,28 @@ async function releasePieces(supabase: SupabaseClient, ids: string[]) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const data = orderSchema.parse(body)
 
+    // ── Honeypot anti-bot : champ caché qui doit rester vide ──
+    if (typeof body.website === 'string' && body.website.trim() !== '') {
+      // Bot détecté — on simule un succès silencieux sans rien enregistrer
+      return NextResponse.json({ reference: 'LOCHT-0000-000' }, { status: 201 })
+    }
+
+    const data = orderSchema.parse(body)
     const supabase = createServerClient()
+
+    // ── Rate limiting : max 6 commandes / minute par IP ──
+    const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown'
+    const { data: allowed, error: rlErr } = await supabase.rpc('check_rate_limit', {
+      p_key: `order:${ip}`, p_max: 6, p_window_seconds: 60,
+    })
+    if (!rlErr && allowed === false) {
+      return NextResponse.json(
+        { error: 'rate_limited' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      )
+    }
+
     const reference = await generateReference()
 
     // ── Réservation atomique des pièces (anti double-vente) ──

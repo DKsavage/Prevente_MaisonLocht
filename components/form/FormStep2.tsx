@@ -130,6 +130,18 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
         <p className="text-[12px] text-[#7a7a8a] font-light">{t.sub}</p>
       </div>
 
+      {/* Honeypot anti-bot — invisible pour les humains, rempli par les bots */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={data.website ?? ''}
+        onChange={e => set('website', e.target.value)}
+        style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+      />
+
       {/* ── Identité ── */}
       <Section label={t.id}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

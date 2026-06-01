@@ -27,6 +27,7 @@ export const orderSchema = z.object({
   postalCode: z.string().min(2, 'Code postal requis').max(12),
   lang:       z.enum(['fr', 'en']),
   whyLocht:   z.string().max(500).optional(),
+  website:    z.string().optional(), // honeypot — doit rester vide
 })
 
 export type OrderFormData = z.infer<typeof orderSchema>

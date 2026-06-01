@@ -107,6 +107,14 @@ export default function OrderForm() {
         return
       }
 
+      if (res.status === 429) {
+        setError(lang === 'fr'
+          ? 'Trop de tentatives. Patientez une minute puis réessayez.'
+          : 'Too many attempts. Please wait a minute and try again.')
+        setLoading(false)
+        return
+      }
+
       if (!res.ok) throw new Error(json.error ?? 'Erreur')
       setReference(json.reference)
     } catch (e) {
