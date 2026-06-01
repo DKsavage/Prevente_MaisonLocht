@@ -16,6 +16,8 @@ type Props = {
   inputClass: string
   hasError?: boolean
   lang: 'fr' | 'en'
+  province?: string
+  city?: string
   onSelect: (r: AddressResult) => void
   onChange: (v: string) => void
 }
@@ -25,7 +27,7 @@ const labels = {
   en: { searching: 'Searching...', noResults: 'No results', hint: 'Enter a Canadian address' },
 }
 
-export default function AddressAutocomplete({ value, placeholder, inputClass, hasError, lang, onSelect, onChange }: Props) {
+export default function AddressAutocomplete({ value, placeholder, inputClass, hasError, lang, province, city, onSelect, onChange }: Props) {
   const [results, setResults]   = useState<AddressResult[]>([])
   const [open, setOpen]         = useState(false)
   const [loading, setLoading]   = useState(false)
@@ -38,7 +40,10 @@ export default function AddressAutocomplete({ value, placeholder, inputClass, ha
     if (q.length < 4) { setResults([]); setOpen(false); return }
     setLoading(true)
     try {
-      const res = await fetch(`/api/address-search?q=${encodeURIComponent(q)}`)
+      const params = new URLSearchParams({ q })
+      if (province) params.set('province', province)
+      if (city)     params.set('city', city)
+      const res = await fetch(`/api/address-search?${params}`)
       const data: AddressResult[] = await res.json()
       setResults(data)
       setOpen(data.length > 0)
@@ -47,7 +52,7 @@ export default function AddressAutocomplete({ value, placeholder, inputClass, ha
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [province, city])
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value

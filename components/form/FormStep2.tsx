@@ -128,12 +128,14 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
             inputClass={inputClass}
             hasError={!!errors.address}
             lang={lang}
+            province={data.province}
+            city={data.city}
             onChange={(v) => onChange({ address: v })}
             onSelect={(r) => onChange({
-              address:    r.address  || data.address,
-              city:       r.city     || data.city,
-              province:   r.province || data.province,
-              postalCode: r.postalCode || data.postalCode,
+              address:    r.address    || data.address,
+              city:       r.city       || data.city,
+              province:   r.province   || data.province,
+              postalCode: r.postalCode  || data.postalCode,
             })}
           />
           {errors.address && <span className="text-[10px] text-red-400 mt-1">{errors.address}</span>}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const PROVINCE_MAP: Record<string, string> = {
-  'alberta': 'AB', 'british columbia': 'BC', 'colombia britanica': 'BC',
+  'alberta': 'AB', 'british columbia': 'BC',
   'manitoba': 'MB', 'new brunswick': 'NB', 'nouveau-brunswick': 'NB',
   'newfoundland and labrador': 'NL', 'terre-neuve-et-labrador': 'NL',
   'nova scotia': 'NS', 'nouvelle-écosse': 'NS',
@@ -12,6 +12,14 @@ const PROVINCE_MAP: Record<string, string> = {
   'saskatchewan': 'SK', 'yukon': 'YT',
 }
 
+const CODE_TO_NAME: Record<string, string> = {
+  AB: 'Alberta', BC: 'British Columbia', MB: 'Manitoba',
+  NB: 'New Brunswick', NL: 'Newfoundland and Labrador',
+  NS: 'Nova Scotia', NT: 'Northwest Territories', NU: 'Nunavut',
+  ON: 'Ontario', PE: 'Prince Edward Island', QC: 'Quebec',
+  SK: 'Saskatchewan', YT: 'Yukon',
+}
+
 function toProvinceCode(name: string): string {
   if (!name) return ''
   const key = name.toLowerCase().trim()
@@ -19,11 +27,20 @@ function toProvinceCode(name: string): string {
 }
 
 export async function GET(req: NextRequest) {
-  const q = req.nextUrl.searchParams.get('q')
-  if (!q || q.length < 3) return NextResponse.json([])
+  const q        = req.nextUrl.searchParams.get('q') ?? ''
+  const province = req.nextUrl.searchParams.get('province') ?? ''
+  const city     = req.nextUrl.searchParams.get('city') ?? ''
+
+  if (q.length < 3) return NextResponse.json([])
+
+  // Enrichir la requête avec le contexte déjà rempli
+  const parts = [q]
+  if (city.trim())     parts.push(city.trim())
+  if (province.trim()) parts.push(CODE_TO_NAME[province.trim()] ?? province.trim())
+  const query = parts.join(', ')
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=ca&q=${encodeURIComponent(q)}`
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&countrycodes=ca&q=${encodeURIComponent(query)}`
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'MaisonLocht-PreSale/1.0 (bitoungui32@gmail.com)',
@@ -36,27 +53,28 @@ export async function GET(req: NextRequest) {
     const raw: NominatimResult[] = await res.json()
 
     const results = raw
-      .filter(r => r.address?.country_code === 'ca')
+      .filter(r => {
+        if (r.address?.country_code !== 'ca') return false
+        // Filtrer strictement par province si déjà sélectionnée
+        if (province) {
+          const rp = toProvinceCode(r.address?.state ?? '')
+          if (rp && rp !== province) return false
+        }
+        return true
+      })
       .map(r => {
-        const a = r.address
+        const a          = r.address
         const streetNum  = a.house_number ?? ''
-        const street     = a.road ?? a.pedestrian ?? a.cycleway ?? ''
+        const street     = a.road ?? a.pedestrian ?? a.cycleway ?? a.path ?? ''
         const fullStreet = [streetNum, street].filter(Boolean).join(' ')
-        const city       = a.city ?? a.town ?? a.village ?? a.municipality ?? a.county ?? ''
-        const province   = toProvinceCode(a.state ?? '')
-        const postalCode = a.postcode
+        const resCity    = a.city ?? a.town ?? a.village ?? a.municipality ?? a.county ?? ''
+        const resProvince = toProvinceCode(a.state ?? '')
+        const postalCode  = a.postcode
           ? a.postcode.toUpperCase().replace(/([A-Z]\d[A-Z])(\d[A-Z]\d)/, '$1 $2')
           : ''
-
-        return {
-          label:      r.display_name,
-          address:    fullStreet,
-          city,
-          province,
-          postalCode,
-        }
+        return { label: r.display_name, address: fullStreet, city: resCity, province: resProvince, postalCode }
       })
-      .filter(r => r.address || r.city)
+      .filter(r => r.address)
 
     return NextResponse.json(results)
   } catch {
@@ -67,17 +85,9 @@ export async function GET(req: NextRequest) {
 type NominatimResult = {
   display_name: string
   address: {
-    house_number?: string
-    road?: string
-    pedestrian?: string
-    cycleway?: string
-    city?: string
-    town?: string
-    village?: string
-    municipality?: string
-    county?: string
-    state?: string
-    postcode?: string
-    country_code?: string
+    house_number?: string; road?: string; pedestrian?: string
+    cycleway?: string; path?: string; city?: string; town?: string
+    village?: string; municipality?: string; county?: string
+    state?: string; postcode?: string; country_code?: string
   }
 }
