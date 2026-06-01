@@ -119,6 +119,21 @@ export async function POST(req: NextRequest) {
       console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
     }
 
+    // ── Notification interne à la designeuse (nouvelle commande) ──
+    const adminTo = testEmail || (process.env.ADMIN_NOTIFY_EMAIL ?? '').replace(/\s/g, '')
+    if (adminTo) {
+      try {
+        await resend.emails.send({
+          from: FROM,
+          to:   adminTo,
+          subject: `🔔 Nouvelle commande ${reference} — ${data.priceTotal} CAD`,
+          html: buildAdminNotification({ data, reference, interacAnswer, baseUrl }),
+        })
+      } catch (e) {
+        console.error('[orders POST] admin notify failed', e)
+      }
+    }
+
     return NextResponse.json({ reference }, { status: 201 })
 
   } catch (err) {
@@ -128,4 +143,45 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
+}
+
+// Email de notification interne (nouvelle commande) — pour la designeuse
+function buildAdminNotification({ data, reference, interacAnswer, baseUrl }: {
+  data: {
+    firstName: string; lastName: string; email: string; phone?: string; bagName: string
+    quantity: number; priceTotal: number; country: string; address: string; city: string
+    province?: string; postalCode: string
+  }
+  reference: string
+  interacAnswer: string | null
+  baseUrl: string
+}) {
+  const payment = data.country === 'CA'
+    ? `Interac &middot; réponse : <strong>${interacAnswer ?? '—'}</strong>`
+    : 'Virement bancaire (compte belge)'
+  return `
+<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;background:#ede8df;font-family:Helvetica,Arial,sans-serif;padding:32px 16px">
+  <table width="520" cellpadding="0" cellspacing="0" align="center" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.1);max-width:520px;margin:0 auto">
+    <tr><td style="background:#043672;padding:24px 32px">
+      <p style="margin:0;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#d4aa6a">Nouvelle commande</p>
+      <p style="margin:6px 0 0;font-family:Georgia,serif;font-size:26px;font-weight:300;color:#fff">${reference}</p>
+    </td></tr>
+    <tr><td style="padding:24px 32px">
+      <table width="100%" cellpadding="0" cellspacing="0" style="font-size:13px;color:#1a1a2e">
+        <tr><td style="color:#7a7a8a;padding:4px 0">Client</td><td style="text-align:right;padding:4px 0">${data.firstName} ${data.lastName}</td></tr>
+        <tr><td style="color:#7a7a8a;padding:4px 0">Courriel</td><td style="text-align:right;padding:4px 0">${data.email}</td></tr>
+        ${data.phone ? `<tr><td style="color:#7a7a8a;padding:4px 0">Téléphone</td><td style="text-align:right;padding:4px 0">${data.phone}</td></tr>` : ''}
+        <tr><td style="color:#7a7a8a;padding:4px 0">Pièces</td><td style="text-align:right;padding:4px 0">${data.bagName}</td></tr>
+        <tr><td style="color:#7a7a8a;padding:4px 0">Total</td><td style="text-align:right;padding:4px 0;font-weight:600;color:#043672">${data.priceTotal} CAD</td></tr>
+        <tr><td style="color:#7a7a8a;padding:4px 0">Pays</td><td style="text-align:right;padding:4px 0">${data.country}</td></tr>
+        <tr><td style="color:#7a7a8a;padding:4px 0">Adresse</td><td style="text-align:right;padding:4px 0">${data.address}, ${data.city}${data.province ? ', ' + data.province : ''} ${data.postalCode}</td></tr>
+        <tr><td style="color:#7a7a8a;padding:4px 0">Paiement</td><td style="text-align:right;padding:4px 0">${payment}</td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:0 32px 28px;text-align:center">
+      <a href="${baseUrl}/admin/commandes" style="display:inline-block;background:#043672;color:#fff;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:13px 28px;text-decoration:none">Voir dans le tableau de bord &rarr;</a>
+    </td></tr>
+  </table>
+</body></html>`
 }
