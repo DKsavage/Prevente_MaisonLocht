@@ -3,6 +3,38 @@
 
 ---
 
+## Règles Claude — à appliquer sans exception
+
+### Démarrage de session
+1. **CLAUDE.md obligatoire** — lire ce fichier en premier. Y écrire stack, règles, bugs résolus, décisions.
+2. **Carte graphify en premier** — si `graphify-out/GRAPH_REPORT.md` existe → le lire avant tout `Read` sur un fichier source. Si la réponse est dans le graphe, l'utiliser sans relire le fichier brut.
+3. **Pas de graphify-out** → lancer `/graphify .` immédiatement avant toute exploration du code.
+
+### Efficacité et tokens
+- `/graphify` — carte du projet, évite les relectures inutiles
+- `/fewer-permission-prompts` — réduire les confirmations répétitives
+- `/graphify query "question"` — répondre depuis le graphe sans lire les fichiers
+
+### Règles Git
+1. **Pas de `Co-Authored-By: Claude`** — jamais.
+2. **Conventional Commits** : `feat:`, `fix:`, `refactor:`, `perf:`, `chore:`, `docs:`, `test:`, `style:`
+3. **`git add` sélectif** — jamais `git add .`, toujours `git add <fichier>` ciblé.
+
+### Règles Code
+1. **Modifier le fichier existant** — jamais réécrire from scratch.
+2. **Commentaires** : expliquer le POURQUOI, pas le QUOI.
+
+### Style de réponse
+1. **Phrases courtes** — 3 à 6 mots max, zéro remplissage.
+2. **Outils d'abord** — lancer les outils, montrer le résultat, s'arrêter.
+3. **Direct** — jamais narrer l'action, juste la faire.
+
+### Pédagogie
+1. **Défi de compréhension** en fin de session si du code a été écrit.
+2. **Résumé roadmap** quand pertinent — rappeler où on en est dans les phases.
+
+---
+
 ## Stack
 
 | Couche | Outil |
@@ -204,13 +236,15 @@ Seule exception acceptable : bottom nav mobile icons `text-[8px]`.
 3. **Feature branch** si risque (ex: `feat/nom-feature`) → merge sur main après validation
 4. **TypeScript check** avant chaque commit : `npx tsc --noEmit`
 5. **Commits sans Co-Authored-By** — auteur = DKsavage uniquement
+6. **Conventional Commits** : `feat:`, `fix:`, `refactor:`, `perf:`, `chore:`, `docs:`, `test:`, `style:`
+7. **`git add` sélectif** — jamais `git add .`
 
 ## Style de Réponse (Claude)
 
-- Phrases courtes. Zéro remplissage
+- Phrases courtes — 3 à 6 mots max, zéro remplissage
 - Outils d'abord → résultat → stop
-- Ne pas narrer le processus
-- Utiliser code-review-graph MCP avant de lire des fichiers — économise les tokens
+- Direct — jamais narrer l'action
+- Utiliser graphify-out/GRAPH_REPORT.md avant de lire des fichiers
 - Utiliser les skills frontend-design pour tout travail visuel
 
 ---
@@ -239,7 +273,7 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 
 - **Emails** — `ml@maisonlocht.com` (lib/email-from.ts). Compte Resend **séparé** avec domaine vérifié.
 - **DNS Namecheap** — MX = `mx1/mx2.privateemail.com` + SPF/DKIM Amazon SES. Ne pas remettre en "Private Email".
-- **Paiement** — Canada → Interac (`ml@maisonlocht.com`, réponse sécurité `Cernes`+4 chiffres) · International → virement IBAN BE98 0636 5034 2393.
+- **Paiement** — Canada → Interac (`anouklocht2003@gmail.com`, question `Quel est le nom de la collection ?`, réponse auto `Cernes`+4 chiffres) · International → virement IBAN BE98 0636 5034 2393.
 - **Pièces uniques** — Réservation atomique, jamais de double-vente. Ventes boutique = `sold` + `order_ref=null` (préserver en nettoyage DB).
 - **why_locht** — Données privées. Utilisées en interne uniquement (note colis, miroir tracking). Ne jamais afficher publiquement.
 
