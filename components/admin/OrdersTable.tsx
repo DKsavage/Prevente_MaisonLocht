@@ -332,9 +332,12 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
           </div>
 
           {order.why_locht && (
-            <div className="bg-[#f0ebe0] px-3 py-2">
-              <span className="text-label text-[7px] text-[#b8965a] tracking-[2px] block mb-1">Ce qui l&apos;a attiré</span>
-              <span className="text-[12px] text-[#1a1a2e] font-light italic">&laquo; {order.why_locht} &raquo;</span>
+            <div className="flex flex-col gap-3">
+              <div className="bg-[#f0ebe0] px-3 py-2">
+                <span className="text-label text-[9px] text-[#b8965a] tracking-[2px] block mb-1">Ce qui l&apos;a attiré</span>
+                <span className="text-[12px] text-[#1a1a2e] font-light italic">&laquo; {order.why_locht} &raquo;</span>
+              </div>
+              <NoteColis firstName={order.first_name} bagName={order.bag_name} reference={order.reference} why={order.why_locht} />
             </div>
           )}
 
@@ -403,6 +406,33 @@ function Detail({ label, value }: { label: string; value: string }) {
     <div className="flex gap-2">
       <span className="text-[#7a7a8a] w-[70px] flex-shrink-0">{label}</span>
       <span className="text-[#1a1a2e]">{value}</span>
+    </div>
+  )
+}
+
+function NoteColis({ firstName, bagName, reference, why }: {
+  firstName: string; bagName: string; reference: string; why: string
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const note = `Chère ${firstName},\n\nTon ${bagName} — réf. ${reference} — t'attend.\n\nTu nous avais dit :\n« ${why} »\n\nCette pièce porte exactement ça.\n\n— Maison Locht`
+
+  const copy = () => {
+    navigator.clipboard.writeText(note)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="bg-[#021f45] px-4 py-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="text-label text-[9px] text-[#d4aa6a] tracking-[3px]">Note à glisser dans le colis</span>
+        <button onClick={copy}
+          className="text-label text-[9px] tracking-[1px] px-3 py-1.5 border border-[#d4aa6a]/40 text-[#d4aa6a] hover:bg-[#d4aa6a] hover:text-[#021f45] transition-colors">
+          {copied ? '✓ Copié' : 'Copier'}
+        </button>
+      </div>
+      <pre className="text-[11px] text-white/70 font-light leading-relaxed whitespace-pre-wrap font-sans">{note}</pre>
     </div>
   )
 }

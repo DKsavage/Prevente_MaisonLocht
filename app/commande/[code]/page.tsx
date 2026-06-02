@@ -30,6 +30,7 @@ const copy = {
     },
     finalSale: 'Chaque création est définitive. Les ajustements sont assurés à vie.',
     piece: 'Pièce',
+    whyLabel: 'Ce qui vous a attiré',
   },
   en: {
     eyebrow: 'Order tracking',
@@ -51,6 +52,7 @@ const copy = {
     },
     finalSale: 'Each creation is final. Adjustments are guaranteed for life.',
     piece: 'Piece',
+    whyLabel: 'What drew you here',
   },
 }
 
@@ -61,7 +63,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
   const supabase = createServerClient()
   const { data: order } = await supabase
     .from('orders')
-    .select('reference, status, bag_name, quantity, price_total, first_name, city, country, lang, tracking_number, carrier, created_at')
+    .select('reference, status, bag_name, quantity, price_total, first_name, city, country, lang, tracking_number, carrier, created_at, why_locht')
     .eq('reference', reference)
     .single()
 
@@ -106,6 +108,16 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
           <p className="text-label text-[9px] text-[#b8965a] tracking-[5px] mb-3">{t.eyebrow}</p>
           <p className="font-display text-[30px] font-light text-[#043672] tracking-[3px]">{order.reference}</p>
         </div>
+
+        {/* Miroir — ce que la cliente nous a confié */}
+        {order.why_locht && (
+          <div className="mb-6 border-l-2 border-[#b8965a] bg-[#faf7f2] px-6 py-5">
+            <p className="text-label text-[10px] text-[#b8965a] tracking-[3px] mb-3">{t.whyLabel}</p>
+            <p className="font-display text-[20px] font-light text-[#043672] italic leading-relaxed">
+              &laquo; {order.why_locht} &raquo;
+            </p>
+          </div>
+        )}
 
         <div className="bg-[#faf7f2] border border-[#043672]/08">
           {isCancelled ? (

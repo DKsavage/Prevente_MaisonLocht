@@ -20,7 +20,7 @@ const copy = {
     back: 'Retour', confirm: 'Confirmer la commande', loading: 'Envoi…',
     unique: 'Pièce unique · jamais reproduite',
     piece: 'Pièce', engagement: 'Chaque pièce est cousue à la main et ne sera jamais reproduite.',
-    finalSale: 'Pièce unique · ni reprise ni échange. Des ajustements sur le sac restent possibles sur demande.',
+    finalSale: 'Chaque création est définitive. Les ajustements sont assurés à vie.',
   },
   en: {
     title: 'Your order',
@@ -32,7 +32,7 @@ const copy = {
     back: 'Back', confirm: 'Confirm order', loading: 'Sending…',
     unique: 'One-of-a-kind · never reproduced',
     piece: 'Piece', engagement: 'Each piece is hand-sewn and will never be reproduced.',
-    finalSale: 'One-of-a-kind · no returns or exchanges. Adjustments to the bag remain available on request.',
+    finalSale: 'Each creation is final. Adjustments are guaranteed for life.',
   },
 }
 
