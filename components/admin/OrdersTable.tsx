@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, useMemo, useEffect } from 'react'
+import { useState, useTransition, useMemo, useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces, type OrderStatus } from '@/app/admin/actions'
 import { timeAgo } from '@/lib/time'
@@ -225,6 +226,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const [pieces, setPieces] = useState<PieceItem[]>([])
   const [piecesLoaded, setPiecesLoaded] = useState(false)
   const late = isLate(order)
+  const rowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (expanded && !piecesLoaded) {
@@ -232,6 +234,10 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
         setPieces(p as PieceItem[])
         setPiecesLoaded(true)
       })
+    }
+    // Scroll la ligne dans le viewport quand elle s'ouvre
+    if (expanded) {
+      setTimeout(() => rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
     }
   }, [expanded, piecesLoaded, order.reference])
 
@@ -313,6 +319,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
 
   return (
     <div
+      ref={rowRef}
       className={`border-l-[3px] border-r border-t border-b transition-colors ${
         late ? 'bg-amber-50/30' : 'bg-[#faf7f2]'
       } ${expanded ? 'border-r-[#b8965a]/30 border-t-[#b8965a]/30 border-b-[#b8965a]/30' : 'border-r-[#043672]/10 border-t-[#043672]/10 border-b-[#043672]/10'}`}
@@ -369,8 +376,18 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
       </div>
 
       {/* ── Détails expandés ── */}
+      <AnimatePresence initial={false}>
       {expanded && (
-        <div className="border-t border-[#043672]/06 px-4 pb-5 pt-4">
+        <motion.div
+          key="expanded"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          style={{ overflow: 'hidden' }}
+          className="border-t border-[#043672]/06"
+        >
+        <div className="px-4 pb-5 pt-4">
           <div className="grid md:grid-cols-[1fr_288px] lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
 
             {/* ── Colonne gauche : infos commande + client ── */}
@@ -571,7 +588,9 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
             </div>
           </div>
         </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -690,7 +709,7 @@ function NoteColis({ firstName, bagName, reference, why }: {
 }) {
   const [copied, setCopied] = useState(false)
 
-  const note = `Chère ${firstName},\n\nTon ${bagName} — réf. ${reference} — t'attend.\n\nTu nous avais dit :\n« ${why} »\n\nCette pièce porte exactement ça.\n\n— Maison Locht`
+  const note = `${firstName},\n\nTon ${bagName} est là.\nUnique — jamais reproduit.\n\nTu nous avais confié :\n« ${why} »\n\nC'est pour ça qu'il est à toi.\n\n— Maison Locht`
 
   const copy = () => {
     navigator.clipboard.writeText(note)
