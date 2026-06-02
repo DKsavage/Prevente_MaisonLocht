@@ -28,7 +28,7 @@ const copy = {
       confirmed: { label: 'Confirmée', desc: 'Votre pièce est en préparation' },
       shipped: { label: 'Expédiée', desc: 'Votre pièce est en route' },
     },
-    finalSale: 'Pièce unique · ni reprise ni échange. Des ajustements sur le sac restent possibles sur demande.',
+    finalSale: 'Chaque création est définitive. Les ajustements sont assurés à vie.',
     piece: 'Pièce',
   },
   en: {
@@ -49,7 +49,7 @@ const copy = {
       confirmed: { label: 'Confirmed', desc: 'Your piece is being prepared' },
       shipped: { label: 'Shipped', desc: 'Your piece is on its way' },
     },
-    finalSale: 'One-of-a-kind · no returns or exchanges. Adjustments to the bag remain available on request.',
+    finalSale: 'Each creation is final. Adjustments are guaranteed for life.',
     piece: 'Piece',
   },
 }
@@ -139,12 +139,12 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
                       <p className="text-[11px] text-[#7a7a8a] mt-0.5">{s.desc}</p>
                       {step === 'shipped' && order.tracking_number && done && (
                         <div className="mt-2">
-                          <p className="text-label text-[8px] text-[#b8965a] tracking-[2px]">
+                          <p className="text-label text-[10px] text-[#b8965a] tracking-[2px]">
                             {carrierName(order.carrier) ? `${carrierName(order.carrier)} · ` : ''}{t.tracking} : <span className="text-[#043672]">{order.tracking_number}</span>
                           </p>
                           {trackingUrl(order.carrier, order.tracking_number) && (
                             <a href={trackingUrl(order.carrier, order.tracking_number)} target="_blank" rel="noopener noreferrer"
-                              className="inline-block mt-2 text-label text-[8px] text-white tracking-[2px] bg-[#043672] hover:bg-[#0a4d9e] px-4 py-2 transition-colors">
+                              className="inline-block mt-2 text-label text-[10px] text-white tracking-[2px] bg-[#043672] hover:bg-[#0a4d9e] px-4 py-2 transition-colors">
                               {lang === 'fr' ? 'Suivre mon colis' : 'Track my parcel'} →
                             </a>
                           )}
@@ -160,7 +160,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
           {/* Pièces */}
           {pieces && pieces.length > 0 && (
             <div className="border-t border-[#043672]/08 p-8">
-              <p className="text-label text-[8px] text-[#b8965a] tracking-[4px] mb-4">{t.pieces}</p>
+              <p className="text-label text-[10px] text-[#b8965a] tracking-[4px] mb-4">{t.pieces}</p>
               <div className="flex flex-col gap-3">
                 {pieces.map(p => (
                   <div key={p.id} className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
                       <span className="font-display text-[16px] font-light text-[#043672]">
                         {p.model === 'kouna' ? 'Le Kouna' : p.model === 'kami' ? 'Le Kami' : 'Le Nafibe'}
                       </span>
-                      <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] block">
+                      <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] block">
                         {t.piece} N°{String(p.display_num ?? '').padStart(2, '0')}
                       </span>
                     </div>
@@ -179,7 +179,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
                 ))}
               </div>
               <div className="flex justify-between items-baseline mt-5 pt-4 border-t border-[#043672]/06">
-                <span className="text-label text-[8px] text-[#7a7a8a] tracking-[3px]">{t.total}</span>
+                <span className="text-label text-[10px] text-[#7a7a8a] tracking-[3px]">{t.total}</span>
                 <span className="font-display text-[22px] font-light text-[#043672]">{order.price_total} <span className="text-[13px] text-[#7a7a8a]">CAD</span></span>
               </div>
             </div>
@@ -187,13 +187,13 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
 
           {/* Livraison (ville/pays uniquement — pas d'adresse complète) */}
           <div className="border-t border-[#043672]/08 px-8 py-5 flex justify-between items-center">
-            <span className="text-label text-[8px] text-[#b8965a] tracking-[3px]">{t.delivery}</span>
+            <span className="text-label text-[10px] text-[#b8965a] tracking-[3px]">{t.delivery}</span>
             <span className="text-[12px] text-[#043672] font-light">{order.city}, {countryLabel}</span>
           </div>
         </div>
 
         {/* Vente finale */}
-        <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed mt-6 px-4">
+        <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed mt-6 px-4">
           {t.finalSale}
         </p>
       </div>

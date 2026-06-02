@@ -27,12 +27,20 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://prevente.maisonlocht.com'),
   title: 'Maison Locht — Collection LES CERNES',
   description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta. Pièces uniques, jamais reproduites.',
   openGraph: {
     title: 'Maison Locht — Collection LES CERNES',
-    description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta.',
+    description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta. Pièces uniques, jamais reproduites.',
     locale: 'fr_CA',
+    images: [{ url: '/images/4mannequins.jpeg', width: 1200, height: 800, alt: 'Maison Locht — Collection LES CERNES' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Maison Locht — Collection LES CERNES',
+    description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta.',
+    images: ['/images/4mannequins.jpeg'],
   },
 }
 
