@@ -14,9 +14,9 @@ export default function Footer() {
         {/* Mentions */}
         <div className="flex flex-col items-center md:items-end gap-2 text-center md:text-right">
           <p className="text-[10px] leading-relaxed text-white/30 max-w-[300px]">
-            Vente finale · ni reprise ni échange.<br />
-            Canada uniquement · Max 2 par commande.<br />
-            Pièces uniques, jamais reproduites.
+            Chaque création est définitive.<br />
+            Les ajustements sont assurés à vie.<br />
+            Max 2 par commande · pièces uniques, jamais reproduites.
           </p>
           <p className="text-[9px] text-white/15 tracking-[1px] mt-1">
             © {new Date().getFullYear()} Maison Locht. Tous droits réservés.
