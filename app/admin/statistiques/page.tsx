@@ -135,26 +135,26 @@ export default async function AdminStatsPage() {
         </div>
 
         {/* Entonnoir + conversion */}
-        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
-          <div>
-            <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-4">Entonnoir de conversion</h2>
-            <div className="flex flex-col gap-2">
+        <div className="grid md:grid-cols-[1fr_200px] gap-4 items-stretch">
+          <div className="bg-[#faf7f2] border border-[#043672]/08 p-5">
+            <SectionTitle title="Entonnoir de conversion" />
+            <div className="flex flex-col gap-2.5">
               {funnel.map(f => (
                 <div key={f.label} className="flex items-center gap-3">
-                  <span className="text-[11px] text-[#043672] w-20">{f.label}</span>
-                  <div className="flex-1 h-5 bg-[#f0ebe0] overflow-hidden">
-                    <div className="h-full bg-[#043672] flex items-center justify-end px-2" style={{ width: `${(f.n / maxFunnel) * 100}%` }}>
-                      <span className="text-[9px] text-white">{f.n}</span>
+                  <span className="text-[11px] text-[#043672] w-20 flex-shrink-0">{f.label}</span>
+                  <div className="flex-1 h-6 bg-[#043672]/06 overflow-hidden rounded-sm">
+                    <div className="h-full bg-gradient-to-r from-[#043672] to-[#0a4d9e] flex items-center justify-end px-2 rounded-sm transition-all duration-500" style={{ width: `${Math.max(8, (f.n / maxFunnel) * 100)}%` }}>
+                      <span className="text-[9px] text-white tabular-nums">{f.n}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="p-5 border border-[#b8965a]/40 bg-[#b8965a]/05 text-center min-w-[160px]">
+          <div className="flex flex-col items-center justify-center p-5 border border-[#b8965a]/40 bg-[#b8965a]/[0.06] text-center">
             <p className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] mb-2">Conversion</p>
-            <p className="font-display text-[32px] font-light text-[#043672]">{conversion}<span className="text-[16px] text-[#7a7a8a]">%</span></p>
-            <p className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-1">commandes / visiteurs</p>
+            <p className="font-display text-[38px] font-light text-[#043672] leading-none">{conversion}<span className="text-[18px] text-[#7a7a8a]">%</span></p>
+            <p className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-2">commandes / visiteurs</p>
           </div>
         </div>
 
@@ -188,7 +188,7 @@ export default async function AdminStatsPage() {
 
         {/* Réponses clientes */}
         <div>
-          <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-3">Ce qui les a attirées ({whyResponses.length})</h2>
+          <SectionTitle title={`Ce qui les a attirées (${whyResponses.length})`} />
           {whyResponses.length === 0 ? (
             <p className="text-[13px] text-[#7a7a8a] font-light">Aucune réponse pour l&apos;instant.</p>
           ) : (
@@ -217,34 +217,48 @@ export default async function AdminStatsPage() {
   )
 }
 
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <span className="w-1 h-3.5 bg-[#b8965a]/70 flex-shrink-0" />
+      <span className="text-label text-[9px] text-[#043672] tracking-[4px]">{title}</span>
+      <span className="flex-1 h-px bg-[#043672]/08" />
+    </div>
+  )
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-3">{title}</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{children}</div>
+      <SectionTitle title={title} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">{children}</div>
     </div>
   )
 }
 
 function Card({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`p-5 border ${accent ? 'border-[#b8965a]/40 bg-[#b8965a]/05' : 'border-[#043672]/10 bg-[#faf7f2]'}`}>
-      <p className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] mb-2">{label}</p>
-      <p className="font-display text-[24px] font-light text-[#043672]">{value}</p>
+    <div className={`relative p-4 md:p-5 border overflow-hidden transition-all duration-300 hover:-translate-y-0.5 ${
+      accent ? 'border-[#b8965a]/40 bg-[#b8965a]/[0.06]' : 'border-[#043672]/10 bg-[#faf7f2] hover:border-[#043672]/25'
+    }`}>
+      {accent && <span className="absolute top-0 left-0 right-0 h-0.5 bg-[#b8965a]" />}
+      <p className="text-label text-[7px] md:text-[8px] text-[#7a7a8a] tracking-[2px] mb-2 leading-tight">{label}</p>
+      <p className="font-display text-[22px] md:text-[26px] font-light text-[#043672] leading-none">{value}</p>
     </div>
   )
 }
 
 function Chart({ title, data, max, suffix = '' }: { title: string; data: { label: string; count: number }[]; max: number; suffix?: string }) {
   return (
-    <div>
-      <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-4">{title}</h2>
-      <div className="flex items-end gap-2 h-28">
+    <div className="bg-[#faf7f2] border border-[#043672]/08 p-5">
+      <SectionTitle title={title} />
+      <div className="flex items-end gap-1.5 md:gap-2 h-32">
         {data.map((d, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-            <span className="text-[9px] text-[#7a7a8a]">{d.count}{suffix}</span>
-            <div className="w-full bg-[#043672]/10 relative" style={{ height: '80px' }}>
-              <div className="absolute bottom-0 left-0 right-0 bg-[#b8965a]" style={{ height: `${(d.count / max) * 100}%` }} />
+          <div key={i} className="flex-1 flex flex-col items-center gap-1.5 group">
+            <span className="text-[9px] text-[#7a7a8a] group-hover:text-[#043672] transition-colors tabular-nums">{d.count}{suffix}</span>
+            <div className="w-full bg-[#043672]/06 relative rounded-t-sm overflow-hidden" style={{ height: '84px' }}>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#043672] to-[#b8965a] rounded-t-sm transition-all duration-500 group-hover:opacity-90"
+                style={{ height: `${Math.max(2, (d.count / max) * 100)}%` }} />
             </div>
             <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">{d.label}</span>
           </div>
@@ -256,19 +270,19 @@ function Chart({ title, data, max, suffix = '' }: { title: string; data: { label
 
 function BarList({ title, rows, max, empty, mono }: { title: string; rows: { label: string; n: number }[]; max: number; empty: string; mono?: boolean }) {
   return (
-    <div>
-      <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-3">{title}</h2>
+    <div className="bg-[#faf7f2] border border-[#043672]/08 p-5">
+      <SectionTitle title={title} />
       {rows.length === 0 || rows.every(r => r.n === 0) ? (
-        <p className="text-[13px] text-[#7a7a8a] font-light">{empty}</p>
+        <p className="text-[12px] text-[#7a7a8a] font-light py-3">{empty}</p>
       ) : (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2.5">
           {rows.map((r, i) => (
             <div key={i} className="flex items-center gap-3">
-              <span className={`text-[11px] text-[#043672] w-28 truncate ${mono ? 'font-mono text-[10px]' : ''}`}>{r.label}</span>
-              <div className="flex-1 h-2.5 bg-[#f0ebe0] overflow-hidden">
-                <div className="h-full bg-[#b8965a]" style={{ width: `${(r.n / max) * 100}%` }} />
+              <span className={`text-[11px] text-[#043672] w-20 md:w-28 truncate flex-shrink-0 ${mono ? 'font-mono text-[9px]' : ''}`}>{r.label}</span>
+              <div className="flex-1 h-2.5 bg-[#043672]/06 overflow-hidden rounded-sm">
+                <div className="h-full bg-gradient-to-r from-[#b8965a] to-[#d4aa6a] rounded-sm transition-all duration-500" style={{ width: `${Math.max(3, (r.n / max) * 100)}%` }} />
               </div>
-              <span className="text-[11px] text-[#7a7a8a] w-8 text-right">{r.n}</span>
+              <span className="text-[11px] text-[#7a7a8a] w-7 text-right tabular-nums flex-shrink-0">{r.n}</span>
             </div>
           ))}
         </div>
