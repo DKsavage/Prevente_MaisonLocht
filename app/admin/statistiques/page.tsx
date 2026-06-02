@@ -75,7 +75,12 @@ export default async function AdminStatsPage() {
   // ── Pages ──
   const byPath: Record<string, number> = {}
   v.forEach(x => { const pg = x.path && x.path !== '' ? x.path : '/'; byPath[pg] = (byPath[pg] ?? 0) + 1 })
-  const labelPath = (pg: string) => pg === '/' ? 'Accueil (/)' : pg
+  const labelPath = (pg: string) => {
+    if (pg === '/') return 'Accueil'
+    const commande = pg.match(/^\/commande\/(.+)$/)
+    if (commande) return `Suivi · ${commande[1]}`
+    return pg
+  }
   const topPages  = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 6)
 
   // ── Sources ──
