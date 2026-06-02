@@ -1,7 +1,11 @@
 // Routage du paiement selon le pays.
 // Canada → Interac.  Tout autre pays → virement sur le compte belge.
 
-export const INTERAC_EMAIL = 'Ml@maisonlocht.com'
+export const INTERAC_EMAIL = 'anouklocht2003@gmail.com'
+export const INTERAC_SECURITY_QUESTION = {
+  fr: 'Quel est le nom de la collection ?',
+  en: 'What is the collection name?',
+}
 
 // Coordonnées du compte belge (virements Europe + reste du monde)
 export const BANK_DETAILS = {
@@ -25,11 +29,7 @@ export function generateInteracAnswer(): string {
 // Texte d'instructions bilingue selon la méthode
 export function paymentInstructions(method: PaymentMethod, reference: string, lang: 'fr' | 'en', interacAnswer?: string) {
   if (method === 'interac') {
-    const answerLine = interacAnswer
-      ? (lang === 'fr'
-          ? `Si une question de sécurité est demandée, utilisez la réponse : <strong>${interacAnswer}</strong>`
-          : `If a security question is requested, use the answer: <strong>${interacAnswer}</strong>`)
-      : ''
+    const question = lang === 'fr' ? INTERAC_SECURITY_QUESTION.fr : INTERAC_SECURITY_QUESTION.en
     return {
       title: lang === 'fr' ? 'Paiement par virement Interac' : 'Payment by Interac transfer',
       lines: [
@@ -39,11 +39,21 @@ export function paymentInstructions(method: PaymentMethod, reference: string, la
         lang === 'fr'
           ? `Indiquez la référence <strong>${reference}</strong> dans le message.`
           : `Include reference <strong>${reference}</strong> in the message.`,
-        ...(answerLine ? [answerLine] : []),
+        ...(interacAnswer ? [
+          lang === 'fr'
+            ? `Question de sécurité : <strong>${question}</strong>`
+            : `Security question: <strong>${question}</strong>`,
+          lang === 'fr'
+            ? `Réponse : <strong>${interacAnswer}</strong>`
+            : `Answer: <strong>${interacAnswer}</strong>`,
+        ] : []),
       ],
       fields: [
         { label: lang === 'fr' ? 'Adresse Interac' : 'Interac address', value: INTERAC_EMAIL },
-        ...(interacAnswer ? [{ label: lang === 'fr' ? 'Réponse de sécurité' : 'Security answer', value: interacAnswer }] : []),
+        ...(interacAnswer ? [
+          { label: lang === 'fr' ? 'Question de sécurité' : 'Security question', value: question },
+          { label: lang === 'fr' ? 'Réponse' : 'Answer', value: interacAnswer },
+        ] : []),
       ],
     }
   }
