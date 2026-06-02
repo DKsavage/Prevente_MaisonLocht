@@ -8,7 +8,8 @@
  * Requires .env.local avec SUPABASE_SERVICE_ROLE_KEY + RESEND_API_KEY + NEXT_PUBLIC_SITE_URL
  */
 
-import 'dotenv/config'
+import { config } from 'dotenv'
+config({ path: '.env.local' })
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
