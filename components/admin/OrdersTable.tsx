@@ -3,6 +3,7 @@
 import { useState, useTransition, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, type OrderStatus } from '@/app/admin/actions'
+import { timeAgo } from '@/lib/time'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
 
 export type Order = {
@@ -245,7 +246,8 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
     })
   }
 
-  const date = new Date(order.created_at).toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' })
+  const dateExact = new Date(order.created_at).toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' })
+  const date = timeAgo(order.created_at)
 
   return (
     <div className={`border bg-[#faf7f2] transition-colors ${expanded ? 'border-[#b8965a]/40' : 'border-[#043672]/10'}`}>
@@ -273,7 +275,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
           <span className={`text-label text-[7px] tracking-[1px] px-2 py-1 border ${STATUS_COLORS[order.status]} w-[110px] text-center`}>
             {STATUS_LABELS[order.status]}
           </span>
-          <span className="hidden md:block text-[10px] text-[#7a7a8a] w-[80px] text-right">{date}</span>
+          <span className="hidden md:block text-[10px] text-[#7a7a8a] w-[80px] text-right" title={dateExact}>{date}</span>
         </button>
       </div>
 

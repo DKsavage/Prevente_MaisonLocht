@@ -12,7 +12,7 @@ export default async function AdminOrdersPage() {
   const supabase = createServerClient()
   const { data: orders } = await supabase
     .from('orders')
-    .select('*')
+    .select('reference, status, bag_name, quantity, price_total, first_name, last_name, email, phone, address, city, province, postal_code, country, lang, why_locht, notes_admin, tracking_number, carrier, interac_answer, created_at')
     .order('created_at', { ascending: false })
 
   const list = (orders ?? []) as Order[]

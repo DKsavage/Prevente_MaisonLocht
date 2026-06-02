@@ -3,6 +3,8 @@ import { createAuthClient } from '@/lib/supabase-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import AdminShell from '@/components/admin/AdminShell'
 import AutoRefresh from '@/components/AutoRefresh'
+import QuickAction from '@/components/admin/QuickAction'
+import { timeAgo } from '@/lib/time'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,13 +91,16 @@ export default async function AdminHomePage() {
           ) : (
             <div className="flex flex-col gap-2">
               {recent.map(o => (
-                <Link key={o.reference} href="/admin/commandes"
-                  className="flex items-center gap-4 px-4 py-3 bg-[#faf7f2] border border-[#043672]/10 hover:border-[#b8965a]/40 transition-colors">
-                  <span className="font-mono text-[11px] text-[#043672] w-[120px] flex-shrink-0">{o.reference}</span>
-                  <span className="text-[13px] text-[#1a1a2e] flex-1 truncate">{o.first_name} {o.last_name}</span>
-                  <span className="hidden sm:block text-[12px] text-[#043672]">{o.price_total} CAD</span>
-                  <StatusDot status={o.status} />
-                </Link>
+                <div key={o.reference} className="flex items-center gap-3 px-4 py-3 bg-[#faf7f2] border border-[#043672]/10 hover:border-[#b8965a]/40 transition-colors">
+                  <Link href="/admin/commandes" className="flex items-center gap-4 flex-1 min-w-0">
+                    <span className="font-mono text-[11px] text-[#043672] w-[120px] flex-shrink-0">{o.reference}</span>
+                    <span className="text-[13px] text-[#1a1a2e] flex-1 truncate">{o.first_name} {o.last_name}</span>
+                    <span className="hidden sm:block text-[11px] text-[#7a7a8a] tabular-nums flex-shrink-0">{timeAgo(o.created_at)}</span>
+                    <span className="hidden md:block text-[12px] text-[#043672] flex-shrink-0">{o.price_total} CAD</span>
+                    <StatusPill status={o.status} />
+                  </Link>
+                  <QuickAction reference={o.reference} status={o.status} />
+                </div>
               ))}
             </div>
           )}
@@ -108,7 +113,7 @@ export default async function AdminHomePage() {
 function Card({ label, value, unit, accent }: { label: string; value: string; unit?: string; accent?: boolean }) {
   return (
     <div className={`p-5 border ${accent ? 'border-[#b8965a]/40 bg-[#b8965a]/05' : 'border-[#043672]/10 bg-[#faf7f2]'}`}>
-      <p className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] mb-2">{label}</p>
+      <p className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] mb-2">{label}</p>
       <p className="font-display text-[28px] font-light text-[#043672] leading-none">
         {value} {unit && <span className="text-[13px] text-[#7a7a8a]">{unit}</span>}
       </p>
@@ -116,19 +121,18 @@ function Card({ label, value, unit, accent }: { label: string; value: string; un
   )
 }
 
-const STATUS_FR: Record<string, { l: string; c: string }> = {
-  pending: { l: 'En attente', c: 'bg-[#b8965a]' },
-  payment_received: { l: 'Payée', c: 'bg-blue-500' },
-  confirmed: { l: 'Confirmée', c: 'bg-emerald-500' },
-  shipped: { l: 'Expédiée', c: 'bg-[#043672]' },
-  cancelled: { l: 'Annulée', c: 'bg-red-400' },
+const STATUS_FR: Record<string, { l: string; pill: string }> = {
+  pending:          { l: 'En attente',    pill: 'bg-[#b8965a]/15 text-[#9a7a3a] border-[#b8965a]/30' },
+  payment_received: { l: 'Paiement reçu', pill: 'bg-blue-50 text-blue-700 border-blue-200' },
+  confirmed:        { l: 'Confirmée',     pill: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  shipped:          { l: 'Expédiée',      pill: 'bg-[#043672]/10 text-[#043672] border-[#043672]/20' },
+  cancelled:        { l: 'Annulée',       pill: 'bg-red-50 text-red-600 border-red-200' },
 }
-function StatusDot({ status }: { status: string }) {
-  const s = STATUS_FR[status] ?? { l: status, c: 'bg-[#7a7a8a]' }
+function StatusPill({ status }: { status: string }) {
+  const s = STATUS_FR[status] ?? { l: status, pill: 'bg-[#7a7a8a]/10 text-[#7a7a8a] border-[#7a7a8a]/20' }
   return (
-    <span className="flex items-center gap-1.5 w-[100px] justify-end">
-      <span className={`w-1.5 h-1.5 rounded-full ${s.c}`} />
-      <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">{s.l}</span>
+    <span className={`inline-flex items-center px-2 py-0.5 text-[10px] tracking-[0.5px] border ${s.pill}`}>
+      {s.l}
     </span>
   )
 }

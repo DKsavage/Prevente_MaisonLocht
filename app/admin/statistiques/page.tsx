@@ -76,7 +76,8 @@ export default async function AdminStatsPage() {
 
   // ── Pages les plus vues ──
   const byPath: Record<string, number> = {}
-  v.forEach(x => { const path = x.path || '/'; byPath[path] = (byPath[path] ?? 0) + 1 })
+  v.forEach(x => { const pg = x.path && x.path !== '' ? x.path : '/'; byPath[pg] = (byPath[pg] ?? 0) + 1 })
+  const labelPath = (pg: string) => pg === '/' ? 'Accueil (/)' : pg
   const topPages = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 6)
 
   // ── Sources de trafic (referrer → domaine) ──
@@ -179,7 +180,7 @@ export default async function AdminStatsPage() {
 
         {/* Pages vues + Sources */}
         <div className="grid md:grid-cols-2 gap-8">
-          <BarList title="Pages les plus vues" rows={topPages.map(([path, n]) => ({ label: path, n }))} max={Math.max(1, ...topPages.map(t => t[1]))} empty="Aucune visite." mono />
+          <BarList title="Pages les plus vues" rows={topPages.map(([pg, n]) => ({ label: labelPath(pg), n }))} max={Math.max(1, ...topPages.map(t => t[1]))} empty="Aucune visite." mono />
           <BarList title="Sources de trafic" rows={topSources.map(([src, n]) => ({ label: src, n }))} max={Math.max(1, ...topSources.map(t => t[1]))} empty="Aucune visite." />
         </div>
 
@@ -226,7 +227,7 @@ function SectionTitle({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3 mb-4">
       <span className="w-1 h-3.5 bg-[#b8965a]/70 flex-shrink-0" />
-      <span className="text-label text-[9px] text-[#043672] tracking-[4px]">{title}</span>
+      <span className="text-label text-[10px] text-[#043672] tracking-[3px]">{title}</span>
       <span className="flex-1 h-px bg-[#043672]/08" />
     </div>
   )
@@ -247,7 +248,7 @@ function Card({ label, value, accent }: { label: string; value: string; accent?:
       accent ? 'border-[#b8965a]/40 bg-[#b8965a]/[0.06]' : 'border-[#043672]/10 bg-[#faf7f2] hover:border-[#043672]/25'
     }`}>
       {accent && <span className="absolute top-0 left-0 right-0 h-0.5 bg-[#b8965a]" />}
-      <p className="text-label text-[7px] md:text-[8px] text-[#7a7a8a] tracking-[2px] mb-2 leading-tight">{label}</p>
+      <p className="text-label text-[9px] md:text-[10px] text-[#7a7a8a] tracking-[2px] mb-2 leading-tight">{label}</p>
       <p className="font-display text-[22px] md:text-[26px] font-light text-[#043672] leading-none">{value}</p>
     </div>
   )
