@@ -181,7 +181,7 @@ export default function OrderForm() {
             style={{ animation: 'badge-glow 3s ease-in-out infinite' }}
           >
             <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.15)_0%,transparent_70%)] pointer-events-none" />
-            <span className="text-label text-[8px] text-white/40 tracking-[4px] block mb-3 relative">{t.refLabel}</span>
+            <span className="text-label text-[10px] text-white/40 tracking-[4px] block mb-3 relative">{t.refLabel}</span>
             <span
               className="font-display text-[34px] md:text-[38px] font-light text-white tracking-[4px] block relative"
               style={{
@@ -196,7 +196,7 @@ export default function OrderForm() {
             {/* Bouton copier */}
             <button
               onClick={() => { navigator.clipboard.writeText(reference); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-              className="mt-4 text-label text-[8px] text-[#d4aa6a] tracking-[3px] border border-[#b8965a]/30 hover:border-[#b8965a] px-4 py-2 transition-colors duration-200 cursor-none relative inline-flex items-center gap-2"
+              className="mt-4 text-label text-[10px] text-[#d4aa6a] tracking-[3px] border border-[#b8965a]/30 hover:border-[#b8965a] px-4 py-2 transition-colors duration-200 cursor-none relative inline-flex items-center gap-2"
               data-cursor="hover"
             >
               {copied ? `✓ ${t.copied}` : t.copy}
@@ -212,7 +212,7 @@ export default function OrderForm() {
         >
           <div className="flex items-center gap-3">
             <span className="w-1 h-3 bg-[#b8965a]/60" />
-            <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.nextTitle}</span>
+            <span className="text-label text-[10px] text-[#043672] tracking-[5px]">{t.nextTitle}</span>
             <span className="flex-1 h-px bg-[#043672]/06" />
           </div>
           {nextSteps.map((s, i) => (
@@ -224,7 +224,7 @@ export default function OrderForm() {
             >
               <span className="font-display text-[18px] font-light text-[#b8965a] leading-none pt-0.5 flex-shrink-0">{s.n}</span>
               <div className="flex flex-col gap-0.5">
-                <span className="text-label text-[8px] text-[#043672] tracking-[2px]">{s.label}</span>
+                <span className="text-label text-[10px] text-[#043672] tracking-[2px]">{s.label}</span>
                 <span className="text-[12px] text-[#7a7a8a] font-light leading-relaxed">{s.desc}</span>
               </div>
             </motion.div>
@@ -278,7 +278,7 @@ export default function OrderForm() {
               }`}>
                 {i < step ? '✓' : i + 1}
               </div>
-              <span className={`text-label text-[8px] tracking-[2px] transition-colors duration-300 hidden sm:block ${i <= step ? 'text-[#043672]' : 'text-[#7a7a8a]/60'}`}>
+              <span className={`text-label text-[10px] tracking-[2px] transition-colors duration-300 hidden sm:block ${i <= step ? 'text-[#043672]' : 'text-[#7a7a8a]/60'}`}>
                 {label}
               </span>
             </div>

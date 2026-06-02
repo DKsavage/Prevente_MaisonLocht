@@ -69,10 +69,10 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
-          <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.pieces}</span>
+          <span className="text-label text-[10px] text-[#043672] tracking-[5px]">{t.pieces}</span>
           <span className="flex-1 h-px bg-[#043672]/06" />
           <button onClick={() => onEdit(0)} data-cursor="hover"
-            className="text-label text-[8px] text-[#7a7a8a] hover:text-[#b8965a] tracking-[2px] transition-colors cursor-none">
+            className="text-label text-[10px] text-[#7a7a8a] hover:text-[#b8965a] tracking-[2px] transition-colors cursor-none">
             {editLabel(lang)}
           </button>
         </div>
@@ -99,7 +99,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
 
                 {/* Tag N° en haut */}
                 <div className="absolute top-3 left-3 bg-[#faf7f2]/90 backdrop-blur-sm px-2.5 py-1">
-                  <span className="text-label text-[7px] text-[#043672] tracking-[2px]">
+                  <span className="text-label text-[9px] text-[#043672] tracking-[2px]">
                     {t.piece} N°{String(piece.pieceNum).padStart(2, '0')}
                   </span>
                 </div>
@@ -108,7 +108,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
                 <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
                   <div className="flex flex-col">
                     <span className="font-display text-[22px] font-light text-white leading-none italic">{piece.modelName}</span>
-                    <span className="text-label text-[7px] text-[#d4aa6a] tracking-[3px] mt-1.5 flex items-center gap-1.5">
+                    <span className="text-label text-[9px] text-[#d4aa6a] tracking-[3px] mt-1.5 flex items-center gap-1.5">
                       <span className="text-[6px]">✦</span>{lang === 'fr' ? 'Unique' : 'Unique'}
                     </span>
                   </div>
@@ -120,7 +120,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
         </div>
 
         {/* Engagement marque */}
-        <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed pt-1">
+        <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed pt-1">
           {t.engagement}
         </p>
       </div>
@@ -129,8 +129,8 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
       <div className="relative bg-[#043672] overflow-hidden p-6 flex items-center justify-between" data-theme="dark">
         <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.12)_0%,transparent_70%)] pointer-events-none" />
         <div className="flex flex-col gap-1 relative">
-          <span className="text-label text-[8px] text-white/40 tracking-[4px]">{t.total}</span>
-          <span className="text-label text-[8px] text-[#d4aa6a] tracking-[2px]">
+          <span className="text-label text-[10px] text-white/40 tracking-[4px]">{t.total}</span>
+          <span className="text-label text-[10px] text-[#d4aa6a] tracking-[2px]">
             {selections.length} {lang === 'fr' ? (selections.length > 1 ? 'pièces' : 'pièce') : (selections.length > 1 ? 'pieces' : 'piece')}
           </span>
         </div>
@@ -143,16 +143,16 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
       <div>
         <div className="flex items-center gap-3 mb-4">
           <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
-          <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{t.delivery}</span>
+          <span className="text-label text-[10px] text-[#043672] tracking-[5px]">{t.delivery}</span>
           <span className="flex-1 h-px bg-[#043672]/06" />
           <button onClick={() => onEdit(1)} data-cursor="hover"
-            className="text-label text-[8px] text-[#7a7a8a] hover:text-[#b8965a] tracking-[2px] transition-colors cursor-none">
+            className="text-label text-[10px] text-[#7a7a8a] hover:text-[#b8965a] tracking-[2px] transition-colors cursor-none">
             {editLabel(lang)}
           </button>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
         <div className="flex flex-col gap-3">
-          <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{t.recipient}</span>
+          <span className="text-label text-[10px] text-[#b8965a] tracking-[4px]">{t.recipient}</span>
           <div className="flex flex-col gap-1.5">
             <span className="text-[14px] text-[#043672] font-light">{data.firstName} {data.lastName}</span>
             <span className="text-[12px] text-[#7a7a8a] font-light">{data.email}</span>
@@ -160,7 +160,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <span className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{lang === 'fr' ? 'Adresse' : 'Address'}</span>
+          <span className="text-label text-[10px] text-[#b8965a] tracking-[4px]">{lang === 'fr' ? 'Adresse' : 'Address'}</span>
           <div className="flex flex-col gap-0.5 text-[12px] text-[#7a7a8a] font-light leading-relaxed">
             <span className="text-[#043672] text-[13px]">{data.address}</span>
             <span>{data.city}{data.province ? `, ${data.province}` : ''} {data.postalCode}</span>
@@ -184,8 +184,8 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
       </div>
 
       {/* ── Vente finale ── */}
-      <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed flex items-center justify-center gap-1.5">
-        <span className="text-[7px] text-[#b8965a]">✦</span>{t.finalSale}
+      <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed flex items-center justify-center gap-1.5">
+        <span className="text-[9px] text-[#b8965a]">✦</span>{t.finalSale}
       </p>
 
       {/* ── Navigation ── */}

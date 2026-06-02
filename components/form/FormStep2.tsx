@@ -57,7 +57,7 @@ type Props = {
 // Styles de base
 const base = "w-full bg-transparent border-b border-[#043672]/20 focus:border-[#b8965a] outline-none px-0 py-3 text-[13px] text-[#1a1a2e] placeholder:text-[#7a7a8a]/40 transition-colors duration-200 font-light"
 const baseBox = "w-full bg-[#faf7f2] border border-[#043672]/15 focus:border-[#b8965a] outline-none px-4 py-3 text-[13px] text-[#1a1a2e] placeholder:text-[#7a7a8a]/40 transition-all duration-200 font-light focus:shadow-[0_0_0_3px_rgba(184,150,90,0.08)]"
-const labelBase = "text-label text-[8px] text-[#b8965a] tracking-[3px] block mb-2"
+const labelBase = "text-label text-[10px] text-[#b8965a] tracking-[3px] block mb-2"
 const errBase = "text-[10px] text-red-400 mt-1.5 flex items-center gap-1"
 
 function Field({ label, error, optional, lang, children }: {
@@ -70,7 +70,7 @@ function Field({ label, error, optional, lang, children }: {
         {optional && <span className="ml-1 text-[#7a7a8a]/60 normal-case tracking-normal" style={{ fontFamily: 'var(--font-dm-sans)' }}> — {lang === 'fr' ? 'optionnel' : 'optional'}</span>}
       </label>
       {children}
-      {error && <span className={errBase}><span className="text-[8px]">⚠</span>{error}</span>}
+      {error && <span className={errBase}><span className="text-[10px]">⚠</span>{error}</span>}
     </div>
   )
 }
@@ -80,7 +80,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div className="flex flex-col gap-5">
       <div className="flex items-center gap-3 mb-1">
         <span className="w-1 h-3 bg-[#b8965a]/60 flex-shrink-0" />
-        <span className="text-label text-[8px] text-[#043672] tracking-[5px]">{label}</span>
+        <span className="text-label text-[10px] text-[#043672] tracking-[5px]">{label}</span>
         <span className="flex-1 h-px bg-[#043672]/06" />
       </div>
       {children}
@@ -247,7 +247,7 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
                   placeholder={postalFmt.placeholder}
                   value={data.postalCode ?? ''} onChange={handlePostal}
                   className={`${baseBox} ${errors.postalCode ? 'border-red-400' : ''}`} />
-                {postalHint && <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-1">{postalHint}</span>}
+                {postalHint && <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px] mt-1">{postalHint}</span>}
               </Field>
             </div>
           </motion.div>

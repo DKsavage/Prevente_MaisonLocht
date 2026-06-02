@@ -138,7 +138,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
         {isFull && (
           <motion.span
             initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
-            className="text-label text-[8px] text-[#b8965a] tracking-[2px]"
+            className="text-label text-[10px] text-[#b8965a] tracking-[2px]"
           >
             {t.max}
           </motion.span>
@@ -156,13 +156,13 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
               <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-[#043672]/08">
                 <div className="flex items-baseline gap-3">
                   <span className="font-display text-[20px] font-light text-[#043672]">{meta.name}</span>
-                  <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">
+                  <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
                     {lang === 'fr' ? meta.format.fr : meta.format.en}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   {isRare && (
-                    <span className="flex items-center gap-1.5 text-label text-[8px] text-[#b8965a] tracking-[2px]">
+                    <span className="flex items-center gap-1.5 text-label text-[10px] text-[#b8965a] tracking-[2px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
                       {available} {t.rare}
                     </span>
@@ -217,7 +217,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
                       {/* Numéro */}
                       {!taken && (
                         <div className="absolute bottom-0 left-0 right-0 bg-[#043672]/60 py-0.5 text-center">
-                          <span className="text-[7px] text-white/70">N°{String(piece.pieceNum).padStart(2, '0')}</span>
+                          <span className="text-[9px] text-white/70">N°{String(piece.pieceNum).padStart(2, '0')}</span>
                         </div>
                       )}
                     </motion.button>
@@ -245,13 +245,13 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
                 <span className="font-display text-[16px] font-light text-[#043672] block leading-none">
                   {p.modelName}
                 </span>
-                <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">
+                <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
                   N°{String(p.pieceNum).padStart(2, '0')} · {p.price} CAD
                 </span>
               </div>
               <button
                 onClick={() => toggle(p)}
-                className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] hover:text-red-400 transition-colors duration-200 cursor-none flex-shrink-0"
+                className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] hover:text-red-400 transition-colors duration-200 cursor-none flex-shrink-0"
                 data-cursor="hover"
               >
                 ×
