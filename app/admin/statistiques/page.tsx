@@ -5,61 +5,120 @@ import AutoRefresh from '@/components/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
 
+const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
+
 export default async function AdminStatsPage() {
   const auth = await createAuthClient()
   const { data: { user } } = await auth.auth.getUser()
 
   const supabase = createServerClient()
-  const { data: orders } = await supabase.from('orders').select('status, price_total, country, bag_name, created_at')
+  const { data: orders } = await supabase.from('orders').select('status, price_total, country, bag_name, created_at, why_locht')
   const { data: pieces } = await supabase.from('pieces').select('model, status, order_ref')
-  const { data: visits } = await supabase.from('visits').select('session, created_at')
+  const { data: visits } = await supabase.from('visits').select('session, created_at, path, referrer')
 
   const o = orders ?? []
   const p = pieces ?? []
   const v = visits ?? []
 
-  // ── Trafic ──
   const now = Date.now()
   const dayMs = 86400000
   const isToday = (d: string) => new Date(d).toDateString() === new Date().toDateString()
+
+  // ── Trafic ──
   const pageViews = v.length
   const visitors = new Set(v.map(x => x.session).filter(Boolean)).size
   const viewsToday = v.filter(x => isToday(x.created_at)).length
   const visitorsToday = new Set(v.filter(x => isToday(x.created_at)).map(x => x.session)).size
-  // 7 derniers jours (vues par jour)
-  const last7 = Array.from({ length: 7 }, (_, i) => {
+  const last7Views = Array.from({ length: 7 }, (_, i) => {
     const day = new Date(now - (6 - i) * dayMs)
-    const label = day.toLocaleDateString('fr-CA', { weekday: 'short' })
-    const count = v.filter(x => new Date(x.created_at).toDateString() === day.toDateString()).length
-    return { label, count }
+    return { label: day.toLocaleDateString('fr-CA', { weekday: 'short' }),
+      count: v.filter(x => new Date(x.created_at).toDateString() === day.toDateString()).length }
   })
-  const maxDay = Math.max(1, ...last7.map(d => d.count))
-  const conversion = visitors > 0 ? ((o.length / visitors) * 100).toFixed(1) : '0'
+  const maxView = Math.max(1, ...last7Views.map(d => d.count))
 
+  // ── Ventes ──
   const paid = o.filter(x => ['payment_received', 'confirmed', 'shipped'].includes(x.status))
   const revenue = paid.reduce((s, x) => s + Number(x.price_total), 0)
   const pendingRevenue = o.filter(x => x.status === 'pending').reduce((s, x) => s + Number(x.price_total), 0)
+  const conversion = visitors > 0 ? ((o.length / visitors) * 100).toFixed(1) : '0'
 
-  // Par pays
+  // Revenus / jour (7 jours, commandes payées)
+  const last7Rev = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(now - (6 - i) * dayMs)
+    return { label: day.toLocaleDateString('fr-CA', { weekday: 'short' }),
+      count: paid.filter(x => new Date(x.created_at).toDateString() === day.toDateString()).reduce((s, x) => s + Number(x.price_total), 0) }
+  })
+  const maxRev = Math.max(1, ...last7Rev.map(d => d.count))
+
+  // ── Modèles les plus vendus (pièces sold/reserved liées à une commande) ──
+  const soldByModel: Record<string, number> = {}
+  p.filter(x => x.order_ref).forEach(x => { soldByModel[x.model] = (soldByModel[x.model] ?? 0) + 1 })
+  const modelRanking = ['kouna', 'kami', 'nafibe']
+    .map(m => ({ model: m, name: MODEL_NAMES[m] ?? m, count: soldByModel[m] ?? 0 }))
+    .sort((a, b) => b.count - a.count)
+  const maxModel = Math.max(1, ...modelRanking.map(m => m.count))
+
+  // ── Stock bas (≤2 dispo) ──
+  const availByModel: Record<string, number> = {}
+  p.filter(x => x.status === 'available').forEach(x => { availByModel[x.model] = (availByModel[x.model] ?? 0) + 1 })
+  const lowStock = ['kouna', 'kami', 'nafibe']
+    .map(m => ({ name: MODEL_NAMES[m] ?? m, n: availByModel[m] ?? 0 }))
+    .filter(m => m.n <= 2)
+
+  // ── Pays ──
   const byCountry: Record<string, number> = {}
   o.forEach(x => { const c = x.country ?? '—'; byCountry[c] = (byCountry[c] ?? 0) + 1 })
 
-  // Inventaire
+  // ── Pages les plus vues ──
+  const byPath: Record<string, number> = {}
+  v.forEach(x => { const path = x.path || '/'; byPath[path] = (byPath[path] ?? 0) + 1 })
+  const topPages = Object.entries(byPath).sort((a, b) => b[1] - a[1]).slice(0, 6)
+
+  // ── Sources de trafic (referrer → domaine) ──
+  const refDomain = (r: string) => {
+    if (!r) return 'Direct'
+    try { return new URL(r).hostname.replace(/^www\./, '') } catch { return 'Direct' }
+  }
+  const bySource: Record<string, number> = {}
+  v.forEach(x => { const d = refDomain(x.referrer || ''); bySource[d] = (bySource[d] ?? 0) + 1 })
+  const topSources = Object.entries(bySource).sort((a, b) => b[1] - a[1]).slice(0, 6)
+
+  // ── Réponses "Qu'est-ce qui t'a attiré" ──
+  const whyResponses = o.filter(x => x.why_locht && x.why_locht.trim()).map(x => x.why_locht as string)
+
+  // ── Inventaire ──
   const sold = p.filter(x => x.status === 'sold')
   const inv = {
-    total: p.length,
-    available: p.filter(x => x.status === 'available').length,
-    reserved: p.filter(x => x.status === 'reserved').length,
-    sold: sold.length,
-    soldOnline: sold.filter(x => x.order_ref).length,
-    soldShop: sold.filter(x => !x.order_ref).length,
+    total: p.length, available: p.filter(x => x.status === 'available').length,
+    reserved: p.filter(x => x.status === 'reserved').length, sold: sold.length,
+    soldOnline: sold.filter(x => x.order_ref).length, soldShop: sold.filter(x => !x.order_ref).length,
   }
+
+  // ── Entonnoir ──
+  const funnel = [
+    { label: 'Visiteurs', n: visitors },
+    { label: 'Commandes', n: o.length },
+    { label: 'Payées', n: paid.length },
+  ]
+  const maxFunnel = Math.max(1, ...funnel.map(f => f.n))
 
   return (
     <AdminShell email={user?.email}>
       <AutoRefresh seconds={45} />
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-9">
         <h1 className="font-display text-[32px] font-light text-[#043672]">Statistiques</h1>
+
+        {/* Alerte stock bas */}
+        {lowStock.length > 0 && (
+          <div className="flex flex-wrap gap-3">
+            {lowStock.map(m => (
+              <div key={m.name} className="flex items-center gap-2 px-4 py-2.5 bg-[#b8965a]/08 border border-[#b8965a]/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
+                <span className="text-[12px] text-[#9a7a3a]">{m.name} : {m.n} pièce{m.n > 1 ? 's' : ''} restante{m.n > 1 ? 's' : ''}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Trafic */}
         <Section title="Trafic">
@@ -69,24 +128,31 @@ export default async function AdminStatsPage() {
           <Card label="Pages vues aujourd'hui" value={String(viewsToday)} />
         </Section>
 
-        {/* Graphique 7 jours + conversion */}
-        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-end">
+        {/* Graphiques 7 jours */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <Chart title="Pages vues — 7 jours" data={last7Views} max={maxView} />
+          <Chart title="Revenus — 7 jours (CAD)" data={last7Rev} max={maxRev} suffix="" />
+        </div>
+
+        {/* Entonnoir + conversion */}
+        <div className="grid md:grid-cols-[1fr_auto] gap-6 items-center">
           <div>
-            <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-4">Pages vues — 7 derniers jours</h2>
-            <div className="flex items-end gap-2 h-28">
-              {last7.map((d, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] text-[#7a7a8a]">{d.count}</span>
-                  <div className="w-full bg-[#043672]/10 relative" style={{ height: '80px' }}>
-                    <div className="absolute bottom-0 left-0 right-0 bg-[#b8965a]" style={{ height: `${(d.count / maxDay) * 100}%` }} />
+            <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-4">Entonnoir de conversion</h2>
+            <div className="flex flex-col gap-2">
+              {funnel.map(f => (
+                <div key={f.label} className="flex items-center gap-3">
+                  <span className="text-[11px] text-[#043672] w-20">{f.label}</span>
+                  <div className="flex-1 h-5 bg-[#f0ebe0] overflow-hidden">
+                    <div className="h-full bg-[#043672] flex items-center justify-end px-2" style={{ width: `${(f.n / maxFunnel) * 100}%` }}>
+                      <span className="text-[9px] text-white">{f.n}</span>
+                    </div>
                   </div>
-                  <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">{d.label}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="p-5 border border-[#b8965a]/40 bg-[#b8965a]/05 text-center min-w-[160px]">
-            <p className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] mb-2">Taux de conversion</p>
+            <p className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] mb-2">Conversion</p>
             <p className="font-display text-[32px] font-light text-[#043672]">{conversion}<span className="text-[16px] text-[#7a7a8a]">%</span></p>
             <p className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] mt-1">commandes / visiteurs</p>
           </div>
@@ -100,34 +166,36 @@ export default async function AdminStatsPage() {
           <Card label="Panier moyen" value={`${o.length ? Math.round((revenue + pendingRevenue) / o.length) : 0} CAD`} />
         </Section>
 
+        {/* Modèles populaires + Pays */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <BarList title="Modèles les plus vendus" rows={modelRanking.map(m => ({ label: m.name, n: m.count }))} max={maxModel} empty="Aucune vente." />
+          <BarList title="Commandes par pays" rows={Object.entries(byCountry).sort((a,b)=>b[1]-a[1]).map(([c,n]) => ({ label: c, n }))} max={Math.max(1, ...Object.values(byCountry))} empty="Aucune commande." />
+        </div>
+
+        {/* Pages vues + Sources */}
+        <div className="grid md:grid-cols-2 gap-8">
+          <BarList title="Pages les plus vues" rows={topPages.map(([path, n]) => ({ label: path, n }))} max={Math.max(1, ...topPages.map(t => t[1]))} empty="Aucune visite." mono />
+          <BarList title="Sources de trafic" rows={topSources.map(([src, n]) => ({ label: src, n }))} max={Math.max(1, ...topSources.map(t => t[1]))} empty="Aucune visite." />
+        </div>
+
         {/* Inventaire */}
         <Section title="Inventaire">
-          <Card label="Pièces totales" value={String(inv.total)} />
           <Card label="Disponibles" value={String(inv.available)} />
           <Card label="Réservées" value={String(inv.reserved)} />
-          <Card label="Vendues" value={String(inv.sold)} accent />
-        </Section>
-
-        {/* Détail ventes */}
-        <Section title="Détail des ventes">
           <Card label="Vendues en ligne" value={String(inv.soldOnline)} />
           <Card label="Vendues boutique" value={String(inv.soldShop)} />
         </Section>
 
-        {/* Par pays */}
+        {/* Réponses clientes */}
         <div>
-          <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-3">Commandes par pays</h2>
-          {Object.keys(byCountry).length === 0 ? (
-            <p className="text-[13px] text-[#7a7a8a] font-light">Aucune commande.</p>
+          <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-3">Ce qui les a attirées ({whyResponses.length})</h2>
+          {whyResponses.length === 0 ? (
+            <p className="text-[13px] text-[#7a7a8a] font-light">Aucune réponse pour l&apos;instant.</p>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {Object.entries(byCountry).sort((a, b) => b[1] - a[1]).map(([c, n]) => (
-                <div key={c} className="flex items-center gap-3">
-                  <span className="text-[12px] text-[#043672] w-12">{c}</span>
-                  <div className="flex-1 h-2 bg-[#f0ebe0] overflow-hidden">
-                    <div className="h-full bg-[#b8965a]" style={{ width: `${(n / o.length) * 100}%` }} />
-                  </div>
-                  <span className="text-[11px] text-[#7a7a8a] w-8 text-right">{n}</span>
+            <div className="flex flex-col gap-2">
+              {whyResponses.map((r, i) => (
+                <div key={i} className="bg-[#faf7f2] border-l-2 border-[#b8965a] px-4 py-2.5">
+                  <span className="text-[12px] text-[#1a1a2e] font-light italic">&laquo; {r} &raquo;</span>
                 </div>
               ))}
             </div>
@@ -138,10 +206,9 @@ export default async function AdminStatsPage() {
         <div className="bg-[#f0ebe0] p-5 flex gap-4">
           <span className="text-[#b8965a] text-lg flex-shrink-0">✦</span>
           <div>
-            <p className="text-label text-[9px] text-[#043672] tracking-[2px] mb-1.5">À propos du trafic</p>
+            <p className="text-label text-[9px] text-[#043672] tracking-[2px] mb-1.5">À propos des données</p>
             <p className="text-[12px] text-[#7a7a8a] font-light leading-relaxed">
-              Visiteurs et pages vues sont comptés directement par le site (anonyme, sans cookie tiers).
-              Pour les sources de trafic détaillées et la géographie, consulte <strong>Vercel → Analytics</strong>.
+              Trafic compté par le site (anonyme, sans cookie tiers). Géographie détaillée et appareils : <strong>Vercel → Analytics</strong>. Mise à jour auto toutes les 45s.
             </p>
           </div>
         </div>
@@ -164,6 +231,48 @@ function Card({ label, value, accent }: { label: string; value: string; accent?:
     <div className={`p-5 border ${accent ? 'border-[#b8965a]/40 bg-[#b8965a]/05' : 'border-[#043672]/10 bg-[#faf7f2]'}`}>
       <p className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] mb-2">{label}</p>
       <p className="font-display text-[24px] font-light text-[#043672]">{value}</p>
+    </div>
+  )
+}
+
+function Chart({ title, data, max, suffix = '' }: { title: string; data: { label: string; count: number }[]; max: number; suffix?: string }) {
+  return (
+    <div>
+      <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-4">{title}</h2>
+      <div className="flex items-end gap-2 h-28">
+        {data.map((d, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+            <span className="text-[9px] text-[#7a7a8a]">{d.count}{suffix}</span>
+            <div className="w-full bg-[#043672]/10 relative" style={{ height: '80px' }}>
+              <div className="absolute bottom-0 left-0 right-0 bg-[#b8965a]" style={{ height: `${(d.count / max) * 100}%` }} />
+            </div>
+            <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">{d.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BarList({ title, rows, max, empty, mono }: { title: string; rows: { label: string; n: number }[]; max: number; empty: string; mono?: boolean }) {
+  return (
+    <div>
+      <h2 className="text-label text-[9px] text-[#b8965a] tracking-[4px] mb-3">{title}</h2>
+      {rows.length === 0 || rows.every(r => r.n === 0) ? (
+        <p className="text-[13px] text-[#7a7a8a] font-light">{empty}</p>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {rows.map((r, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <span className={`text-[11px] text-[#043672] w-28 truncate ${mono ? 'font-mono text-[10px]' : ''}`}>{r.label}</span>
+              <div className="flex-1 h-2.5 bg-[#f0ebe0] overflow-hidden">
+                <div className="h-full bg-[#b8965a]" style={{ width: `${(r.n / max) * 100}%` }} />
+              </div>
+              <span className="text-[11px] text-[#7a7a8a] w-8 text-right">{r.n}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
