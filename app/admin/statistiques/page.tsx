@@ -281,7 +281,7 @@ function HeroCard({ label, value, sub, accent }: { label: string; value: string;
     }`}>
       {accent && <span className="absolute top-0 left-0 right-0 h-0.5 bg-[#b8965a]" />}
       <p className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] mb-3 leading-tight">{label}</p>
-      <p className="font-display text-[36px] md:text-[44px] font-light text-[#043672] leading-none tabular-nums">{value}</p>
+      <p className="font-display text-[30px] md:text-[44px] font-light text-[#043672] leading-none tabular-nums">{value}</p>
       {sub && <p className="text-label text-[9px] text-[#7a7a8a] tracking-[1px] mt-2">{sub}</p>}
     </div>
   )
