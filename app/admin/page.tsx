@@ -205,53 +205,57 @@ export default async function AdminHomePage() {
           ) : (
             <div className="flex flex-col gap-1.5">
               {recent.map(o => {
-                const isLate  = o.status === 'pending' && daysAgo(o.created_at) > 3
+                const isLate   = o.status === 'pending' && daysAgo(o.created_at) > 3
                 const bagShort = (o.bag_name ?? '').replace(/Le /g, '').replace(/, /g, ' · ')
                 const refShort = `#${o.reference.split('-').pop()}`
                 return (
                   <div key={o.reference}
-                    className="flex items-center gap-3 px-4 py-3 bg-[#faf7f2] border-l-[3px] border-r border-t border-b border-r-[#043672]/07 border-t-[#043672]/07 border-b-[#043672]/07 hover:bg-[#f5f1eb] transition-all duration-200"
+                    className="flex items-center gap-0 px-4 py-3 bg-[#faf7f2] border-l-[3px] border-r border-t border-b border-r-[#043672]/07 border-t-[#043672]/07 border-b-[#043672]/07 hover:bg-[#f5f1eb] transition-all duration-200"
                     style={{ borderLeftColor: isLate ? '#ef4444' : STATUS_LEFT[o.status] ?? '#043672' }}
                   >
-                    <Link href="/admin/commandes" className="flex items-center gap-3 flex-1 min-w-0">
-                      {isLate && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0 animate-pulse" />}
+                    <Link href="/admin/commandes" className="flex items-center flex-1 min-w-0 overflow-hidden">
 
-                      {/* Référence */}
-                      <span className="font-mono flex-shrink-0">
-                        <span className="sm:hidden text-[10px] text-[#043672]/45">{refShort}</span>
-                        <span className="hidden sm:inline text-[10px] text-[#043672]/45 w-[110px]">{o.reference}</span>
+                      {/* Indicateur retard */}
+                      <span className={`flex-shrink-0 mr-2 ${isLate ? 'w-2' : 'w-0'}`}>
+                        {isLate && <span className="block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
                       </span>
 
-                      {/* Nom */}
-                      <span className="text-[13px] font-light text-[#1a1a2e] flex-1 min-w-0 truncate">
+                      {/* Référence — largeur fixe */}
+                      <span className="font-mono text-[10px] text-[#043672]/45 flex-shrink-0 mr-3">
+                        <span className="sm:hidden w-[28px] inline-block">{refShort}</span>
+                        <span className="hidden sm:inline-block w-[114px] truncate">{o.reference}</span>
+                      </span>
+
+                      {/* Nom — prend tout l'espace restant */}
+                      <span className="text-[13px] font-light text-[#1a1a2e] flex-1 min-w-0 truncate mr-3">
                         {o.first_name} {o.last_name}
                       </span>
 
-                      {/* Modèle sac */}
-                      {bagShort && (
-                        <span className="hidden md:inline-block text-[9px] tracking-[1px] uppercase px-2 py-0.5 bg-[#b8965a]/08 text-[#9a7a3a] border border-[#b8965a]/18 flex-shrink-0 whitespace-nowrap">
-                          {bagShort}
-                        </span>
-                      )}
-
-                      {/* Statut */}
-                      <span className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
-                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[o.status] ?? 'bg-[#7a7a8a]'}`} />
-                        <span className="text-[10px] text-[#7a7a8a]">{STATUS_LABEL[o.status] ?? o.status}</span>
+                      {/* Modèle sac — largeur fixe, truncate */}
+                      <span className="hidden md:block w-[96px] flex-shrink-0 text-[9px] tracking-[1px] uppercase text-[#9a7a3a] text-right truncate mr-3">
+                        {bagShort}
                       </span>
 
-                      {/* Montant */}
-                      <span className="text-[12px] text-[#043672] font-medium flex-shrink-0 hidden sm:block">
+                      {/* Statut — largeur fixe (accommodate "Paiement reçu" = plus long) */}
+                      <span className="hidden sm:flex items-center gap-1.5 w-[122px] flex-shrink-0 mr-3">
+                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[o.status] ?? 'bg-[#7a7a8a]'}`} />
+                        <span className="text-[10px] text-[#7a7a8a] truncate">{STATUS_LABEL[o.status] ?? o.status}</span>
+                      </span>
+
+                      {/* Montant — largeur fixe, aligné à droite */}
+                      <span className="hidden sm:block w-[76px] flex-shrink-0 text-[12px] text-[#043672] font-medium text-right mr-3">
                         {o.price_total} CAD
                       </span>
 
-                      {/* Temps */}
-                      <span className="text-[10px] text-[#7a7a8a] flex-shrink-0 hidden lg:block">
+                      {/* Temps — largeur fixe */}
+                      <span className="hidden lg:block w-[60px] flex-shrink-0 text-[10px] text-[#7a7a8a] text-right">
                         {timeAgo(o.created_at)}
                       </span>
                     </Link>
 
-                    <QuickAction reference={o.reference} status={o.status} firstName={o.first_name} />
+                    <div className="flex-shrink-0 ml-3">
+                      <QuickAction reference={o.reference} status={o.status} firstName={o.first_name} />
+                    </div>
                   </div>
                 )
               })}
