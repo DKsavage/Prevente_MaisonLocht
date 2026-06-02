@@ -122,19 +122,27 @@ export async function POST(req: NextRequest) {
 
     // ── Notification interne à la designeuse (nouvelle commande) ──
     const adminTo = testEmail || (process.env.ADMIN_NOTIFY_EMAIL ?? '').replace(/\s/g, '')
+    let adminDebug: unknown = { adminTo }
     if (adminTo) {
       try {
-        await resend.emails.send({
+        const { data: ad, error: ae } = await resend.emails.send({
           from: FROM,
           to:   adminTo,
           subject: `🔔 Nouvelle commande ${reference} — ${data.priceTotal} CAD`,
           html: buildAdminNotification({ data, reference, interacAnswer, baseUrl }),
         })
+        adminDebug = ae ? { adminTo, error: ae } : { adminTo, id: ad?.id }
       } catch (e) {
         console.error('[orders POST] admin notify failed', e)
+        adminDebug = { adminTo, thrown: e instanceof Error ? e.message : String(e) }
       }
+    } else {
+      adminDebug = { adminTo: '(vide — ADMIN_NOTIFY_EMAIL non lue)' }
     }
 
+    if (req.nextUrl.searchParams.get('debug') === '1') {
+      return NextResponse.json({ reference, adminNotify: adminDebug }, { status: 201 })
+    }
     return NextResponse.json({ reference }, { status: 201 })
 
   } catch (err) {
