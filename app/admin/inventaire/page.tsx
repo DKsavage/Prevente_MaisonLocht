@@ -10,15 +10,17 @@ export default async function AdminInventoryPage() {
   const { data: { user } } = await auth.auth.getUser()
 
   const supabase = createServerClient()
-  const { data: pieces } = await supabase
-    .from('pieces')
-    .select('id, model, image_url, status, order_ref, sort_order, display_num')
-    .order('model', { ascending: true })
-    .order('display_num', { ascending: true, nullsFirst: false })
-    .order('sort_order', { ascending: true })
-
-  // Statut des commandes liées (pour distinguer "réservée" de "en attente de paiement")
-  const { data: orders } = await supabase.from('orders').select('reference, status')
+  // Requêtes en parallèle → plus rapide
+  const [piecesRes, ordersRes] = await Promise.all([
+    supabase.from('pieces')
+      .select('id, model, image_url, status, order_ref, sort_order, display_num')
+      .order('model', { ascending: true })
+      .order('display_num', { ascending: true, nullsFirst: false })
+      .order('sort_order', { ascending: true }),
+    supabase.from('orders').select('reference, status'),
+  ])
+  const pieces = piecesRes.data
+  const orders = ordersRes.data
   const orderStatus: Record<string, string> = {}
   ;(orders ?? []).forEach(o => { orderStatus[o.reference] = o.status })
 

@@ -12,16 +12,21 @@ export default async function AdminStatsPage() {
   const { data: { user } } = await auth.auth.getUser()
 
   const supabase = createServerClient()
-  const { data: orders } = await supabase.from('orders').select('status, price_total, country, bag_name, created_at, why_locht')
-  const { data: pieces } = await supabase.from('pieces').select('model, status, order_ref')
-  const { data: visits } = await supabase.from('visits').select('session, created_at, path, referrer')
-
-  const o = orders ?? []
-  const p = pieces ?? []
-  const v = visits ?? []
-
   const now = Date.now()
   const dayMs = 86400000
+  // Borne les visites aux 30 derniers jours (la pré-vente tient dans cette fenêtre) → requête rapide même à grande échelle
+  const since30 = new Date(now - 30 * dayMs).toISOString()
+
+  // Requêtes en parallèle (pas séquentielles) → page plus rapide
+  const [ordersRes, piecesRes, visitsRes] = await Promise.all([
+    supabase.from('orders').select('status, price_total, country, created_at, why_locht'),
+    supabase.from('pieces').select('model, status, order_ref'),
+    supabase.from('visits').select('session, created_at, path, referrer').gte('created_at', since30),
+  ])
+
+  const o = ordersRes.data ?? []
+  const p = piecesRes.data ?? []
+  const v = visitsRes.data ?? []
   const isToday = (d: string) => new Date(d).toDateString() === new Date().toDateString()
 
   // ── Trafic ──

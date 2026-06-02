@@ -19,8 +19,13 @@ export default async function AdminHomePage() {
   const { data: { user } } = await auth.auth.getUser()
 
   const supabase = createServerClient()
-  const { data: ordersData } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
-  const { data: piecesData } = await supabase.from('pieces').select('status')
+  // Requêtes en parallèle + colonnes ciblées (pas select('*')) → plus rapide
+  const [ordersRes, piecesRes] = await Promise.all([
+    supabase.from('orders').select('reference, status, price_total, first_name, last_name, country, created_at').order('created_at', { ascending: false }),
+    supabase.from('pieces').select('status'),
+  ])
+  const ordersData = ordersRes.data
+  const piecesData = piecesRes.data
 
   const orders = (ordersData ?? []) as O[]
   const pieces = piecesData ?? []
