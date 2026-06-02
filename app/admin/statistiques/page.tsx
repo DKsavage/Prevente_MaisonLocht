@@ -138,24 +138,26 @@ export default async function AdminStatsPage() {
           </div>
         </div>
 
+        {/* Alertes stock bas — urgent, placées avant le hero (visibilité du statut) */}
+        {lowStock.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {lowStock.map(m => (
+              <div key={m.name} className="flex items-center gap-2.5 px-4 py-2.5 bg-[#b8965a]/08 border-l-[3px] border-l-[#b8965a] border border-[#b8965a]/25">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
+                <span className="text-[12px] text-[#9a7a3a]">
+                  <strong className="font-medium">{m.name}</strong> · {m.n} pièce{m.n > 1 ? 's' : ''} restante{m.n > 1 ? 's' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── Bande hero — 3 chiffres clés ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 bg-[#043672]">
           <HeroBand label="Revenus confirmés" value={fmtNum(revenue)} unit="CAD" />
           <HeroBand label="Visiteurs" value={fmtNum(visitors)} unit="30 jours" divider />
           <HeroBand label="Conversion" value={conversion} unit="%" divider />
         </div>
-
-        {/* Alertes stock bas */}
-        {lowStock.length > 0 && (
-          <div className="flex flex-wrap gap-3">
-            {lowStock.map(m => (
-              <div key={m.name} className="flex items-center gap-2 px-4 py-2.5 bg-[#b8965a]/08 border border-[#b8965a]/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
-                <span className="text-[12px] text-[#9a7a3a]">{m.name} : {m.n} pièce{m.n > 1 ? 's' : ''} restante{m.n > 1 ? 's' : ''}</span>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* ── TRAFIC ── */}
         <div>
@@ -298,12 +300,12 @@ function Card({ label, value }: { label: string; value: string }) {
 // Cellule de la bande hero — grand chiffre Cormorant blanc sur bleu marine
 function HeroBand({ label, value, unit, divider }: { label: string; value: string; unit: string; divider?: boolean }) {
   return (
-    <div className={`px-6 py-7 flex flex-col gap-3 ${
+    <div className={`px-6 py-5 sm:py-7 flex flex-col gap-2 sm:gap-3 ${
       divider ? 'border-t border-white/10 sm:border-t-0 sm:border-l' : ''
     }`}>
       <p className="text-label text-[9px] tracking-[3px] text-[#d4aa6a] uppercase">{label}</p>
       <div className="flex items-baseline gap-2">
-        <span className="font-display text-[44px] md:text-[52px] font-light text-white leading-none tabular-nums tracking-[-1px]">{value}</span>
+        <span className="font-display text-[40px] md:text-[52px] font-light text-white leading-none tabular-nums tracking-[-1px]">{value}</span>
         <span className="text-label text-[10px] tracking-[1px] text-white/35">{unit}</span>
       </div>
     </div>
@@ -314,9 +316,15 @@ function HeroBand({ label, value, unit, divider }: { label: string; value: strin
 function Chart({ title, data, max, money }: {
   title: string; data: { label: string; count: number }[]; max: number; money?: boolean
 }) {
+  const hasData = data.some(d => d.count > 0)
   return (
     <div className="bg-[#faf7f2] border border-[#043672]/08 p-5">
       <SectionTitle title={title} />
+      {!hasData ? (
+        <div className="flex items-center justify-center h-44 text-[12px] text-[#7a7a8a] font-light">
+          Aucune donnée sur cette période.
+        </div>
+      ) : (
       <div className="flex items-end gap-2 md:gap-3 h-44">
         {data.map((d, i) => {
           const isToday = i === data.length - 1
@@ -342,6 +350,7 @@ function Chart({ title, data, max, money }: {
           )
         })}
       </div>
+      )}
     </div>
   )
 }
