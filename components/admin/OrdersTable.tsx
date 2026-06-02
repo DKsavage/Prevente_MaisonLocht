@@ -36,16 +36,25 @@ function isLate(o: Order) {
   return Date.now() - new Date(o.created_at).getTime() > 3 * 24 * 60 * 60 * 1000
 }
 
+const STATUS_FR_CSV: Record<string, string> = {
+  pending: 'En attente', payment_received: 'Paiement reçu',
+  confirmed: 'Confirmée', shipped: 'Expédiée', cancelled: 'Annulée',
+}
+
 function exportCsv(orders: Order[]) {
   const headers = ['Référence', 'Statut', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Pièces', 'Quantité', 'Total', 'Adresse', 'Ville', 'Province', 'Code postal', 'Pays', 'Suivi', 'Date']
+  const fmtDate = (d: string) => {
+    const dt = new Date(d)
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+  }
   const rows = orders.map(o => [
-    o.reference, o.status, o.first_name, o.last_name, o.email, o.phone ?? '', o.bag_name,
+    o.reference, STATUS_FR_CSV[o.status] ?? o.status, o.first_name, o.last_name, o.email, o.phone ?? '', o.bag_name,
     o.quantity, o.price_total, o.address, o.city, o.province ?? '', o.postal_code, o.country ?? '',
-    o.tracking_number ?? '', new Date(o.created_at).toLocaleString('fr-CA'),
+    o.tracking_number ?? '', fmtDate(o.created_at),
   ])
   const esc = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
-  const csv = [headers, ...rows].map(r => r.map(esc).join(',')).join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
+  const csv = '﻿' + [headers, ...rows].map(r => r.map(esc).join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
