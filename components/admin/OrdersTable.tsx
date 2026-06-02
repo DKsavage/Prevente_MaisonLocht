@@ -53,7 +53,7 @@ function exportCsv(orders: Order[]) {
     o.tracking_number ?? '', fmtDate(o.created_at),
   ])
   const esc = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
-  const csv = '﻿' + [headers, ...rows].map(r => r.map(esc).join(',')).join('\n')
+  const csv = '﻿' + [headers, ...rows].map(r => r.map(esc).join(';')).join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
