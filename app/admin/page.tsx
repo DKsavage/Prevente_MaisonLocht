@@ -205,52 +205,35 @@ export default async function AdminHomePage() {
           ) : (
             <div className="flex flex-col gap-1.5">
               {recent.map(o => {
-                const isLate  = o.status === 'pending' && daysAgo(o.created_at) > 3
-                const refShort = `#${o.reference.split('-').pop()}`
+                const isLate = o.status === 'pending' && daysAgo(o.created_at) > 3
                 return (
                   <div key={o.reference}
-                    className="flex items-center bg-[#faf7f2] border-l-[3px] border-r border-t border-b border-r-[#043672]/07 border-t-[#043672]/07 border-b-[#043672]/07 hover:bg-[#f5f1eb] transition-all duration-200"
+                    className="flex items-center gap-3 px-4 py-3 bg-[#faf7f2] border-l-[3px] border border-[#043672]/08 hover:bg-[#f5f1eb] transition-all duration-200"
                     style={{ borderLeftColor: isLate ? '#ef4444' : STATUS_LEFT[o.status] ?? '#043672' }}
                   >
-                    {/* Link occupe toute la zone — colonnes à largeur fixe pour alignement garanti */}
-                    <Link href="/admin/commandes"
-                      className="flex items-center flex-1 min-w-0 px-4 py-3">
+                    {/* Zone cliquable — 2 lignes */}
+                    <Link href="/admin/commandes" className="flex-1 min-w-0">
 
-                      {/* Dot retard — 16px réservés même quand absent */}
-                      <span className="w-4 flex-shrink-0">
-                        {isLate && <span className="block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
-                      </span>
+                      {/* Ligne 1 : référence + nom */}
+                      <div className="flex items-center gap-2">
+                        {isLate && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />}
+                        <span className="font-mono text-[10px] text-[#043672]/40 flex-shrink-0 hidden sm:block">{o.reference}</span>
+                        <span className="font-mono text-[10px] text-[#043672]/40 flex-shrink-0 sm:hidden">#{o.reference.split('-').pop()}</span>
+                        <span className="text-[13px] font-light text-[#1a1a2e] truncate">{o.first_name} {o.last_name}</span>
+                      </div>
 
-                      {/* Référence — 28px mobile / 114px sm+ */}
-                      <span className="font-mono text-[10px] text-[#043672]/45 flex-shrink-0">
-                        <span className="sm:hidden w-[24px] inline-block">{refShort}</span>
-                        <span className="hidden sm:inline-block w-[114px]">{o.reference}</span>
-                      </span>
-
-                      {/* Nom — tout l'espace restant, truncate */}
-                      <span className="text-[13px] font-light text-[#1a1a2e] flex-1 min-w-0 truncate px-3">
-                        {o.first_name} {o.last_name}
-                      </span>
-
-                      {/* Statut — 124px fixe, "Paiement reçu" entre parfaitement */}
-                      <span className="hidden sm:flex items-center gap-1.5 w-[124px] flex-shrink-0">
+                      {/* Ligne 2 : statut + temps */}
+                      <div className="flex items-center gap-1.5 mt-0.5">
                         <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[o.status] ?? 'bg-[#7a7a8a]'}`} />
                         <span className="text-[10px] text-[#7a7a8a]">{STATUS_LABEL[o.status] ?? o.status}</span>
-                      </span>
-
-                      {/* Montant — 76px fixe, aligné droite */}
-                      <span className="hidden sm:block w-[76px] flex-shrink-0 text-[12px] text-[#043672] font-medium text-right">
-                        {o.price_total} CAD
-                      </span>
-
-                      {/* Temps — 60px fixe, lg uniquement */}
-                      <span className="hidden lg:block w-[60px] flex-shrink-0 text-[10px] text-[#7a7a8a] text-right pl-3">
-                        {timeAgo(o.created_at)}
-                      </span>
+                        <span className="text-[10px] text-[#043672]/20">·</span>
+                        <span className="text-[10px] text-[#7a7a8a]/60">{timeAgo(o.created_at)}</span>
+                      </div>
                     </Link>
 
-                    {/* Bouton hors du Link — px-3 pour espacement */}
-                    <div className="flex-shrink-0 px-3">
+                    {/* Droite : montant + bouton */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className="text-[12px] text-[#043672] font-medium tabular-nums">{o.price_total} CAD</span>
                       <QuickAction reference={o.reference} status={o.status} firstName={o.first_name} />
                     </div>
                   </div>
