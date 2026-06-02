@@ -1,0 +1,472 @@
+{
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\actions.ts": {
+    "mtime": 1780422937.293497,
+    "ast_hash": "70852929f77bfe3527110d86cc76cf5e",
+    "semantic_hash": "70852929f77bfe3527110d86cc76cf5e"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\commandes\\loading.tsx": {
+    "mtime": 1780373133.6269479,
+    "ast_hash": "de0da87d39dd2f0e3a835a3e824fb6e5",
+    "semantic_hash": "de0da87d39dd2f0e3a835a3e824fb6e5"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\commandes\\page.tsx": {
+    "mtime": 1780372843.8510778,
+    "ast_hash": "6eeff8d9bb7fd03da89bb16ff55b42e6",
+    "semantic_hash": "6eeff8d9bb7fd03da89bb16ff55b42e6"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\inventaire\\loading.tsx": {
+    "mtime": 1780373134.8228595,
+    "ast_hash": "3573bf24800c302bca597bb72f2d4d1a",
+    "semantic_hash": "3573bf24800c302bca597bb72f2d4d1a"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\inventaire\\page.tsx": {
+    "mtime": 1780359732.1612601,
+    "ast_hash": "13af6ff6427d7493ef4e8fb562799b25",
+    "semantic_hash": "13af6ff6427d7493ef4e8fb562799b25"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\layout.tsx": {
+    "mtime": 1780329205.5801394,
+    "ast_hash": "6dbf3f6feea6196f4ef9879baa34e98b",
+    "semantic_hash": "6dbf3f6feea6196f4ef9879baa34e98b"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\loading.tsx": {
+    "mtime": 1780373125.0199325,
+    "ast_hash": "6734f777c22ca72e5a5d8d69fd6ae5f9",
+    "semantic_hash": "6734f777c22ca72e5a5d8d69fd6ae5f9"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\login\\page.tsx": {
+    "mtime": 1780374072.4075227,
+    "ast_hash": "b8c32fb5da133e53bff4ecb9e0f5d9a7",
+    "semantic_hash": "b8c32fb5da133e53bff4ecb9e0f5d9a7"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\page.tsx": {
+    "mtime": 1780373420.299173,
+    "ast_hash": "f332286c167b9df7e7f117d619964820",
+    "semantic_hash": "f332286c167b9df7e7f117d619964820"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\statistiques\\loading.tsx": {
+    "mtime": 1780373136.0582294,
+    "ast_hash": "55ea7b3b2f05440377e332eeb841bedb",
+    "semantic_hash": "55ea7b3b2f05440377e332eeb841bedb"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\admin\\statistiques\\page.tsx": {
+    "mtime": 1780387399.2632885,
+    "ast_hash": "c4c09f8e5559b97570abeb982e9ec005",
+    "semantic_hash": "c4c09f8e5559b97570abeb982e9ec005"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\api\\address-search\\route.ts": {
+    "mtime": 1780320475.7781334,
+    "ast_hash": "d7972ef26cfbe8242fb3564855b2ba5c",
+    "semantic_hash": "d7972ef26cfbe8242fb3564855b2ba5c"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\api\\orders\\route.ts": {
+    "mtime": 1780361206.2327943,
+    "ast_hash": "47ccce3bf605aad88cbef248fac587ac",
+    "semantic_hash": "47ccce3bf605aad88cbef248fac587ac"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\api\\pieces\\route.ts": {
+    "mtime": 1780333199.8242235,
+    "ast_hash": "4f46cec50b5d3cfcea2952b0844b54e8",
+    "semantic_hash": "4f46cec50b5d3cfcea2952b0844b54e8"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\api\\track\\route.ts": {
+    "mtime": 1780358352.443165,
+    "ast_hash": "c5edd08fe766db38147811d6bd8f2209",
+    "semantic_hash": "c5edd08fe766db38147811d6bd8f2209"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\commande\\[code]\\page.tsx": {
+    "mtime": 1780390557.0122569,
+    "ast_hash": "5a906f063b9ce19ffbce7d24d9abe591",
+    "semantic_hash": "5a906f063b9ce19ffbce7d24d9abe591"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\layout.tsx": {
+    "mtime": 1780387700.4817057,
+    "ast_hash": "2f3af6416db40eb6ab95910cfc293a4e",
+    "semantic_hash": "2f3af6416db40eb6ab95910cfc293a4e"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\page.tsx": {
+    "mtime": 1780388873.0244534,
+    "ast_hash": "43148cd113c073b0a8e9f6a8d4411c73",
+    "semantic_hash": "43148cd113c073b0a8e9f6a8d4411c73"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components.json": {
+    "mtime": 1780281221.065432,
+    "ast_hash": "63b2c4fcf776fec9dbc76e94ea0d70c6",
+    "semantic_hash": "63b2c4fcf776fec9dbc76e94ea0d70c6"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\AutoRefresh.tsx": {
+    "mtime": 1780372714.134759,
+    "ast_hash": "62e7575c7cdc9838057ee688ae303460",
+    "semantic_hash": "62e7575c7cdc9838057ee688ae303460"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\SiteChrome.tsx": {
+    "mtime": 1780358466.1964045,
+    "ast_hash": "2a98171b995f9b03b225e2bba077bbd5",
+    "semantic_hash": "2a98171b995f9b03b225e2bba077bbd5"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\VisitTracker.tsx": {
+    "mtime": 1780358366.7781613,
+    "ast_hash": "7edb280b46e27627353ac26ac0e9e3d9",
+    "semantic_hash": "7edb280b46e27627353ac26ac0e9e3d9"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\admin\\AdminShell.tsx": {
+    "mtime": 1780373163.7210088,
+    "ast_hash": "733b8937b9b5c0fbe3ff948ba3cee6a9",
+    "semantic_hash": "733b8937b9b5c0fbe3ff948ba3cee6a9"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\admin\\AdminSkeletonShell.tsx": {
+    "mtime": 1780373108.3501823,
+    "ast_hash": "759fbf3ccfdd958faa02aca956dbd783",
+    "semantic_hash": "759fbf3ccfdd958faa02aca956dbd783"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\admin\\InventoryGrid.tsx": {
+    "mtime": 1780335288.6011658,
+    "ast_hash": "0e18fb016ffdba09a4747ffc76768a50",
+    "semantic_hash": "0e18fb016ffdba09a4747ffc76768a50"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\admin\\OrdersTable.tsx": {
+    "mtime": 1780423479.513426,
+    "ast_hash": "f4814e135873147ac6eb793c93ed3f94",
+    "semantic_hash": "f4814e135873147ac6eb793c93ed3f94"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\admin\\QuickAction.tsx": {
+    "mtime": 1780373399.0816088,
+    "ast_hash": "67149e8c8173b358ed16f85e0bac1c10",
+    "semantic_hash": "67149e8c8173b358ed16f85e0bac1c10"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\form\\AddressAutocomplete.tsx": {
+    "mtime": 1780320939.3066452,
+    "ast_hash": "855c2cab2cf4ffc2ad8ae198803571e3",
+    "semantic_hash": "855c2cab2cf4ffc2ad8ae198803571e3"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\form\\FormStep1.tsx": {
+    "mtime": 1780391614.730412,
+    "ast_hash": "a1c23003cb3de737958b538a366e8d8f",
+    "semantic_hash": "a1c23003cb3de737958b538a366e8d8f"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\form\\FormStep2.tsx": {
+    "mtime": 1780391614.7892509,
+    "ast_hash": "8df5b50b33a3f1da7a952fd5d30af9cd",
+    "semantic_hash": "8df5b50b33a3f1da7a952fd5d30af9cd"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\form\\FormStep3.tsx": {
+    "mtime": 1780391614.8268733,
+    "ast_hash": "9a6c5765db25a8008cd1e43183993326",
+    "semantic_hash": "9a6c5765db25a8008cd1e43183993326"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\form\\OrderForm.tsx": {
+    "mtime": 1780391614.8768778,
+    "ast_hash": "e5345f2dff52fa9ad93e33da0d84da07",
+    "semantic_hash": "e5345f2dff52fa9ad93e33da0d84da07"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Collection.tsx": {
+    "mtime": 1780374287.0787807,
+    "ast_hash": "7c085078d048b348aaab8938c36bd68f",
+    "semantic_hash": "7c085078d048b348aaab8938c36bd68f"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Commander.tsx": {
+    "mtime": 1780348477.2847376,
+    "ast_hash": "623f83c8d181ffeab24a66ab1aa46b03",
+    "semantic_hash": "623f83c8d181ffeab24a66ab1aa46b03"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Cursor.tsx": {
+    "mtime": 1780357537.385138,
+    "ast_hash": "b8ad1a42934d6369193cdfc5f45d982a",
+    "semantic_hash": "b8ad1a42934d6369193cdfc5f45d982a"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Footer.tsx": {
+    "mtime": 1780387025.501417,
+    "ast_hash": "da4aaa0ae6d9ecb19543b6f6abb0b2be",
+    "semantic_hash": "da4aaa0ae6d9ecb19543b6f6abb0b2be"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Hero.tsx": {
+    "mtime": 1780374294.3824863,
+    "ast_hash": "5efac389624734097c88e7c0d2d002f4",
+    "semantic_hash": "5efac389624734097c88e7c0d2d002f4"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\LangContext.tsx": {
+    "mtime": 1780305323.7273178,
+    "ast_hash": "cd0f02ff75cc2a63a40b4a7b7670e77d",
+    "semantic_hash": "cd0f02ff75cc2a63a40b4a7b7670e77d"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\LenisProvider.tsx": {
+    "mtime": 1780357356.3279648,
+    "ast_hash": "f6e6def7f5bda955e6ad2f9ffb982438",
+    "semantic_hash": "f6e6def7f5bda955e6ad2f9ffb982438"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Nav.tsx": {
+    "mtime": 1780374254.7592077,
+    "ast_hash": "f3867182343f01b8dc2851dc12b6b9d7",
+    "semantic_hash": "f3867182343f01b8dc2851dc12b6b9d7"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\PiecesProvider.tsx": {
+    "mtime": 1780357803.1291285,
+    "ast_hash": "96c1d58cd337f9f3bd0b743edd88b1b1",
+    "semantic_hash": "96c1d58cd337f9f3bd0b743edd88b1b1"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\ScrollToTop.tsx": {
+    "mtime": 1780357374.2098937,
+    "ast_hash": "2181cd366bdfd980bf639ff4b5bd9eb0",
+    "semantic_hash": "2181cd366bdfd980bf639ff4b5bd9eb0"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\landing\\Story.tsx": {
+    "mtime": 1780374277.0198214,
+    "ast_hash": "c4ee01af7beaed3d0224dca025186b35",
+    "semantic_hash": "c4ee01af7beaed3d0224dca025186b35"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\components\\ui\\button.tsx": {
+    "mtime": 1780281292.3507051,
+    "ast_hash": "e04ce5251d6b0dd04020988126c905e9",
+    "semantic_hash": "e04ce5251d6b0dd04020988126c905e9"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\eslint.config.mjs": {
+    "mtime": 1780280546.4283102,
+    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\carriers.ts": {
+    "mtime": 1780337046.481161,
+    "ast_hash": "5e211c0194fd2788f15a0c2f25cfdf32",
+    "semantic_hash": "5e211c0194fd2788f15a0c2f25cfdf32"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\countries.ts": {
+    "mtime": 1780319866.016853,
+    "ast_hash": "41610a94bab8732c9ecea922d40fc397",
+    "semantic_hash": "41610a94bab8732c9ecea922d40fc397"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\email-confirmation.ts": {
+    "mtime": 1780422711.1564376,
+    "ast_hash": "0077dd09726dd3444ddb32a7223bedb6",
+    "semantic_hash": "0077dd09726dd3444ddb32a7223bedb6"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\email-from.ts": {
+    "mtime": 1780355137.5237427,
+    "ast_hash": "eef884242f0bf8ab5a710fba2b91f14c",
+    "semantic_hash": "eef884242f0bf8ab5a710fba2b91f14c"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\generate-ref.ts": {
+    "mtime": 1780321937.7675467,
+    "ast_hash": "a7ac26324a94be25c16618dd9404f799",
+    "semantic_hash": "a7ac26324a94be25c16618dd9404f799"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\models.ts": {
+    "mtime": 1780333072.3742237,
+    "ast_hash": "3734397f156c1b5706783c3ca077cca3",
+    "semantic_hash": "3734397f156c1b5706783c3ca077cca3"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\payment.ts": {
+    "mtime": 1780417525.4530072,
+    "ast_hash": "98f1e34e3f396a28bb1df91470a3510a",
+    "semantic_hash": "98f1e34e3f396a28bb1df91470a3510a"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\resend.ts": {
+    "mtime": 1780323982.2842984,
+    "ast_hash": "defd22379eb2b61db3621d1d4875b159",
+    "semantic_hash": "defd22379eb2b61db3621d1d4875b159"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\schemas.ts": {
+    "mtime": 1780328690.501455,
+    "ast_hash": "82dd25e351fbd1f17e19a6a7fd30810c",
+    "semantic_hash": "82dd25e351fbd1f17e19a6a7fd30810c"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\supabase-auth.ts": {
+    "mtime": 1780328987.8180325,
+    "ast_hash": "64963279a59911c7039487c284841130",
+    "semantic_hash": "64963279a59911c7039487c284841130"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\supabase-server.ts": {
+    "mtime": 1780322761.6495037,
+    "ast_hash": "41f1e185e44b9ca55f1b72bc952a6927",
+    "semantic_hash": "41f1e185e44b9ca55f1b72bc952a6927"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\supabase.ts": {
+    "mtime": 1780322792.1562421,
+    "ast_hash": "0b102fac96602c80eb7f205e81d40570",
+    "semantic_hash": "0b102fac96602c80eb7f205e81d40570"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\time.ts": {
+    "mtime": 1780373384.2429762,
+    "ast_hash": "baa20297e0192c680c2819bd2b9dbc4d",
+    "semantic_hash": "baa20297e0192c680c2819bd2b9dbc4d"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\lib\\utils.ts": {
+    "mtime": 1780281292.5522578,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\middleware.ts": {
+    "mtime": 1780329711.5857186,
+    "ast_hash": "b7b44f2657a4bd812844635cced034cb",
+    "semantic_hash": "b7b44f2657a4bd812844635cced034cb"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\next-env.d.ts": {
+    "mtime": 1780386796.9545095,
+    "ast_hash": "29f60a376e12bf72b67d4994fcc84214",
+    "semantic_hash": "29f60a376e12bf72b67d4994fcc84214"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\next.config.ts": {
+    "mtime": 1780334670.309338,
+    "ast_hash": "01ec0ca12664e7b4c12840d6a8f12704",
+    "semantic_hash": "01ec0ca12664e7b4c12840d6a8f12704"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\package.json": {
+    "mtime": 1780398566.8052993,
+    "ast_hash": "42a6cc0bb90adacef03295c374715669",
+    "semantic_hash": "42a6cc0bb90adacef03295c374715669"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\postcss.config.mjs": {
+    "mtime": 1780280546.6960208,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\scripts\\find-order.ts": {
+    "mtime": 1780424080.0737379,
+    "ast_hash": "e289b888bd7e88f1397131ea141fde5a",
+    "semantic_hash": "e289b888bd7e88f1397131ea141fde5a"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\scripts\\notify-canada-interac-change.ts": {
+    "mtime": 1780424322.717933,
+    "ast_hash": "63c60df5fd7ba05577e2d58067808676",
+    "semantic_hash": "63c60df5fd7ba05577e2d58067808676"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\scripts\\send-correction-antoine.ts": {
+    "mtime": 1780424121.4895089,
+    "ast_hash": "dad3dc2c51d1f26b8b56cb1ef7ff431d",
+    "semantic_hash": "dad3dc2c51d1f26b8b56cb1ef7ff431d"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\tsconfig.json": {
+    "mtime": 1780315207.7180872,
+    "ast_hash": "7275f53d7cb62ff717b5deb06de74c8f",
+    "semantic_hash": "7275f53d7cb62ff717b5deb06de74c8f"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\CLAUDE.md": {
+    "mtime": 1780425668.4906616,
+    "ast_hash": "d3b467629bb3dfa376e635ed334b68a2",
+    "semantic_hash": "d3b467629bb3dfa376e635ed334b68a2"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\README.md": {
+    "mtime": 1780398657.532587,
+    "ast_hash": "502997bfc4211b05e4975ed081f422da",
+    "semantic_hash": "502997bfc4211b05e4975ed081f422da"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\app\\icon.png": {
+    "mtime": 1780328245.196441,
+    "ast_hash": "e42173f36f70c7fad2cd5da010b3c117",
+    "semantic_hash": "e42173f36f70c7fad2cd5da010b3c117"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\4mannequins.jpeg": {
+    "mtime": 1780328238.2711182,
+    "ast_hash": "64b46553d5bb421264b2a8f853ecd857",
+    "semantic_hash": "64b46553d5bb421264b2a8f853ecd857"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\collection.jpeg": {
+    "mtime": 1780328238.70212,
+    "ast_hash": "a51e669f5c2c65544be64d7d40272aa8",
+    "semantic_hash": "a51e669f5c2c65544be64d7d40272aa8"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kami-01.jpg": {
+    "mtime": 1780328239.967669,
+    "ast_hash": "cbc70a07651d2e32cdf1892f6c8fffc4",
+    "semantic_hash": "cbc70a07651d2e32cdf1892f6c8fffc4"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kami-02.jpg": {
+    "mtime": 1780328240.5108814,
+    "ast_hash": "8126c963fb0fe2eb14f31fc1bc5c6ce8",
+    "semantic_hash": "8126c963fb0fe2eb14f31fc1bc5c6ce8"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kami-03.jpg": {
+    "mtime": 1780328241.00985,
+    "ast_hash": "a3ee548c52f1758c1b80910aff0314b7",
+    "semantic_hash": "a3ee548c52f1758c1b80910aff0314b7"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-01.jpg": {
+    "mtime": 1780328241.5578475,
+    "ast_hash": "6b3780d8f21bd50575e622d840583d4f",
+    "semantic_hash": "6b3780d8f21bd50575e622d840583d4f"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-02.jpg": {
+    "mtime": 1780328242.093225,
+    "ast_hash": "ab98fc893723cab6a17795df42878dd6",
+    "semantic_hash": "ab98fc893723cab6a17795df42878dd6"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-03.jpg": {
+    "mtime": 1780328242.6059244,
+    "ast_hash": "9c8401d86ac3735249cce75e31b3bda9",
+    "semantic_hash": "9c8401d86ac3735249cce75e31b3bda9"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-04.jpg": {
+    "mtime": 1780328243.032804,
+    "ast_hash": "4b2053ec35529e307cf79a97860bb474",
+    "semantic_hash": "4b2053ec35529e307cf79a97860bb474"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-05.jpg": {
+    "mtime": 1780328243.5407572,
+    "ast_hash": "11a1704e47c61868db3a2a37c628c609",
+    "semantic_hash": "11a1704e47c61868db3a2a37c628c609"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-06.jpg": {
+    "mtime": 1780328244.0159776,
+    "ast_hash": "d0aebb970655b1367360f7ed4bc8ae01",
+    "semantic_hash": "d0aebb970655b1367360f7ed4bc8ae01"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-07.jpg": {
+    "mtime": 1780328244.5109167,
+    "ast_hash": "1265d7a7f6025cdc59ead73ca89df1b5",
+    "semantic_hash": "1265d7a7f6025cdc59ead73ca89df1b5"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\kouna-08.jpg": {
+    "mtime": 1780328245.0419092,
+    "ast_hash": "90444813f3e5c048c5764ac0bb03a8f7",
+    "semantic_hash": "90444813f3e5c048c5764ac0bb03a8f7"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\logo-blanc.png": {
+    "mtime": 1780328245.1234326,
+    "ast_hash": "749b442f5ddc4c282fe672b40e832480",
+    "semantic_hash": "749b442f5ddc4c282fe672b40e832480"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\logo-bleu.png": {
+    "mtime": 1780328245.196441,
+    "ast_hash": "e42173f36f70c7fad2cd5da010b3c117",
+    "semantic_hash": "e42173f36f70c7fad2cd5da010b3c117"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-01.jpg": {
+    "mtime": 1780328245.6936767,
+    "ast_hash": "b604e6951b4a7e18b0b1ef83af4c069d",
+    "semantic_hash": "b604e6951b4a7e18b0b1ef83af4c069d"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-02.jpg": {
+    "mtime": 1780328246.204635,
+    "ast_hash": "ef114443f695994269f070c03923e1cd",
+    "semantic_hash": "ef114443f695994269f070c03923e1cd"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-03.jpg": {
+    "mtime": 1780328246.842891,
+    "ast_hash": "4e08de0dc64cee3d6bf9d5f74e0dd8aa",
+    "semantic_hash": "4e08de0dc64cee3d6bf9d5f74e0dd8aa"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-04.jpg": {
+    "mtime": 1780328247.363955,
+    "ast_hash": "f963a25c9bf7c4f5cb263f5b273b6580",
+    "semantic_hash": "f963a25c9bf7c4f5cb263f5b273b6580"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-05.jpg": {
+    "mtime": 1780328247.8754418,
+    "ast_hash": "d0e3ca3c4ca00c05cc58516d7dbc730b",
+    "semantic_hash": "d0e3ca3c4ca00c05cc58516d7dbc730b"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-06.jpg": {
+    "mtime": 1780328248.5677714,
+    "ast_hash": "1565792f244a9c151c1014cd0cd5728b",
+    "semantic_hash": "1565792f244a9c151c1014cd0cd5728b"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-07.jpg": {
+    "mtime": 1780328249.1847928,
+    "ast_hash": "35f2431afe6b07844f6a407d16b64167",
+    "semantic_hash": "35f2431afe6b07844f6a407d16b64167"
+  },
+  "C:\\Users\\RicardoVidal\\OneDrive - Centre MGL\\Documents\\Prevente_MaisonLocht\\public\\images\\nafibe-08.jpg": {
+    "mtime": 1780328249.6709437,
+    "ast_hash": "69e12da0d9fd91a6e6975c0c9d858755",
+    "semantic_hash": "69e12da0d9fd91a6e6975c0c9d858755"
+  }
+}

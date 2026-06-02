@@ -1,0 +1,717 @@
+{
+  "communities": {
+    "0": [
+      "admin_actions",
+      "admin_actions_addpiece",
+      "admin_actions_changepieceimage",
+      "admin_actions_deletepiece",
+      "admin_actions_getorderpieces",
+      "admin_actions_orderstatus",
+      "admin_actions_reassignpiece",
+      "admin_actions_releasepiece",
+      "admin_actions_requireadmin",
+      "admin_actions_resendconfirmation",
+      "admin_actions_sendcorrectionemail",
+      "admin_actions_sendstatusemail",
+      "admin_actions_sendstatusemailinternal",
+      "admin_actions_setpiecestatus",
+      "admin_actions_statuses",
+      "admin_actions_updatenotes",
+      "admin_actions_updateorderstatus",
+      "admin_actions_updatetracking",
+      "admin_actions_uploadimage",
+      "admin_inventorygrid",
+      "admin_inventorygrid_addbagcard",
+      "admin_inventorygrid_iconbtn",
+      "admin_inventorygrid_inventorygrid",
+      "admin_inventorygrid_legend",
+      "admin_inventorygrid_models",
+      "admin_inventorygrid_piececard",
+      "admin_inventorygrid_statusinfo",
+      "admin_orderstable",
+      "admin_orderstable_all_status",
+      "admin_orderstable_detail",
+      "admin_orderstable_exportcsv",
+      "admin_orderstable_filterchip",
+      "admin_orderstable_islate",
+      "admin_orderstable_model_names",
+      "admin_orderstable_notecolis",
+      "admin_orderstable_orderrow",
+      "admin_orderstable_orderstable",
+      "admin_orderstable_pieceitem",
+      "admin_orderstable_status_colors",
+      "admin_orderstable_status_fr_csv",
+      "admin_orderstable_status_labels",
+      "admin_quickaction",
+      "admin_quickaction_next",
+      "admin_quickaction_quickaction",
+      "code_page",
+      "code_page_copy",
+      "code_page_steps",
+      "code_page_trackingpage",
+      "lib_carriers",
+      "lib_carriers_carriername",
+      "lib_carriers_carriers",
+      "lib_carriers_trackingurl",
+      "lib_supabase_server_createserverclient",
+      "lib_time",
+      "lib_time_timeago",
+      "pieces_route",
+      "pieces_route_get",
+      "track_route",
+      "track_route_post"
+    ],
+    "1": [
+      "app_page",
+      "app_page_home",
+      "form_formstep1",
+      "form_formstep1_copy",
+      "form_formstep1_ease",
+      "form_formstep1_formstep1",
+      "form_formstep1_gridpiece",
+      "form_formstep1_props",
+      "landing_collection",
+      "landing_collection_buildmodels",
+      "landing_collection_collection",
+      "landing_collection_copy",
+      "landing_collection_ease",
+      "landing_collection_model",
+      "landing_collection_modelspotlight",
+      "landing_collection_piece",
+      "landing_collection_status",
+      "landing_commander",
+      "landing_commander_commander",
+      "landing_footer",
+      "landing_footer_footer",
+      "landing_hero",
+      "landing_hero_content",
+      "landing_hero_ease",
+      "landing_hero_fadeup",
+      "landing_hero_hero",
+      "landing_hero_usecountup",
+      "landing_langcontext",
+      "landing_langcontext_lang",
+      "landing_langcontext_langcontext",
+      "landing_langcontext_langcontexttype",
+      "landing_langcontext_langprovider",
+      "landing_langcontext_uselang",
+      "landing_nav",
+      "landing_nav_content",
+      "landing_nav_ease",
+      "landing_nav_nav",
+      "landing_piecesprovider",
+      "landing_piecesprovider_ctx",
+      "landing_piecesprovider_piecesctx",
+      "landing_piecesprovider_piecesprovider",
+      "landing_piecesprovider_usepieces",
+      "landing_story",
+      "landing_story_content",
+      "landing_story_ease",
+      "landing_story_goldrule",
+      "landing_story_story",
+      "lib_models",
+      "lib_models_dbpiece",
+      "lib_models_fetchpieces",
+      "lib_models_getmodel",
+      "lib_models_modelid",
+      "lib_models_models",
+      "lib_models_piecenum",
+      "lib_models_piecenumfromid",
+      "lib_models_piecestatus"
+    ],
+    "2": [
+      "form_formstep1_selectedpiece",
+      "form_formstep3",
+      "form_formstep3_copy",
+      "form_formstep3_ease",
+      "form_formstep3_editlabel",
+      "form_formstep3_formstep3",
+      "form_formstep3_props",
+      "form_orderform",
+      "form_orderform_copy",
+      "form_orderform_ease",
+      "form_orderform_orderform",
+      "lib_email_confirmation",
+      "lib_email_confirmation_buildconfirmationemail",
+      "lib_email_confirmation_confirmationdata",
+      "lib_email_from",
+      "lib_generate_ref",
+      "lib_generate_ref_generatereference",
+      "lib_payment",
+      "lib_payment_bank_details",
+      "lib_payment_generateinteracanswer",
+      "lib_payment_getpaymentmethod",
+      "lib_payment_interac_security_question",
+      "lib_payment_paymentinstructions",
+      "lib_payment_paymentmethod",
+      "lib_resend",
+      "lib_resend_resend",
+      "lib_schemas",
+      "lib_schemas_orderformdata",
+      "lib_schemas_orderpiece",
+      "lib_schemas_orderschema",
+      "lib_schemas_pieceschema",
+      "lib_supabase_server",
+      "lib_supabase_server_clean",
+      "orders_route",
+      "orders_route_buildadminnotification",
+      "orders_route_post",
+      "orders_route_releasepieces",
+      "scripts_send_correction_antoine",
+      "scripts_send_correction_antoine_base_url",
+      "scripts_send_correction_antoine_main",
+      "scripts_send_correction_antoine_model_names",
+      "scripts_send_correction_antoine_prices",
+      "scripts_send_correction_antoine_resend",
+      "scripts_send_correction_antoine_supabase"
+    ],
+    "3": [
+      "package",
+      "package_dependencies",
+      "package_dependencies_base_ui_react",
+      "package_dependencies_class_variance_authority",
+      "package_dependencies_clsx",
+      "package_dependencies_framer_motion",
+      "package_dependencies_lenis",
+      "package_dependencies_lucide_react",
+      "package_dependencies_next",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_resend",
+      "package_dependencies_shadcn",
+      "package_dependencies_supabase_ssr",
+      "package_dependencies_supabase_supabase_js",
+      "package_dependencies_tailwind_merge",
+      "package_dependencies_tw_animate_css",
+      "package_dependencies_vercel_analytics",
+      "package_devdependencies",
+      "package_devdependencies_eslint",
+      "package_devdependencies_eslint_config_next",
+      "package_devdependencies_heic_convert",
+      "package_devdependencies_sharp",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_postcss",
+      "package_devdependencies_types_node",
+      "package_devdependencies_types_react",
+      "package_devdependencies_types_react_dom",
+      "package_devdependencies_typescript",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_start",
+      "package_version"
+    ],
+    "4": [
+      "admin_adminshell",
+      "admin_adminshell_adminshell",
+      "admin_adminshell_tabs",
+      "admin_inventorygrid_invpiece",
+      "admin_orderstable_order",
+      "admin_page",
+      "admin_page_adminhomepage",
+      "admin_page_card",
+      "admin_page_daysago",
+      "admin_page_istoday",
+      "admin_page_o",
+      "admin_page_status_fr",
+      "admin_page_statuspill",
+      "commandes_page",
+      "commandes_page_adminorderspage",
+      "components_autorefresh",
+      "components_autorefresh_autorefresh",
+      "inventaire_page",
+      "inventaire_page_admininventorypage",
+      "lib_supabase",
+      "lib_supabase_auth",
+      "lib_supabase_auth_clean",
+      "lib_supabase_auth_createauthclient",
+      "lib_supabase_clean",
+      "lib_supabase_createclient",
+      "login_page",
+      "login_page_adminlogin",
+      "statistiques_page",
+      "statistiques_page_adminstatspage",
+      "statistiques_page_barlist",
+      "statistiques_page_card",
+      "statistiques_page_chart",
+      "statistiques_page_herocard",
+      "statistiques_page_model_names",
+      "statistiques_page_sectiontitle"
+    ],
+    "5": [
+      "address_search_route",
+      "address_search_route_get",
+      "address_search_route_nominatimresult",
+      "address_search_route_province_map",
+      "address_search_route_toprovincecode",
+      "form_addressautocomplete",
+      "form_addressautocomplete_addressautocomplete",
+      "form_addressautocomplete_addressresult",
+      "form_addressautocomplete_props",
+      "form_formstep2",
+      "form_formstep2_ca_provinces",
+      "form_formstep2_copy",
+      "form_formstep2_ease",
+      "form_formstep2_field",
+      "form_formstep2_formstep2",
+      "form_formstep2_props",
+      "form_formstep2_section",
+      "lib_countries",
+      "lib_countries_countries",
+      "lib_countries_countrycode",
+      "lib_countries_formatpostalcode",
+      "lib_countries_getcountry",
+      "lib_countries_getpostalformat",
+      "lib_countries_postal_formats"
+    ],
+    "6": [
+      "components",
+      "components_aliases",
+      "components_aliases_components",
+      "components_aliases_hooks",
+      "components_aliases_lib",
+      "components_aliases_ui",
+      "components_aliases_utils",
+      "components_iconlibrary",
+      "components_menuaccent",
+      "components_menucolor",
+      "components_registries",
+      "components_rsc",
+      "components_rtl",
+      "components_schema",
+      "components_style",
+      "components_tailwind",
+      "components_tailwind_basecolor",
+      "components_tailwind_config",
+      "components_tailwind_css",
+      "components_tailwind_cssvariables",
+      "components_tailwind_prefix",
+      "components_tsx"
+    ],
+    "7": [
+      "app_layout",
+      "app_layout_cormorant",
+      "app_layout_dmsans",
+      "app_layout_jetbrains",
+      "app_layout_metadata",
+      "app_layout_rootlayout",
+      "components_sitechrome",
+      "components_sitechrome_sitechrome",
+      "components_visittracker",
+      "components_visittracker_visittracker",
+      "landing_collection_bagdrawer",
+      "landing_cursor",
+      "landing_cursor_cursor",
+      "landing_lenisprovider",
+      "landing_lenisprovider_leniscontext",
+      "landing_lenisprovider_lenisctx",
+      "landing_lenisprovider_lenisprovider",
+      "landing_lenisprovider_uselenis",
+      "landing_scrolltotop",
+      "landing_scrolltotop_scrolltotop"
+    ],
+    "8": [
+      "tsconfig",
+      "tsconfig_compileroptions",
+      "tsconfig_compileroptions_allowjs",
+      "tsconfig_compileroptions_esmoduleinterop",
+      "tsconfig_compileroptions_incremental",
+      "tsconfig_compileroptions_isolatedmodules",
+      "tsconfig_compileroptions_jsx",
+      "tsconfig_compileroptions_lib",
+      "tsconfig_compileroptions_module",
+      "tsconfig_compileroptions_moduleresolution",
+      "tsconfig_compileroptions_noemit",
+      "tsconfig_compileroptions_paths",
+      "tsconfig_compileroptions_plugins",
+      "tsconfig_compileroptions_resolvejsonmodule",
+      "tsconfig_compileroptions_skiplibcheck",
+      "tsconfig_compileroptions_strict",
+      "tsconfig_compileroptions_target",
+      "tsconfig_exclude",
+      "tsconfig_include",
+      "tsconfig_paths"
+    ],
+    "9": [
+      "api_orders_code_route_ts",
+      "api_orders_route_ts",
+      "comp_inventorygrid_tsx",
+      "concept_atomic_reservation",
+      "concept_supabase",
+      "db_orders",
+      "db_pieces",
+      "db_rate_limits",
+      "db_rpc_check_rate_limit",
+      "db_storage_bags",
+      "lib_schemas_ts",
+      "lib_supabase_auth_ts",
+      "lib_supabase_server_ts",
+      "lib_supabase_ts"
+    ],
+    "10": [
+      "concept_animations",
+      "concept_design_system",
+      "concept_framer_motion",
+      "concept_gsap",
+      "concept_lenis",
+      "concept_nextjs",
+      "concept_r3f",
+      "concept_shadcn",
+      "concept_stack",
+      "concept_tailwind",
+      "concept_typescript",
+      "concept_typography",
+      "concept_vercel",
+      "readme_md"
+    ],
+    "11": [
+      "admin_adminskeletonshell",
+      "admin_adminskeletonshell_adminskeletonshell",
+      "admin_adminskeletonshell_bone",
+      "admin_adminskeletonshell_tabs",
+      "admin_loading",
+      "admin_loading_loading",
+      "commandes_loading",
+      "commandes_loading_loading",
+      "inventaire_loading",
+      "inventaire_loading_loading",
+      "statistiques_loading",
+      "statistiques_loading_loading"
+    ],
+    "12": [
+      "api_pieces_route_ts",
+      "app_page_tsx",
+      "comp_collection_tsx",
+      "comp_footer_tsx",
+      "comp_hero_tsx",
+      "comp_nav_tsx",
+      "comp_piecesprovider_tsx",
+      "comp_story_tsx"
+    ],
+    "13": [
+      "api_address_search_route_ts",
+      "comp_addressautocomplete_tsx",
+      "comp_commander_tsx",
+      "comp_formstep1_tsx",
+      "comp_formstep2_tsx",
+      "comp_formstep3_tsx",
+      "comp_orderform_tsx"
+    ],
+    "14": [
+      "api_track_route_ts",
+      "comp_cursor_tsx",
+      "comp_lenisprovider_tsx",
+      "comp_sitechrome_tsx",
+      "comp_visittracker_tsx",
+      "db_visits"
+    ],
+    "15": [
+      "app_admin_commandes_page_tsx",
+      "app_commande_page_tsx",
+      "comp_orderstable_tsx",
+      "concept_note_colis",
+      "concept_order_statuses",
+      "concept_why_locht"
+    ],
+    "16": [
+      "claude_md",
+      "concept_collection_locht01",
+      "concept_le_kami",
+      "concept_le_kouna",
+      "concept_le_nafibe",
+      "concept_maison_locht"
+    ],
+    "17": [
+      "concept_locht_ref",
+      "concept_order_flow",
+      "concept_payment_interac",
+      "concept_payment_wire",
+      "lib_generate_ref_ts",
+      "lib_payment_ts"
+    ],
+    "18": [
+      "scripts_notify_canada_interac_change",
+      "scripts_notify_canada_interac_change_base_url",
+      "scripts_notify_canada_interac_change_buildemail",
+      "scripts_notify_canada_interac_change_main",
+      "scripts_notify_canada_interac_change_resend",
+      "scripts_notify_canada_interac_change_supabase"
+    ],
+    "19": [
+      "app_admin_actions_ts",
+      "app_admin_page_tsx",
+      "comp_quickaction_tsx",
+      "concept_admin_users",
+      "middleware_ts"
+    ],
+    "20": [
+      "lib_utils",
+      "lib_utils_cn",
+      "ui_button",
+      "ui_button_button",
+      "ui_button_buttonvariants"
+    ],
+    "21": [
+      "concept_dns_namecheap",
+      "concept_resend",
+      "lib_email_confirmation_ts",
+      "lib_email_from_ts"
+    ],
+    "22": [
+      "middleware",
+      "middleware_clean",
+      "middleware_config",
+      "middleware_middleware"
+    ],
+    "23": [
+      "admin_layout",
+      "admin_layout_adminlayout",
+      "admin_layout_metadata"
+    ],
+    "24": [
+      "scripts_find_order",
+      "scripts_find_order_main",
+      "scripts_find_order_supabase"
+    ],
+    "25": [
+      "comp_adminshell_tsx",
+      "comp_autorefresh_tsx"
+    ],
+    "26": [
+      "eslint_config",
+      "eslint_config_eslintconfig"
+    ],
+    "27": [
+      "next_config",
+      "next_config_nextconfig"
+    ],
+    "28": [
+      "postcss_config",
+      "postcss_config_config"
+    ],
+    "29": [
+      "app_admin_inventaire_page_tsx"
+    ],
+    "30": [
+      "app_admin_login_page_tsx"
+    ],
+    "31": [
+      "app_admin_statistiques_page_tsx"
+    ],
+    "32": [
+      "comp_adminskeletonshell_tsx"
+    ],
+    "33": [
+      "comp_langcontext_tsx"
+    ],
+    "34": [
+      "comp_scrolltotop_tsx"
+    ],
+    "35": [
+      "lib_carriers_ts"
+    ],
+    "36": [
+      "lib_countries_ts"
+    ],
+    "37": [
+      "lib_models_ts"
+    ],
+    "38": [
+      "lib_time_ts"
+    ],
+    "39": [
+      "next_env_d"
+    ]
+  },
+  "cohesion": {
+    "0": 0.07188778492109878,
+    "1": 0.05974025974025974,
+    "2": 0.07928118393234672,
+    "3": 0.05405405405405406,
+    "4": 0.08403361344537816,
+    "5": 0.10507246376811594,
+    "6": 0.09090909090909091,
+    "7": 0.11578947368421053,
+    "8": 0.1,
+    "9": 0.17582417582417584,
+    "10": 0.15384615384615385,
+    "11": 0.22727272727272727,
+    "12": 0.2857142857142857,
+    "13": 0.2857142857142857,
+    "14": 0.3333333333333333,
+    "15": 0.3333333333333333,
+    "16": 0.3333333333333333,
+    "17": 0.4,
+    "18": 0.4,
+    "19": 0.4,
+    "20": 0.7,
+    "21": 0.5,
+    "22": 0.6666666666666666,
+    "23": 0.6666666666666666,
+    "24": 0.6666666666666666,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0
+  },
+  "gods": [
+    {
+      "id": "lib_supabase_server_createserverclient",
+      "label": "createServerClient()",
+      "degree": 38
+    },
+    {
+      "id": "tsconfig_compileroptions",
+      "label": "compilerOptions",
+      "degree": 16
+    },
+    {
+      "id": "admin_actions_requireadmin",
+      "label": "requireAdmin()",
+      "degree": 15
+    },
+    {
+      "id": "lib_supabase_auth_createauthclient",
+      "label": "createAuthClient()",
+      "degree": 13
+    },
+    {
+      "id": "concept_stack",
+      "label": "Tech Stack",
+      "degree": 13
+    },
+    {
+      "id": "landing_langcontext_uselang",
+      "label": "useLang()",
+      "degree": 11
+    },
+    {
+      "id": "lib_email_confirmation_buildconfirmationemail",
+      "label": "buildConfirmationEmail()",
+      "degree": 10
+    },
+    {
+      "id": "lib_payment_getpaymentmethod",
+      "label": "getPaymentMethod()",
+      "degree": 9
+    },
+    {
+      "id": "concept_supabase",
+      "label": "Supabase (Auth + PostgreSQL)",
+      "degree": 9
+    },
+    {
+      "id": "orders_route_post",
+      "label": "POST()",
+      "degree": 8
+    }
+  ],
+  "surprises": [
+    {
+      "source": "lib/email-confirmation.ts — Order Confirmation Email Template",
+      "target": "Resend (Emails)",
+      "source_files": [
+        "lib/email-confirmation.ts",
+        "CLAUDE.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "sent_via",
+      "why": "inferred connection - not explicitly stated in source; crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `lib/email-confirmation.ts — Order Confirmation Email Template` unexpectedly reaches hub `Resend (Emails)`"
+    },
+    {
+      "source": "lib/supabase-auth.ts — Supabase Auth Client (middleware)",
+      "target": "Supabase (Auth + PostgreSQL)",
+      "source_files": [
+        "lib/supabase-auth.ts",
+        "CLAUDE.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "connects_to",
+      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `lib/supabase-auth.ts — Supabase Auth Client (middleware)` unexpectedly reaches hub `Supabase (Auth + PostgreSQL)`"
+    },
+    {
+      "source": "lib/supabase-server.ts — Server Supabase Client",
+      "target": "Supabase (Auth + PostgreSQL)",
+      "source_files": [
+        "lib/supabase-server.ts",
+        "CLAUDE.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "connects_to",
+      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `lib/supabase-server.ts — Server Supabase Client` unexpectedly reaches hub `Supabase (Auth + PostgreSQL)`"
+    },
+    {
+      "source": "lib/supabase.ts — Browser Supabase Client",
+      "target": "Supabase (Auth + PostgreSQL)",
+      "source_files": [
+        "lib/supabase.ts",
+        "CLAUDE.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "connects_to",
+      "why": "crosses file types (doc ↔ code); connects across different repos/directories; peripheral node `lib/supabase.ts — Browser Supabase Client` unexpectedly reaches hub `Supabase (Auth + PostgreSQL)`"
+    },
+    {
+      "source": "api/orders/route.ts — POST Order (atomic reservation)",
+      "target": "Resend (Emails)",
+      "source_files": [
+        "app/api/orders/route.ts",
+        "CLAUDE.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "triggers_email_via",
+      "why": "crosses file types (doc ↔ code); connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `createServerClient()` connect `Community 0` to `Community 2`, `Community 4`, `Community 22`?",
+      "why": "High betweenness centrality (0.064) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `pieceNum()` connect `Community 1` to `Community 0`?",
+      "why": "High betweenness centrality (0.035) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `useLang()` connect `Community 1` to `Community 2`?",
+      "why": "High betweenness centrality (0.021) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 3 inferred relationships involving `createServerClient()` (e.g. with `createAuthClient()` and `createClient()`) actually correct?",
+      "why": "`createServerClient()` has 3 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `STATUSES`, `metadata`, `O` to the rest of the system?",
+      "why": "191 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.07188778492109878 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.05974025974025974 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
