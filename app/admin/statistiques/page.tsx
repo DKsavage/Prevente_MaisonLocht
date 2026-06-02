@@ -7,6 +7,9 @@ export const dynamic = 'force-dynamic'
 
 const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
+// Séparateur de milliers français — cohérent avec le dashboard accueil
+const fmtNum = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 0 })
+
 export default async function AdminStatsPage() {
   const auth = await createAuthClient()
   const { data: { user } } = await auth.auth.getUser()
@@ -119,7 +122,28 @@ export default async function AdminStatsPage() {
       <AutoRefresh seconds={45} />
       <div className="flex flex-col gap-10">
 
-        <h1 className="font-display text-[32px] font-light text-[#043672]">Statistiques</h1>
+        {/* ── En-tête éditorial ── */}
+        <div className="flex items-end justify-between border-b border-[#043672]/08 pb-5">
+          <div>
+            <p className="text-label text-[9px] tracking-[4px] text-[#b8965a] uppercase mb-2">
+              Maison Locht · Performance
+            </p>
+            <h1 className="font-display text-[38px] md:text-[48px] font-light text-[#043672] leading-none">
+              Statistiques
+            </h1>
+          </div>
+          <div className="text-right hidden sm:block">
+            <p className="font-display text-[20px] font-light text-[#043672]/55 leading-none">30 jours</p>
+            <p className="text-label text-[9px] tracking-[3px] text-[#7a7a8a] mt-1.5">période analysée</p>
+          </div>
+        </div>
+
+        {/* ── Bande hero — 3 chiffres clés ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 bg-[#043672]">
+          <HeroBand label="Revenus confirmés" value={fmtNum(revenue)} unit="CAD" />
+          <HeroBand label="Visiteurs" value={fmtNum(visitors)} unit="30 jours" divider />
+          <HeroBand label="Conversion" value={conversion} unit="%" divider />
+        </div>
 
         {/* Alertes stock bas */}
         {lowStock.length > 0 && (
@@ -133,60 +157,58 @@ export default async function AdminStatsPage() {
           </div>
         )}
 
-        {/* ── TRAFIC : 2 KPI héros + 2 secondaires ── */}
+        {/* ── TRAFIC ── */}
         <div>
           <SectionTitle title="Trafic" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            <HeroCard label="Visiteurs" value={String(visitors)} sub="30 derniers jours" />
-            <HeroCard label="Pages vues" value={String(pageViews)} sub="30 derniers jours" />
+            <Card label="Pages vues (30j)" value={fmtNum(pageViews)} />
             <Card label="Visiteurs aujourd'hui" value={String(visitorsToday)} />
             <Card label="Pages vues aujourd'hui" value={String(viewsToday)} />
+            <Card label="Pages / visiteur" value={visitors > 0 ? (pageViews / visitors).toFixed(1) : '0'} />
           </div>
         </div>
 
         {/* ── GRAPHIQUES 7 jours ── */}
         <div className="grid md:grid-cols-2 gap-6">
           <Chart title="Pages vues — 7 jours" data={last7Views} max={maxView} />
-          <Chart title="Revenus — 7 jours (CAD)" data={last7Rev} max={maxRev} />
+          <Chart title="Revenus — 7 jours (CAD)" data={last7Rev} max={maxRev} money />
         </div>
 
-        {/* ── ENTONNOIR + CONVERSION ── */}
-        <div className="grid md:grid-cols-[1fr_220px] gap-4 items-stretch">
-          <div className="bg-[#faf7f2] border border-[#043672]/08 p-6">
-            <SectionTitle title="Entonnoir de conversion" />
-            <div className="flex flex-col gap-4">
-              {funnel.map(f => (
+        {/* ── ENTONNOIR ── */}
+        <div className="bg-[#faf7f2] border border-[#043672]/08 p-6">
+          <SectionTitle title="Entonnoir de conversion" />
+          <div className="flex flex-col gap-4">
+            {funnel.map((f, i) => {
+              const prev = i > 0 ? funnel[i - 1].n : f.n
+              const dropPct = prev > 0 && i > 0 ? Math.round((f.n / prev) * 100) : null
+              return (
                 <div key={f.label} className="flex items-center gap-4">
                   <span className="text-[12px] text-[#043672] w-24 flex-shrink-0">{f.label}</span>
-                  <div className="flex-1 h-7 bg-[#043672]/06 overflow-hidden rounded-sm relative">
+                  <div className="flex-1 h-8 bg-[#043672]/06 overflow-hidden relative">
                     <div
-                      className="h-full bg-gradient-to-r from-[#043672] to-[#0a4d9e] flex items-center justify-end px-3 rounded-sm transition-all duration-700"
-                      style={{ width: `${Math.max(10, (f.n / maxFunnel) * 100)}%` }}
+                      className="h-full bg-[#043672] flex items-center justify-end px-3 transition-all duration-700"
+                      style={{ width: `${Math.max(12, (f.n / maxFunnel) * 100)}%` }}
                     >
-                      <span className="text-[11px] text-white tabular-nums font-light">{f.n}</span>
+                      <span className="text-[12px] text-white tabular-nums font-light">{f.n}</span>
                     </div>
                   </div>
+                  <span className="text-[10px] text-[#7a7a8a] tabular-nums w-12 flex-shrink-0 text-right">
+                    {dropPct !== null ? `${dropPct}%` : ''}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center p-6 border border-[#b8965a]/40 bg-[#b8965a]/[0.06] text-center gap-1">
-            <p className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">Conversion</p>
-            <p className="font-display text-[52px] font-light text-[#043672] leading-none">
-              {conversion}<span className="text-[22px] text-[#7a7a8a]">%</span>
-            </p>
-            <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px]">commandes / visiteurs</p>
+              )
+            })}
           </div>
         </div>
 
-        {/* ── VENTES : 2 KPI héros + 2 secondaires ── */}
+        {/* ── VENTES ── */}
         <div>
           <SectionTitle title="Ventes" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            <HeroCard label="Revenus confirmés" value={`${revenue}`} sub="CAD" accent />
-            <HeroCard label="Commandes totales" value={String(o.length)} sub="toutes périodes" />
-            <Card label="En attente paiement" value={`${pendingRevenue} CAD`} />
-            <Card label="Panier moyen" value={`${avgBasket} CAD`} />
+            <Card label="Commandes totales" value={String(o.length)} />
+            <Card label="En attente paiement" value={`${fmtNum(pendingRevenue)} CAD`} />
+            <Card label="Panier moyen" value={`${fmtNum(avgBasket)} CAD`} />
+            <Card label="Pièces vendues" value={String(inv.sold)} />
           </div>
         </div>
 
@@ -273,40 +295,52 @@ function Card({ label, value }: { label: string; value: string }) {
   )
 }
 
-// KPI primaire — grand chiffre Cormorant
-function HeroCard({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent?: boolean }) {
+// Cellule de la bande hero — grand chiffre Cormorant blanc sur bleu marine
+function HeroBand({ label, value, unit, divider }: { label: string; value: string; unit: string; divider?: boolean }) {
   return (
-    <div className={`relative p-5 md:p-6 border overflow-hidden transition-colors duration-300 ${
-      accent ? 'border-[#b8965a]/40 bg-[#b8965a]/[0.06]' : 'border-[#043672]/12 bg-[#faf7f2] hover:border-[#043672]/30'
+    <div className={`px-6 py-7 flex flex-col gap-3 ${
+      divider ? 'border-t border-white/10 sm:border-t-0 sm:border-l' : ''
     }`}>
-      {accent && <span className="absolute top-0 left-0 right-0 h-0.5 bg-[#b8965a]" />}
-      <p className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] mb-3 leading-tight">{label}</p>
-      <p className="font-display text-[30px] md:text-[44px] font-light text-[#043672] leading-none tabular-nums">{value}</p>
-      {sub && <p className="text-label text-[9px] text-[#7a7a8a] tracking-[1px] mt-2">{sub}</p>}
+      <p className="text-label text-[9px] tracking-[3px] text-[#d4aa6a] uppercase">{label}</p>
+      <div className="flex items-baseline gap-2">
+        <span className="font-display text-[44px] md:text-[52px] font-light text-white leading-none tabular-nums tracking-[-1px]">{value}</span>
+        <span className="text-label text-[10px] tracking-[1px] text-white/35">{unit}</span>
+      </div>
     </div>
   )
 }
 
-// Graphique barres vertical
-function Chart({ title, data, max }: { title: string; data: { label: string; count: number }[]; max: number }) {
+// Graphique barres vertical — barre du jour (dernière) mise en avant en or
+function Chart({ title, data, max, money }: {
+  title: string; data: { label: string; count: number }[]; max: number; money?: boolean
+}) {
   return (
     <div className="bg-[#faf7f2] border border-[#043672]/08 p-5">
       <SectionTitle title={title} />
       <div className="flex items-end gap-2 md:gap-3 h-44">
-        {data.map((d, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-            <span className="text-[10px] text-[#7a7a8a] group-hover:text-[#043672] transition-colors tabular-nums">
-              {d.count}
-            </span>
-            <div className="w-full bg-[#043672]/06 relative rounded-t-sm overflow-hidden" style={{ height: '120px' }}>
-              <div
-                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#043672] to-[#b8965a] rounded-t-sm transition-all duration-700 group-hover:opacity-90"
-                style={{ height: `${Math.max(2, (d.count / max) * 100)}%` }}
-              />
+        {data.map((d, i) => {
+          const isToday = i === data.length - 1
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+              <span className={`text-[10px] tabular-nums transition-colors ${
+                isToday ? 'text-[#b8965a] font-medium' : 'text-[#7a7a8a] group-hover:text-[#043672]'
+              }`}>
+                {money ? fmtNum(d.count) : d.count}
+              </span>
+              <div className="w-full bg-[#043672]/06 relative rounded-t-sm overflow-hidden" style={{ height: '120px' }}>
+                <div
+                  className={`absolute bottom-0 left-0 right-0 rounded-t-sm transition-all duration-700 ${
+                    isToday ? 'bg-[#b8965a]' : 'bg-[#043672]/85 group-hover:bg-[#043672]'
+                  }`}
+                  style={{ height: `${Math.max(2, (d.count / max) * 100)}%` }}
+                />
+              </div>
+              <span className={`text-label text-[10px] tracking-[0.5px] ${
+                isToday ? 'text-[#b8965a] font-medium' : 'text-[#7a7a8a]'
+              }`}>{d.label}</span>
             </div>
-            <span className="text-label text-[10px] text-[#7a7a8a] tracking-[0.5px]">{d.label}</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
