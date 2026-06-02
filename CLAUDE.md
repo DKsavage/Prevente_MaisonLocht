@@ -207,22 +207,69 @@ Mono               : JetBrains Mono
 
 ---
 
-## État du Projet — 2026-05-31
+## État du Projet — LIVRÉ ✅
 
-**Brainstorming terminé.** Design approuvé. Architecture approuvée (Section 1).
-Maquettes dans `.superpowers/brainstorm/1860-1780254652/content/` :
-- `direction-b-v4.html` — page complète référence
-- `story-b-luxe.html` — section storytelling référence
+Site complet, déployé et testé en production. Le code Next.js est **à la racine du repo** (plus dans `maison-locht/`).
 
-**Prochaine étape au retour :**
-1. `npx create-next-app@latest` — scaffolder le projet
-2. Installer dépendances (Supabase, Resend, Framer Motion, Lenis, shadcn)
-3. Créer table `orders` dans Supabase
-4. Builder landing page (direction-b-v4 → Next.js)
-5. Builder formulaire 3 étapes
-6. Connecter Resend (email + code référence)
-7. Builder dashboard admin
-8. Builder page tracking client
-9. Deploy Vercel
+**En ligne** : https://prevente.maisonlocht.com · **Admin** : /admin · **Repo** : DKsavage/Prevente_MaisonLocht (privé)
 
-**Deadline : 2026-06-01**
+---
+
+## Démarrage rapide (après `git pull` sur une autre machine)
+
+```bash
+npm install                 # installer les dépendances
+cp .env.example .env.local  # puis remplir les vraies valeurs (voir Vercel → Settings → Env Vars)
+npm run dev                 # lancer en local → http://localhost:3000
+```
+
+Scripts : `npm run dev` (dev), `npm run build` (build prod), `npm run lint`, `npx tsc --noEmit` (vérif types).
+Workflow : modifier → `npx tsc --noEmit` → commit → `git push` → Vercel redéploie automatiquement.
+
+**Node 18+ requis.** Les secrets ne sont PAS dans le repo (`.env.local` est gitignored) — les récupérer dans Vercel → Settings → Environment Variables.
+
+---
+
+## Architecture as-built
+
+```
+app/
+├── page.tsx                       Landing (Nav, Hero, Collection, Story, Commander)
+├── commande/[code]/page.tsx       Suivi client (timeline statut, auto-refresh 30s)
+├── admin/
+│   ├── page.tsx                   Accueil dashboard (résumé, alertes)
+│   ├── commandes/page.tsx         Gestion commandes
+│   ├── inventaire/page.tsx        Inventaire pièces
+│   ├── statistiques/page.tsx      Stats (trafic, ventes, conversion…)
+│   ├── login/page.tsx             Connexion Supabase Auth
+│   └── actions.ts                 Server actions admin (statut, suivi, notes, emails, pièces)
+└── api/
+    ├── orders/route.ts            POST commande (réservation atomique + emails)
+    ├── orders/[code]/route.ts     (suivi)
+    ├── pieces/route.ts            GET inventaire public
+    ├── track/route.ts             POST visite (analytics maison)
+    └── address-search/route.ts    Autocomplete adresse mondiale (Nominatim)
+
+lib/  supabase.ts (browser) · supabase-server.ts (service role) · supabase-auth.ts (cookies)
+      schemas.ts (Zod) · models.ts (pièces) · payment.ts · carriers.ts
+      email-from.ts · email-confirmation.ts · generate-ref.ts · countries.ts
+
+components/ landing/ · form/ · admin/ · SiteChrome · VisitTracker · AutoRefresh
+middleware.ts  (protège /admin + allowlist ADMIN_EMAILS)
+```
+
+**Tables Supabase** : `orders`, `pieces` (inventaire anti-double-vente), `visits` (analytics), `rate_limits` (+ RPC `check_rate_limit`). Storage bucket `bags` (upload images). Fonction SQL : `check_rate_limit`.
+
+---
+
+## Variables d'environnement (voir `.env.example`)
+`NEXT_PUBLIC_SUPABASE_URL` · `NEXT_PUBLIC_SUPABASE_ANON_KEY` · `SUPABASE_SERVICE_ROLE_KEY` · `RESEND_API_KEY` (compte Resend où maisonlocht.com est vérifié) · `NEXT_PUBLIC_SITE_URL` · `ADMIN_EMAILS` (allowlist) · `ADMIN_NOTIFY_EMAIL`. En test : `RESEND_TEST_EMAIL` redirige tous les emails.
+
+---
+
+## Infra & règles métier critiques
+- **Emails** : envoyés depuis `ml@maisonlocht.com` (constante `lib/email-from.ts`). Le domaine est vérifié sur un compte Resend **séparé** → `RESEND_API_KEY` Vercel doit être de CE compte.
+- **DNS Namecheap** : Custom MX = `mx1/mx2.privateemail.com` (@) + `send`→amazonses (Resend) ; ne pas remettre en "Private Email" sinon Resend casse.
+- **Paiement** : Canada=Interac (réponse sécurité `Cernes`+4 chiffres par commande), reste du monde=virement belge (IBAN BE98 0636 5034 2393).
+- **Pièces uniques** : réservation atomique → jamais de double-vente. Ventes boutique = `sold` + `order_ref` null (préserver au nettoyage DB).
+- **Matières** : Cuir végétal · Batik · Pagne tissé du Fouta. **Vente finale** (ni reprise ni échange, ajustements possibles).
