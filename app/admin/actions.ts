@@ -52,6 +52,15 @@ export async function updateOrderStatus(reference: string, status: OrderStatus) 
 
   revalidatePath('/admin')
   revalidatePath('/admin/inventaire')
+
+  // Email automatique au client sur les statuts clés
+  if (status === 'payment_received' || status === 'shipped') {
+    try {
+      await sendStatusEmailInternal(reference, status === 'payment_received' ? 'payment' : 'shipped')
+    } catch (e) {
+      console.error('[updateOrderStatus] auto email failed (statut bien enregistré)', e)
+    }
+  }
 }
 
 // Met à jour le numéro de suivi + le transporteur
@@ -74,9 +83,8 @@ export async function updateNotes(reference: string, notes: string) {
   revalidatePath('/admin')
 }
 
-// Envoie un email manuel au client (paiement reçu / expédié)
-export async function sendStatusEmail(reference: string, kind: 'payment' | 'shipped') {
-  await requireAdmin()
+// Logique interne d'envoi (sans re-vérifier l'admin)
+async function sendStatusEmailInternal(reference: string, kind: 'payment' | 'shipped') {
   const supabase = createServerClient()
   const { data: order } = await supabase.from('orders').select('*').eq('reference', reference).single()
   if (!order) throw new Error('Commande introuvable')
@@ -84,8 +92,7 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
   const isFr = order.lang === 'fr'
   const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
   const to = testEmail || order.email
-
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente-maison-locht.vercel.app').replace(/\s/g, '').replace(/\/$/, '')
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente.maisonlocht.com').replace(/\s/g, '').replace(/\/$/, '')
 
   const subject = kind === 'payment'
     ? (isFr ? `Maison Locht — Paiement reçu · ${reference}` : `Maison Locht — Payment received · ${reference}`)
@@ -103,11 +110,10 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
     : (isFr ? `Votre pièce est en route. Voici les informations pour suivre votre colis.`
             : `Your piece is on its way. Here is the information to track your parcel.`)
 
-  // Bloc suivi transporteur
   const trkUrl = trackingUrl(order.carrier, order.tracking_number)
   const trackingBlock = (kind === 'shipped' && order.tracking_number)
     ? `<tr><td style="padding:0 40px 8px">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ebe0;border-radius:0">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0ebe0">
           <tr><td style="padding:20px 24px">
             <p style="margin:0 0 6px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Suivi du colis' : 'Parcel tracking'}</p>
             <p style="margin:0;font-size:13px;color:#1a1a2e;line-height:1.7">${carrierName(order.carrier) ? `${carrierName(order.carrier)}<br>` : ''}<strong>${order.tracking_number}</strong></p>
@@ -125,23 +131,19 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
   <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
     <tr><td align="center">
       <table width="580" cellpadding="0" cellspacing="0" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.08);max-width:580px;width:100%">
-        <!-- Header -->
         <tr><td style="background:#043672;padding:40px;text-align:center">
           <p style="margin:0 0 14px;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:#d4aa6a">${eyebrow}</p>
           <h1 style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:3px">Maison Locht</h1>
           <p style="margin:8px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4)">${reference}</p>
         </td></tr>
-        <!-- Corps -->
         <tr><td style="padding:36px 40px 24px">
           <p style="margin:0;font-family:Georgia,serif;font-size:22px;font-weight:300;font-style:italic;color:#043672">${greeting}</p>
           <p style="margin:12px 0 0;font-size:13px;line-height:1.8;color:#7a7a8a">${intro}</p>
         </td></tr>
         ${trackingBlock}
-        <!-- Suivi en ligne -->
         <tr><td style="padding:16px 40px 28px;text-align:center">
           <a href="${siteUrl}/commande/${reference}" style="display:inline-block;border:1px solid rgba(4,54,114,0.2);color:#043672;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:13px 28px;text-decoration:none">${isFr ? 'Voir ma commande' : 'View my order'} &rarr;</a>
         </td></tr>
-        <!-- Footer -->
         <tr><td style="padding:24px 40px;background:#021f45;text-align:center">
           <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">${isFr ? 'Pièce unique · ni reprise ni échange · ajustements possibles' : 'One-of-a-kind · no returns or exchanges · adjustments available'}</p>
         </td></tr>
@@ -151,8 +153,14 @@ export async function sendStatusEmail(reference: string, kind: 'payment' | 'ship
 </body>
 </html>`
 
+  await resend.emails.send({ from: EMAIL_FROM, to, subject, html })
+}
+
+// Envoie un email manuel au client (paiement reçu / expédié) — bouton admin
+export async function sendStatusEmail(reference: string, kind: 'payment' | 'shipped') {
+  await requireAdmin()
   try {
-    await resend.emails.send({ from: EMAIL_FROM, to, subject, html })
+    await sendStatusEmailInternal(reference, kind)
   } catch (e) {
     console.error('[sendStatusEmail]', e)
     throw new Error('Échec envoi email')

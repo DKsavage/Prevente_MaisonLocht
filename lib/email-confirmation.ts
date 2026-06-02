@@ -73,17 +73,20 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
           <p style="margin:0 0 8px;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,0.4)">${isFr ? 'Votre référence' : 'Your reference'}</p>
           <p style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:4px">${reference}</p>
         </td></tr>
-        <tr><td style="padding:28px 40px;background:#f0ebe0">
-          <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${pay.title}</p>
-          ${pay.lines.map(l => `<p style="margin:0 0 10px;font-size:13px;color:#1a1a2e;line-height:1.8">${l}</p>`).join('')}
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 4px">
+        <tr><td style="background:#043672;padding:10px 40px 6px;text-align:center">
+          <p style="margin:0;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#d4aa6a">${isFr ? '— Action requise —' : '— Action required —'}</p>
+          <p style="margin:4px 0 6px;font-family:Georgia,serif;font-size:18px;font-weight:300;color:#fff">${pay.title}</p>
+        </td></tr>
+        <tr><td style="padding:24px 40px 20px;background:#021f45">
+          ${pay.lines.map(l => `<p style="margin:0 0 10px;font-size:14px;color:rgba(255,255,255,0.9);line-height:1.8">${l}</p>`).join('')}
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0;border-top:1px solid rgba(255,255,255,0.1)">
             ${pay.fields.map(f => `
               <tr>
-                <td style="font-size:11px;color:#7a7a8a;padding:3px 0">${f.label}</td>
-                <td style="font-size:13px;color:#043672;text-align:right;padding:3px 0;font-weight:600">${f.value}</td>
+                <td style="font-size:11px;color:rgba(255,255,255,0.5);padding:6px 0;letter-spacing:1px;text-transform:uppercase">${f.label}</td>
+                <td style="font-size:14px;color:#d4aa6a;text-align:right;padding:6px 0;font-weight:600;letter-spacing:1px">${f.value}</td>
               </tr>`).join('')}
           </table>
-          <p style="margin:8px 0 0;font-size:12px;color:#7a7a8a">${isFr
+          <p style="margin:16px 0 0;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;text-align:center">${isFr
             ? 'Votre commande sera confirmée dès réception du paiement.'
             : 'Your order will be confirmed upon receipt of payment.'}</p>
         </td></tr>
