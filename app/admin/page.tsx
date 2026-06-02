@@ -33,6 +33,13 @@ const STATUS_LEFT: Record<string, string> = {
   pending: '#b8965a', payment_received: '#3b82f6',
   confirmed: '#10b981', shipped: '#043672', cancelled: '#ef4444',
 }
+const STATUS_PILL: Record<string, string> = {
+  pending:          'bg-[#b8965a]/10 text-[#9a7a3a] border-[#b8965a]/25',
+  payment_received: 'bg-blue-50 text-blue-700 border-blue-200',
+  confirmed:        'bg-emerald-50 text-emerald-700 border-emerald-200',
+  shipped:          'bg-[#043672]/08 text-[#043672] border-[#043672]/20',
+  cancelled:        'bg-red-50 text-red-500 border-red-200',
+}
 
 export default async function AdminHomePage() {
   const auth = await createAuthClient()
@@ -203,37 +210,52 @@ export default async function AdminHomePage() {
               Aucune commande pour le moment.
             </div>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {recent.map(o => {
+            <div className="flex flex-col border border-[#043672]/08">
+              {recent.map((o, i) => {
                 const isLate = o.status === 'pending' && daysAgo(o.created_at) > 3
+                const idx    = o.reference.split('-').pop() ?? String(i + 1)
+                const pill   = STATUS_PILL[o.status] ?? 'bg-[#7a7a8a]/08 text-[#7a7a8a] border-[#7a7a8a]/20'
                 return (
                   <div key={o.reference}
-                    className="flex items-center gap-3 px-4 py-3 bg-[#faf7f2] border-l-[3px] border border-[#043672]/08 hover:bg-[#f5f1eb] transition-all duration-200"
-                    style={{ borderLeftColor: isLate ? '#ef4444' : STATUS_LEFT[o.status] ?? '#043672' }}
+                    className={`group relative flex items-center gap-4 px-4 py-3.5 bg-[#faf7f2] hover:bg-[#f5f1eb] transition-all duration-200 ${i > 0 ? 'border-t border-[#043672]/06' : ''}`}
                   >
-                    {/* Zone cliquable — 2 lignes */}
-                    <Link href="/admin/commandes" className="flex-1 min-w-0">
+                    {/* Accent gauche — apparaît au survol (révèle le statut) */}
+                    <span
+                      className="absolute left-0 top-0 bottom-0 w-[3px] opacity-60 group-hover:opacity-100 transition-opacity duration-200"
+                      style={{ background: isLate ? '#ef4444' : STATUS_LEFT[o.status] ?? '#043672' }}
+                    />
 
-                      {/* Ligne 1 : référence + nom */}
+                    {/* Index éditorial — anchor numéroté */}
+                    <span className="font-display text-[22px] font-light text-[#043672]/25 group-hover:text-[#b8965a]/70 tabular-nums w-[34px] text-center flex-shrink-0 transition-colors duration-200 leading-none">
+                      {idx}
+                    </span>
+
+                    {/* Zone cliquable — nom + méta */}
+                    <Link href="/admin/commandes" className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {isLate && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />}
-                        <span className="font-mono text-[10px] text-[#043672]/40 flex-shrink-0 hidden sm:block">{o.reference}</span>
-                        <span className="font-mono text-[10px] text-[#043672]/40 flex-shrink-0 sm:hidden">#{o.reference.split('-').pop()}</span>
-                        <span className="text-[13px] font-light text-[#1a1a2e] truncate">{o.first_name} {o.last_name}</span>
+                        <span className="text-[14px] font-light text-[#1a1a2e] truncate">{o.first_name} {o.last_name}</span>
                       </div>
-
-                      {/* Ligne 2 : statut + temps */}
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[o.status] ?? 'bg-[#7a7a8a]'}`} />
-                        <span className="text-[10px] text-[#7a7a8a]">{STATUS_LABEL[o.status] ?? o.status}</span>
-                        <span className="text-[10px] text-[#043672]/20">·</span>
-                        <span className="text-[10px] text-[#7a7a8a]/60">{timeAgo(o.created_at)}</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="font-mono text-[9px] text-[#043672]/35 tracking-[0.5px]">{o.reference}</span>
+                        <span className="text-[9px] text-[#043672]/15">·</span>
+                        <span className="text-[10px] text-[#7a7a8a]/70">{timeAgo(o.created_at)}</span>
                       </div>
                     </Link>
 
-                    {/* Droite : montant + bouton */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-[12px] text-[#043672] font-medium tabular-nums">{o.price_total} CAD</span>
+                    {/* Badge statut — soigné */}
+                    <span className={`hidden sm:inline-flex items-center text-label text-[8px] tracking-[1.5px] uppercase px-2.5 py-1 border flex-shrink-0 ${pill}`}>
+                      {STATUS_LABEL[o.status] ?? o.status}
+                    </span>
+
+                    {/* Montant — éditorial Cormorant */}
+                    <span className="flex items-baseline gap-1 flex-shrink-0 w-[78px] justify-end">
+                      <span className="font-display text-[19px] font-light text-[#043672] tabular-nums leading-none">{o.price_total}</span>
+                      <span className="text-[9px] text-[#7a7a8a] tracking-[1px]">CAD</span>
+                    </span>
+
+                    {/* Action rapide */}
+                    <div className="flex-shrink-0">
                       <QuickAction reference={o.reference} status={o.status} firstName={o.first_name} />
                     </div>
                   </div>
