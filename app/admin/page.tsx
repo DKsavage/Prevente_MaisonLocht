@@ -138,16 +138,16 @@ export default async function AdminHomePage() {
               </span>
               <span className="text-label text-[11px] tracking-[2px] text-white/35">CAD</span>
             </div>
-            <p className="text-[11px] text-white/35 font-light">
+            <p className="text-[12px] text-white/60 font-light">
               {paidCount} commande{paidCount !== 1 ? 's' : ''} payée{paidCount !== 1 ? 's' : ''}
             </p>
           </div>
 
           {/* Mini stats — colonne */}
           <div className="grid grid-cols-3 md:grid-cols-1 gap-2 md:gap-3">
-            <MiniStat label="Aujourd'hui" value={stats.today} />
-            <MiniStat label="En attente" value={stats.pending} urgent={stats.pending > 0} />
-            <MiniStat label="À expédier" value={stats.toShip} action={stats.toShip > 0} />
+            <MiniStat label="Aujourd'hui" sub="nouvelles commandes" value={stats.today} />
+            <MiniStat label="En attente" sub="paiement non reçu" value={stats.pending} urgent={stats.pending > 0} />
+            <MiniStat label="À expédier" sub="commandes confirmées" value={stats.toShip} action={stats.toShip > 0} />
           </div>
         </div>
 
@@ -159,7 +159,7 @@ export default async function AdminHomePage() {
                 Inventaire · {pieceTotal} pièces
               </p>
               <Link href="/admin/inventaire"
-                className="text-label text-[9px] text-[#7a7a8a] hover:text-[#043672] tracking-[2px] transition-colors">
+                className="text-label text-[9px] tracking-[2px] text-[#043672] border border-[#043672]/20 px-3 py-1.5 hover:bg-[#043672] hover:text-white transition-all duration-200">
                 Gérer →
               </Link>
             </div>
@@ -193,7 +193,7 @@ export default async function AdminHomePage() {
               Commandes récentes
             </p>
             <Link href="/admin/commandes"
-              className="text-label text-[9px] text-[#7a7a8a] hover:text-[#043672] tracking-[2px] transition-colors">
+              className="text-label text-[9px] tracking-[2px] text-[#043672] border border-[#043672]/20 px-3 py-1.5 hover:bg-[#043672] hover:text-white transition-all duration-200">
               Tout voir →
             </Link>
           </div>
@@ -205,55 +205,52 @@ export default async function AdminHomePage() {
           ) : (
             <div className="flex flex-col gap-1.5">
               {recent.map(o => {
-                const isLate   = o.status === 'pending' && daysAgo(o.created_at) > 3
-                const bagShort = (o.bag_name ?? '').replace(/Le /g, '').replace(/, /g, ' · ')
+                const isLate  = o.status === 'pending' && daysAgo(o.created_at) > 3
                 const refShort = `#${o.reference.split('-').pop()}`
                 return (
                   <div key={o.reference}
-                    className="flex items-center gap-0 px-4 py-3 bg-[#faf7f2] border-l-[3px] border-r border-t border-b border-r-[#043672]/07 border-t-[#043672]/07 border-b-[#043672]/07 hover:bg-[#f5f1eb] transition-all duration-200"
+                    className="flex items-center bg-[#faf7f2] border-l-[3px] border-r border-t border-b border-r-[#043672]/07 border-t-[#043672]/07 border-b-[#043672]/07 hover:bg-[#f5f1eb] transition-all duration-200"
                     style={{ borderLeftColor: isLate ? '#ef4444' : STATUS_LEFT[o.status] ?? '#043672' }}
                   >
-                    <Link href="/admin/commandes" className="flex items-center flex-1 min-w-0 overflow-hidden">
+                    {/* Link occupe toute la zone — colonnes à largeur fixe pour alignement garanti */}
+                    <Link href="/admin/commandes"
+                      className="flex items-center flex-1 min-w-0 px-4 py-3">
 
-                      {/* Indicateur retard */}
-                      <span className={`flex-shrink-0 mr-2 ${isLate ? 'w-2' : 'w-0'}`}>
+                      {/* Dot retard — 16px réservés même quand absent */}
+                      <span className="w-4 flex-shrink-0">
                         {isLate && <span className="block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
                       </span>
 
-                      {/* Référence — largeur fixe */}
-                      <span className="font-mono text-[10px] text-[#043672]/45 flex-shrink-0 mr-3">
-                        <span className="sm:hidden w-[28px] inline-block">{refShort}</span>
-                        <span className="hidden sm:inline-block w-[114px] truncate">{o.reference}</span>
+                      {/* Référence — 28px mobile / 114px sm+ */}
+                      <span className="font-mono text-[10px] text-[#043672]/45 flex-shrink-0">
+                        <span className="sm:hidden w-[24px] inline-block">{refShort}</span>
+                        <span className="hidden sm:inline-block w-[114px]">{o.reference}</span>
                       </span>
 
-                      {/* Nom — prend tout l'espace restant */}
-                      <span className="text-[13px] font-light text-[#1a1a2e] flex-1 min-w-0 truncate mr-3">
+                      {/* Nom — tout l'espace restant, truncate */}
+                      <span className="text-[13px] font-light text-[#1a1a2e] flex-1 min-w-0 truncate px-3">
                         {o.first_name} {o.last_name}
                       </span>
 
-                      {/* Modèle sac — largeur fixe, truncate */}
-                      <span className="hidden md:block w-[96px] flex-shrink-0 text-[9px] tracking-[1px] uppercase text-[#9a7a3a] text-right truncate mr-3">
-                        {bagShort}
-                      </span>
-
-                      {/* Statut — largeur fixe (accommodate "Paiement reçu" = plus long) */}
-                      <span className="hidden sm:flex items-center gap-1.5 w-[122px] flex-shrink-0 mr-3">
+                      {/* Statut — 124px fixe, "Paiement reçu" entre parfaitement */}
+                      <span className="hidden sm:flex items-center gap-1.5 w-[124px] flex-shrink-0">
                         <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${STATUS_DOT[o.status] ?? 'bg-[#7a7a8a]'}`} />
-                        <span className="text-[10px] text-[#7a7a8a] truncate">{STATUS_LABEL[o.status] ?? o.status}</span>
+                        <span className="text-[10px] text-[#7a7a8a]">{STATUS_LABEL[o.status] ?? o.status}</span>
                       </span>
 
-                      {/* Montant — largeur fixe, aligné à droite */}
-                      <span className="hidden sm:block w-[76px] flex-shrink-0 text-[12px] text-[#043672] font-medium text-right mr-3">
+                      {/* Montant — 76px fixe, aligné droite */}
+                      <span className="hidden sm:block w-[76px] flex-shrink-0 text-[12px] text-[#043672] font-medium text-right">
                         {o.price_total} CAD
                       </span>
 
-                      {/* Temps — largeur fixe */}
-                      <span className="hidden lg:block w-[60px] flex-shrink-0 text-[10px] text-[#7a7a8a] text-right">
+                      {/* Temps — 60px fixe, lg uniquement */}
+                      <span className="hidden lg:block w-[60px] flex-shrink-0 text-[10px] text-[#7a7a8a] text-right pl-3">
                         {timeAgo(o.created_at)}
                       </span>
                     </Link>
 
-                    <div className="flex-shrink-0 ml-3">
+                    {/* Bouton hors du Link — px-3 pour espacement */}
+                    <div className="flex-shrink-0 px-3">
                       <QuickAction reference={o.reference} status={o.status} firstName={o.first_name} />
                     </div>
                   </div>
@@ -270,11 +267,11 @@ export default async function AdminHomePage() {
 
 // ── Composants locaux ──
 
-function MiniStat({ label, value, urgent, action }: {
-  label: string; value: number; urgent?: boolean; action?: boolean
+function MiniStat({ label, sub, value, urgent, action }: {
+  label: string; sub: string; value: number; urgent?: boolean; action?: boolean
 }) {
   return (
-    <div className={`px-4 py-4 flex flex-col gap-1.5 border transition-all duration-200 ${
+    <div className={`px-4 py-4 flex flex-col gap-1 border transition-all duration-200 ${
       urgent ? 'bg-[#b8965a]/06 border-[#b8965a]/22' :
       action ? 'bg-[#043672]/03 border-[#043672]/10' :
                'bg-[#faf7f2] border-[#043672]/08'
@@ -284,11 +281,10 @@ function MiniStat({ label, value, urgent, action }: {
       }`}>
         {label}
       </p>
-      <p className={`font-display text-[30px] font-light leading-none ${
-        urgent || action ? 'text-[#043672]' : 'text-[#043672]'
-      }`}>
+      <p className="font-display text-[30px] font-light leading-none text-[#043672]">
         {value}
       </p>
+      <p className="text-[10px] text-[#7a7a8a] font-light leading-tight">{sub}</p>
     </div>
   )
 }
