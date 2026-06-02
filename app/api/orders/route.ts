@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
         subject: data.lang === 'fr'
           ? `Maison Locht — Votre commande ${reference}`
           : `Maison Locht — Your order ${reference}`,
-        html: buildConfirmationEmail({ data: { ...data, interacAnswer: interacAnswer ?? undefined }, reference, baseUrl }),
+        html: buildConfirmationEmail({ data: { ...data, interacAnswer: interacAnswer ?? undefined, whyLocht: data.whyLocht ?? undefined }, reference, baseUrl }),
       })
     } catch (mailErr) {
       console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)

@@ -6,6 +6,7 @@ export type ConfirmationData = {
   address?: string; city?: string; province?: string; postalCode?: string; country?: string
   interacAnswer?: string
   errorCorrection?: boolean
+  whyLocht?: string
 }
 
 // Email de confirmation de commande (template de marque)
@@ -60,6 +61,22 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
             ? 'Votre pièce vous attend. Voici le récapitulatif de votre commande.'
             : 'Your piece awaits. Here is your order summary.'}</p>
         </td></tr>
+        ${data.whyLocht ? `
+        <tr><td style="padding:0 40px 16px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-left:3px solid #b8965a;background:#f9f6f1">
+            <tr><td style="padding:16px 20px">
+              <p style="margin:0 0 6px;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#b8965a">
+                ${isFr ? 'Vous nous avez confié' : 'You told us'}
+              </p>
+              <p style="margin:0 0 10px;font-family:Georgia,serif;font-size:14px;font-weight:300;font-style:italic;color:#043672;line-height:1.7">
+                &laquo; ${data.whyLocht} &raquo;
+              </p>
+              <p style="margin:0;font-size:12px;color:#7a7a8a;line-height:1.6">
+                ${isFr ? 'Nous l\'avons gardé en tête en préparant votre pièce.' : 'We kept it in mind while preparing your piece.'}
+              </p>
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
         ${data.errorCorrection ? `
         <tr><td style="padding:0 40px 12px">
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#b8965a">
