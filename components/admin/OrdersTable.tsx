@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, type OrderStatus } from '@/app/admin/actions'
+import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces, type OrderStatus } from '@/app/admin/actions'
 import { timeAgo } from '@/lib/time'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
 
@@ -195,6 +195,9 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
   )
 }
 
+type PieceItem = { id: string; model: string; image_url: string; display_num: number }
+const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
+
 function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boolean; onToggle: () => void }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -202,7 +205,18 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const [carrier, setCarrier] = useState(order.carrier ?? '')
   const [notes, setNotes] = useState(order.notes_admin ?? '')
   const [msg, setMsg] = useState<string | null>(null)
+  const [pieces, setPieces] = useState<PieceItem[]>([])
+  const [piecesLoaded, setPiecesLoaded] = useState(false)
   const late = isLate(order)
+
+  useEffect(() => {
+    if (expanded && !piecesLoaded) {
+      getOrderPieces(order.reference).then(p => {
+        setPieces(p as PieceItem[])
+        setPiecesLoaded(true)
+      })
+    }
+  }, [expanded, piecesLoaded, order.reference])
 
   const fullAddress = `${order.first_name} ${order.last_name}\n${order.address}\n${order.city}${order.province ? ', ' + order.province : ''} ${order.postal_code}\n${order.country ?? ''}`
 
@@ -222,11 +236,18 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   }
 
   const changeStatus = (status: OrderStatus) => {
+    const confirmMessages: Partial<Record<OrderStatus, string>> = {
+      payment_received: `Confirmer la réception du paiement de ${order.first_name} ${order.last_name} ?\n\nUn email "Paiement reçu" sera envoyé automatiquement.`,
+      shipped: `Marquer la commande de ${order.first_name} ${order.last_name} comme expédiée ?\n\nUn email "Commande expédiée" sera envoyé automatiquement.`,
+      cancelled: `Annuler la commande ${order.reference} de ${order.first_name} ${order.last_name} ?\n\nCette action libérera les pièces réservées.`,
+    }
+    const msg = confirmMessages[status]
+    if (msg && !window.confirm(msg)) return
     startTransition(async () => {
       await updateOrderStatus(order.reference, status)
       router.refresh()
-      setMsg('Statut mis à jour')
-      setTimeout(() => setMsg(null), 2000)
+      setMsg(status === 'payment_received' || status === 'shipped' ? 'Statut mis à jour · email envoyé' : 'Statut mis à jour')
+      setTimeout(() => setMsg(null), 3000)
     })
   }
 
@@ -240,17 +261,29 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   }
 
   const email = (kind: 'payment' | 'shipped') => {
+    const label = kind === 'payment' ? 'Paiement reçu' : 'Commande expédiée'
+    if (!window.confirm(`Renvoyer manuellement l'email "${label}" à ${order.first_name} ${order.last_name} (${order.email}) ?`)) return
     startTransition(async () => {
-      try { await sendStatusEmail(order.reference, kind); setMsg('Email envoyé') }
+      try { await sendStatusEmail(order.reference, kind); setMsg(`Email "${label}" envoyé`) }
       catch { setMsg('Échec email') }
       setTimeout(() => setMsg(null), 2500)
     })
   }
 
   const resend = () => {
+    if (!window.confirm(`Renvoyer l'email de confirmation original à ${order.first_name} ${order.last_name} (${order.email}) ?`)) return
     startTransition(async () => {
       try { await resendConfirmation(order.reference); setMsg('Confirmation renvoyée') }
       catch { setMsg('Échec email') }
+      setTimeout(() => setMsg(null), 2500)
+    })
+  }
+
+  const correction = () => {
+    if (!window.confirm(`Envoyer un email de CORRECTION à ${order.first_name} ${order.last_name} (${order.email}) ?\n\nCet email expliquera l'erreur et rappellera les instructions de paiement.`)) return
+    startTransition(async () => {
+      try { await sendCorrectionEmail(order.reference); setMsg('Email de correction envoyé') }
+      catch { setMsg('Échec envoi') }
       setTimeout(() => setMsg(null), 2500)
     })
   }
@@ -276,8 +309,8 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
         {order.status === 'pending' && (
           <button onClick={() => changeStatus('payment_received')} disabled={isPending}
             className="text-label text-[7px] tracking-[1px] px-2.5 py-1.5 border border-emerald-300 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors disabled:opacity-50 flex-shrink-0"
-            title="Marquer comme payé">
-            ✓ Payé
+            title="Confirmer la réception du paiement">
+            ✓ Paiement reçu
           </button>
         )}
         <button onClick={onToggle} className="flex items-center gap-4 flex-shrink-0">
@@ -291,6 +324,23 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
       {/* Détails */}
       {expanded && (
         <div className="px-4 pb-4 pt-2 border-t border-[#043672]/06 flex flex-col gap-4">
+          {/* Photos des pièces commandées */}
+          {pieces.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-label text-[7px] text-[#b8965a] tracking-[2px]">Pièces commandées</span>
+              <div className="flex gap-3 flex-wrap">
+                {pieces.map(p => (
+                  <div key={p.id} className="flex flex-col items-center gap-1">
+                    <img src={p.image_url} alt={MODEL_NAMES[p.model] ?? p.model}
+                      className="w-20 h-20 object-cover border border-[#043672]/10" />
+                    <span className="text-[9px] font-light text-[#043672] italic">{MODEL_NAMES[p.model] ?? p.model}</span>
+                    <span className="text-label text-[7px] text-[#b8965a] tracking-[1px]">N°{String(p.display_num).padStart(2,'0')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 gap-4 text-[12px]">
             <div className="flex flex-col gap-1">
               <Detail label="Pièces" value={order.bag_name} />
@@ -389,16 +439,24 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
             </div>
             <div className="flex flex-wrap gap-2">
               <button onClick={resend} disabled={isPending}
-                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
+                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50"
+                title="Renvoie l'email de confirmation original avec instructions de paiement">
                 Renvoyer confirmation
               </button>
               <button onClick={() => email('payment')} disabled={isPending}
-                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
-                Email paiement
+                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50"
+                title="Envoie manuellement l'email Paiement reçu (déjà envoyé automatiquement au changement de statut)">
+                Renvoyer : Paiement reçu
               </button>
               <button onClick={() => email('shipped')} disabled={isPending}
-                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
-                Email expédition
+                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50"
+                title="Envoie manuellement l'email Commande expédiée (déjà envoyé automatiquement au changement de statut)">
+                Renvoyer : Commande expédiée
+              </button>
+              <button onClick={correction} disabled={isPending}
+                className="text-label text-[7px] tracking-[1px] px-3 py-2 border border-[#b8965a]/50 text-[#b8965a] hover:bg-[#b8965a] hover:text-white transition-colors disabled:opacity-50"
+                title="Envoie un email d'excuse expliquant qu'un email a été envoyé par erreur — rappelle les instructions de paiement">
+                ⚠ Email correction (erreur)
               </button>
             </div>
           </div>

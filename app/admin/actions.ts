@@ -86,8 +86,12 @@ export async function updateNotes(reference: string, notes: string) {
 // Logique interne d'envoi (sans re-vérifier l'admin)
 async function sendStatusEmailInternal(reference: string, kind: 'payment' | 'shipped') {
   const supabase = createServerClient()
-  const { data: order } = await supabase.from('orders').select('*').eq('reference', reference).single()
+  const [{ data: order }, { data: pieces }] = await Promise.all([
+    supabase.from('orders').select('*').eq('reference', reference).single(),
+    supabase.from('pieces').select('model, image_url, display_num').eq('order_ref', reference),
+  ])
   if (!order) throw new Error('Commande introuvable')
+  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
   const isFr = order.lang === 'fr'
   const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
@@ -140,6 +144,19 @@ async function sendStatusEmailInternal(reference: string, kind: 'payment' | 'shi
           <p style="margin:0;font-family:Georgia,serif;font-size:22px;font-weight:300;font-style:italic;color:#043672">${greeting}</p>
           <p style="margin:12px 0 0;font-size:13px;line-height:1.8;color:#7a7a8a">${intro}</p>
         </td></tr>
+        ${(pieces ?? []).length > 0 ? `
+        <tr><td style="padding:0 40px 20px">
+          <p style="margin:0 0 12px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Votre pièce' : 'Your piece'}</p>
+          <table cellpadding="0" cellspacing="0">
+            <tr>${(pieces ?? []).map(p => `
+              <td style="padding-right:12px;vertical-align:top;text-align:center">
+                <img src="${p.image_url}" width="90" height="90" alt="${modelNames[p.model] ?? p.model}" style="display:block;width:90px;height:90px;object-fit:cover;border:1px solid rgba(4,54,114,0.1)" />
+                <p style="margin:5px 0 0;font-family:Georgia,serif;font-size:13px;font-weight:300;color:#043672;font-style:italic">${modelNames[p.model] ?? p.model}</p>
+                <p style="margin:2px 0 0;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b8965a">N°${String(p.display_num).padStart(2,'0')}</p>
+              </td>`).join('')}
+            </tr>
+          </table>
+        </td></tr>` : ''}
         ${trackingBlock}
         <tr><td style="padding:16px 40px 28px;text-align:center">
           <a href="${siteUrl}/commande/${reference}" style="display:inline-block;border:1px solid rgba(4,54,114,0.2);color:#043672;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:13px 28px;text-decoration:none">${isFr ? 'Voir ma commande' : 'View my order'} &rarr;</a>
@@ -208,6 +225,60 @@ export async function resendConfirmation(reference: string) {
   } catch (e) {
     console.error('[resendConfirmation]', e)
     throw new Error('Échec envoi email')
+  }
+}
+
+// Retourne les pièces liées à une commande (pour affichage admin)
+export async function getOrderPieces(reference: string) {
+  await requireAdmin()
+  const supabase = createServerClient()
+  const { data } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
+  return data ?? []
+}
+
+// Envoie un email de correction (erreur d'envoi précédent — paiement non encore reçu)
+export async function sendCorrectionEmail(reference: string) {
+  await requireAdmin()
+  const supabase = createServerClient()
+  const { data: order } = await supabase.from('orders').select('*').eq('reference', reference).single()
+  if (!order) throw new Error('Commande introuvable')
+
+  const { data: pieces } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
+  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
+  const prices: Record<string, number> = { kouna: 285, kami: 328, nafibe: 395 }
+  const piecesData = (pieces ?? []).map(p => ({
+    modelName: modelNames[p.model] ?? p.model,
+    pieceNum: pieceNum(p),
+    price: prices[p.model] ?? 0,
+    src: p.image_url,
+  }))
+
+  const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
+  const to = testEmail || order.email
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente.maisonlocht.com').replace(/\s/g, '').replace(/\/$/, '')
+
+  try {
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to,
+      subject: order.lang === 'fr'
+        ? `Maison Locht — Correction · Votre commande ${reference}`
+        : `Maison Locht — Correction · Your order ${reference}`,
+      html: buildConfirmationEmail({
+        data: {
+          firstName: order.first_name, bagName: order.bag_name, quantity: order.quantity,
+          priceTotal: order.price_total, lang: order.lang, pieces: piecesData,
+          address: order.address, city: order.city, province: order.province,
+          postalCode: order.postal_code, country: order.country,
+          interacAnswer: order.interac_answer ?? undefined,
+          errorCorrection: true,
+        },
+        reference, baseUrl,
+      }),
+    })
+  } catch (e) {
+    console.error('[sendCorrectionEmail]', e)
+    throw new Error('Échec envoi email correction')
   }
 }
 

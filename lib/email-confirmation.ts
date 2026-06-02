@@ -5,6 +5,7 @@ export type ConfirmationData = {
   pieces?: { modelName: string; pieceNum: number; price: number; src: string }[]
   address?: string; city?: string; province?: string; postalCode?: string; country?: string
   interacAnswer?: string
+  errorCorrection?: boolean
 }
 
 // Email de confirmation de commande (template de marque)
@@ -59,6 +60,17 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
             ? 'Votre pièce vous attend. Voici le récapitulatif de votre commande.'
             : 'Your piece awaits. Here is your order summary.'}</p>
         </td></tr>
+        ${data.errorCorrection ? `
+        <tr><td style="padding:0 40px 12px">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#b8965a">
+            <tr><td style="padding:16px 22px">
+              <p style="margin:0;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#fff">${isFr ? '— Correction importante —' : '— Important correction —'}</p>
+              <p style="margin:8px 0 0;font-size:13px;color:#fff;line-height:1.7">${isFr
+                ? 'Nous vous avons envoyé un email par erreur. Votre commande est bien enregistrée — mais votre paiement n\'a pas encore été reçu. Veuillez suivre les instructions ci-dessous pour finaliser votre achat.'
+                : 'We sent you an email by mistake. Your order is registered — but your payment has not been received yet. Please follow the instructions below to complete your purchase.'}</p>
+            </td></tr>
+          </table>
+        </td></tr>` : ''}
         <tr><td style="padding:0 40px 24px">
           <p style="margin:0 0 16px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">${isFr ? 'Vos pièces' : 'Your pieces'}</p>
           ${pieceRows}
