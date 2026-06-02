@@ -109,11 +109,11 @@ export default function Story() {
         <motion.div
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
           viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}
-          className="flex items-center gap-4 text-label text-[8px] text-[#b8965a] tracking-[6px] relative z-10"
+          className="flex items-center gap-4 text-label text-[10px] text-[#b8965a] tracking-[6px] relative z-10"
         >
-          <span className="text-[7px] opacity-70">✦</span>
+          <span className="text-[9px] opacity-70">✦</span>
           {t.eyebrow}
-          <span className="text-[7px] opacity-70">✦</span>
+          <span className="text-[9px] opacity-70">✦</span>
         </motion.div>
 
         <GoldRule />
@@ -166,10 +166,10 @@ export default function Story() {
                 transition={{ duration: 0.6, delay: i * 0.12, ease }}
               >
                 <span className="font-display text-[15px] font-light text-white/85 tracking-[2px]">{fact.value}</span>
-                <span className="text-label text-[7px] text-[#b8965a]/80 tracking-[4px]">{fact.label}</span>
+                <span className="text-label text-[9px] text-[#b8965a]/80 tracking-[4px]">{fact.label}</span>
               </motion.div>
               {i < t.facts.length - 1 && (
-                <span className="hidden md:block text-[#b8965a]/40 text-[8px]">✦</span>
+                <span className="hidden md:block text-[#b8965a]/40 text-[10px]">✦</span>
               )}
             </div>
           ))}
@@ -194,7 +194,7 @@ export default function Story() {
           initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }} transition={{ duration: 0.7, ease }}
         >
-          <span className="text-label text-[8px] text-white/50 tracking-[4px]">{t.photoCaption}</span>
+          <span className="text-label text-[10px] text-white/50 tracking-[4px]">{t.photoCaption}</span>
         </motion.div>
       </div>
 
@@ -223,7 +223,7 @@ export default function Story() {
                 initial={{ opacity: 0, y: 8 }} animate={descInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.15 + i * 0.1, ease }}
               >
-                <span className="text-label text-[7px] text-[#b8965a] tracking-[3px]">{p.label}</span>
+                <span className="text-label text-[9px] text-[#b8965a] tracking-[3px]">{p.label}</span>
                 <span className="font-display text-[16px] font-light text-[#043672] leading-snug">{p.value}</span>
               </motion.div>
             ))}

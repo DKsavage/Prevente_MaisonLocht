@@ -97,7 +97,7 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-[#043672]/08 flex-shrink-0 sticky top-0 bg-[#faf7f2] z-10">
           <div>
-            <p className="text-label text-[8px] text-[#b8965a] tracking-[4px]">{c.unique}</p>
+            <p className="text-label text-[10px] text-[#b8965a] tracking-[4px]">{c.unique}</p>
             <p className="font-display text-[20px] font-light text-[#043672] mt-0.5">
               {model.name} <span className="text-[#7a7a8a] text-[15px]">N°{String(num).padStart(2, '0')}</span>
             </p>
@@ -130,14 +130,14 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
               { label: c.piece, value: `N°${String(num).padStart(2, '0')} / ${String(model.count).padStart(2, '0')}` },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-1.5">
-                <span className="text-label text-[8px] text-[#b8965a] tracking-[3px]">{label}</span>
+                <span className="text-label text-[10px] text-[#b8965a] tracking-[3px]">{label}</span>
                 <span className="text-[13px] text-[#043672] font-light">{value}</span>
               </div>
             ))}
           </div>
 
           <div className="bg-[#f0ebe0] px-5 py-4 flex flex-col gap-1.5">
-            <span className="text-label text-[8px] text-[#b8965a] tracking-[3px]">{c.materials}</span>
+            <span className="text-label text-[10px] text-[#b8965a] tracking-[3px]">{c.materials}</span>
             <span className="text-[12px] text-[#043672] font-light">{c.materialsVal}</span>
           </div>
 
@@ -172,7 +172,7 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
             </div>
           )}
 
-          <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed">
+          <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed">
             {lang === 'fr' ? 'Cette pièce est unique et ne sera jamais reproduite.' : 'This piece is one-of-a-kind and will never be reproduced.'}
           </p>
         </div>
@@ -229,7 +229,7 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
 
           {/* Tag */}
           <div className="absolute bottom-5 left-5 z-10 bg-[#faf7f2]/85 backdrop-blur-sm px-3 py-1.5">
-            <span className="text-label text-[7px] text-[#043672] tracking-[2px]">
+            <span className="text-label text-[9px] text-[#043672] tracking-[2px]">
               {activePiece.status === 'available' ? c.unique : (activePiece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : c.reserved)} · N°{String(activePiece.num).padStart(2, '0')}
             </span>
           </div>
@@ -248,7 +248,7 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
           <motion.div className="flex flex-col gap-2"
             initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }} transition={{ duration: 0.7, ease }}>
-            <span className="text-label text-[8px] text-[#b8965a] tracking-[5px]">
+            <span className="text-label text-[10px] text-[#b8965a] tracking-[5px]">
               {lang === 'fr' ? model.format.fr : model.format.en}
             </span>
             <h3 className="font-display text-[48px] md:text-[56px] font-light text-[#043672] leading-none tracking-tight">
@@ -260,7 +260,7 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
               <span className="font-display text-[32px] font-light text-[#043672]">
                 {model.price} <span className="text-[16px] text-[#7a7a8a]">CAD</span>
               </span>
-              <span className={`flex items-center gap-1.5 text-label text-[8px] tracking-[2px] ${model.count === 0 ? 'text-[#7a7a8a]' : isRare ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>
+              <span className={`flex items-center gap-1.5 text-label text-[10px] tracking-[2px] ${model.count === 0 ? 'text-[#7a7a8a]' : isRare ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>
                 {isRare && model.count > 0 && <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />}
                 {model.count === 0 ? (lang === 'fr' ? 'Épuisé' : 'Sold out') : `${model.count} ${c.available}`}
               </span>
@@ -327,7 +327,7 @@ export default function Collection() {
             <div key={i} className="flex items-center gap-12">
               <div className="text-center md:text-left">
                 <span className="text-label text-[9px] text-[#043672] tracking-[3px] block">{item.label}</span>
-                <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px] block mt-0.5">{item.sub}</span>
+                <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] block mt-0.5">{item.sub}</span>
               </div>
               {i < c.strip.length - 1 && <div className="hidden md:block w-px h-6 bg-[#043672]/12" />}
             </div>

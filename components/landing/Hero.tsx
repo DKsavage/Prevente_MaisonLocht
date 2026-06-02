@@ -85,8 +85,8 @@ export default function Hero() {
         {/* Eyebrow */}
         <motion.div {...fadeUp(0.1)} className="flex items-center gap-4">
           <span className="block w-6 h-px bg-[#b8965a]" />
-          <span className="text-label text-[8px] text-[#b8965a] tracking-[6px]">{t.eyebrow}</span>
-          <span className="text-label text-[8px] text-[#b8965a]/60 tracking-[5px] font-light">{t.collection}</span>
+          <span className="text-label text-[10px] text-[#b8965a] tracking-[6px]">{t.eyebrow}</span>
+          <span className="text-label text-[10px] text-[#b8965a]/60 tracking-[5px] font-light">{t.collection}</span>
         </motion.div>
 
         {/* Titre staggeré ligne par ligne */}
@@ -121,7 +121,7 @@ export default function Hero() {
             {t.desc}
           </p>
           <span className="text-label text-[9px] text-[#b8965a] tracking-[3px] flex items-center gap-2">
-            <span className="text-[7px]">✦</span>
+            <span className="text-[9px]">✦</span>
             {t.tag}
           </span>
         </motion.div>
@@ -218,7 +218,7 @@ export default function Hero() {
           >
             {count}
           </span>
-          <span className="text-label text-[7px] text-white/50 tracking-[2px] mt-1.5 block">{t.badgeTxt}</span>
+          <span className="text-label text-[9px] text-white/50 tracking-[2px] mt-1.5 block">{t.badgeTxt}</span>
 
           {/* Indicateur urgence — apparaît après count-up */}
           <motion.div
@@ -232,7 +232,7 @@ export default function Hero() {
                 className="w-1 h-1 rounded-full bg-[#d4aa6a]"
                 style={{ animation: 'urgency-pulse 2s ease-in-out infinite' }}
               />
-              <span className="text-label text-[7px] text-[#d4aa6a]/70 tracking-[2px]">
+              <span className="text-label text-[9px] text-[#d4aa6a]/70 tracking-[2px]">
                 {lang === 'fr' ? 'disponibles' : 'available'}
               </span>
             </div>
@@ -244,7 +244,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 1.0 }}
-          className="absolute top-6 right-6 border border-[#b8965a]/50 text-[#b8965a] text-label text-[8px] tracking-[3px] px-3.5 py-1.5 bg-[#faf7f2]/60 backdrop-blur-sm"
+          className="absolute top-6 right-6 border border-[#b8965a]/50 text-[#b8965a] text-label text-[10px] tracking-[3px] px-3.5 py-1.5 bg-[#faf7f2]/60 backdrop-blur-sm"
         >
           {t.floatTag}
         </motion.div>

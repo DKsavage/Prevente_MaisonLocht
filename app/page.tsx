@@ -5,6 +5,7 @@ import Hero from '@/components/landing/Hero'
 import Collection from '@/components/landing/Collection'
 import Story from '@/components/landing/Story'
 import Commander from '@/components/landing/Commander'
+import Footer from '@/components/landing/Footer'
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
           <Collection />
           <Story />
           <Commander />
+          <Footer />
         </main>
       </PiecesProvider>
     </LangProvider>
