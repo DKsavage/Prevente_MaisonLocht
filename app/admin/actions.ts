@@ -8,6 +8,9 @@ import { carrierName, trackingUrl } from '@/lib/carriers'
 import { buildConfirmationEmail } from '@/lib/email-confirmation'
 import { pieceNum } from '@/lib/models'
 import { EMAIL_FROM } from '@/lib/email-from'
+import { STATUSES, type OrderStatus } from '@/lib/order-status'
+
+export type { OrderStatus }
 
 // Vérifie qu'un admin est connecté avant toute mutation
 async function requireAdmin() {
@@ -21,9 +24,6 @@ async function requireAdmin() {
   }
   return user
 }
-
-const STATUSES = ['pending', 'payment_received', 'confirmed', 'shipped', 'cancelled'] as const
-export type OrderStatus = typeof STATUSES[number]
 
 // Change le statut d'une commande
 export async function updateOrderStatus(reference: string, status: OrderStatus) {

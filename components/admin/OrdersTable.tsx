@@ -3,9 +3,13 @@
 import { useState, useTransition, useMemo, useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces, type OrderStatus } from '@/app/admin/actions'
+import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces } from '@/app/admin/actions'
 import { timeAgo } from '@/lib/time'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
+import {
+  type OrderStatus, ALL_STATUS, STATUS_FLOW,
+  STATUS_LABEL, STATUS_SHORT, STATUS_PILL, STATUS_LEFT_COLOR,
+} from '@/lib/order-status'
 
 export type Order = {
   reference: string
@@ -36,11 +40,6 @@ function isLate(o: Order) {
   return Date.now() - new Date(o.created_at).getTime() > 3 * 24 * 60 * 60 * 1000
 }
 
-const STATUS_FR_CSV: Record<string, string> = {
-  pending: 'En attente', payment_received: 'Paiement reçu',
-  confirmed: 'Confirmée', shipped: 'Expédiée', cancelled: 'Annulée',
-}
-
 function exportCsv(orders: Order[]) {
   const headers = ['Référence', 'Statut', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Pièces', 'Quantité', 'Total', 'Adresse', 'Ville', 'Province', 'Code postal', 'Pays', 'Suivi', 'Date']
   const fmtDate = (d: string) => {
@@ -48,7 +47,7 @@ function exportCsv(orders: Order[]) {
     return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
   }
   const rows = orders.map(o => [
-    o.reference, STATUS_FR_CSV[o.status] ?? o.status, o.first_name, o.last_name, o.email, o.phone ?? '', o.bag_name,
+    o.reference, STATUS_LABEL[o.status] ?? o.status, o.first_name, o.last_name, o.email, o.phone ?? '', o.bag_name,
     o.quantity, o.price_total, o.address, o.city, o.province ?? '', o.postal_code, o.country ?? '',
     o.tracking_number ?? '', fmtDate(o.created_at),
   ])
@@ -60,28 +59,6 @@ function exportCsv(orders: Order[]) {
   a.href = url; a.download = `maison-locht-commandes-${new Date().toISOString().slice(0,10)}.csv`
   a.click(); URL.revokeObjectURL(url)
 }
-
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: 'En attente', payment_received: 'Paiement reçu',
-  confirmed: 'Confirmée', shipped: 'Expédiée', cancelled: 'Annulée',
-}
-const STATUS_SHORT: Record<OrderStatus, string> = {
-  pending: 'Attente', payment_received: 'Payée',
-  confirmed: 'Confirmée', shipped: 'Expédiée', cancelled: 'Annulée',
-}
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending:          'bg-[#b8965a]/12 text-[#9a7a3a] border-[#b8965a]/25',
-  payment_received: 'bg-blue-50 text-blue-700 border-blue-200',
-  confirmed:        'bg-emerald-50 text-emerald-700 border-emerald-200',
-  shipped:          'bg-[#043672]/08 text-[#043672] border-[#043672]/18',
-  cancelled:        'bg-red-50 text-red-500 border-red-200',
-}
-const STATUS_LEFT_COLOR: Record<OrderStatus, string> = {
-  pending: '#b8965a', payment_received: '#3b82f6',
-  confirmed: '#10b981', shipped: '#043672', cancelled: '#ef4444',
-}
-const STATUS_FLOW: OrderStatus[] = ['pending', 'payment_received', 'confirmed', 'shipped']
-const ALL_STATUS: OrderStatus[] = ['pending', 'payment_received', 'confirmed', 'shipped', 'cancelled']
 
 export default function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
   const router = useRouter()
@@ -156,7 +133,7 @@ export default function OrdersTable({ initialOrders }: { initialOrders: Order[] 
         {ALL_STATUS.map(s => {
           const n = orders.filter(o => o.status === s).length
           if (n === 0) return null
-          return <FilterChip key={s} active={filter === s} onClick={() => setFilter(s)} label={`${STATUS_LABELS[s]} (${n})`} />
+          return <FilterChip key={s} active={filter === s} onClick={() => setFilter(s)} label={`${STATUS_LABEL[s]} (${n})`} />
         })}
       </div>
 
@@ -330,8 +307,8 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
         )}
 
         <button onClick={onToggle} className="flex items-center gap-3 flex-shrink-0">
-          <span className={`text-label text-[9px] tracking-[1px] px-2.5 py-1.5 border transition-all duration-200 ${STATUS_COLORS[order.status]} min-w-[98px] text-center`}>
-            {STATUS_LABELS[order.status]}
+          <span className={`text-label text-[9px] tracking-[1px] px-2.5 py-1.5 border transition-all duration-200 ${STATUS_PILL[order.status]} min-w-[98px] text-center`}>
+            {STATUS_LABEL[order.status]}
           </span>
           <span className="hidden lg:block text-[10px] text-[#7a7a8a] w-[68px] text-right" title={dateExact}>{date}</span>
         </button>
@@ -565,7 +542,7 @@ function StatusStepper({ currentStatus, onAdvance, isPending }: {
             <div key={s} className="flex items-center flex-shrink-0">
               {i > 0 && <div className={`h-px w-4 mt-[-22px] flex-shrink-0 transition-colors duration-300 ${isPast ? 'bg-emerald-400' : 'bg-[#043672]/12'}`} />}
               <button disabled={isPending || !isNext} onClick={() => onAdvance(s)}
-                title={isNext ? `Avancer → ${STATUS_LABELS[s]}` : STATUS_LABELS[s]}
+                title={isNext ? `Avancer → ${STATUS_LABEL[s]}` : STATUS_LABEL[s]}
                 className={`flex flex-col items-center gap-1.5 px-1.5 transition-opacity duration-200 ${isNext ? 'cursor-pointer' : 'cursor-default'} ${!isPast && !isCurrent && !isNext ? 'opacity-25' : ''}`}>
                 <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-[11px] font-medium transition-all duration-300 ${
                   isPast    ? 'bg-emerald-50 border-emerald-400 text-emerald-600' :

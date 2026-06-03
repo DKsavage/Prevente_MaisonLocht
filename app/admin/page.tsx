@@ -5,11 +5,12 @@ import AdminShell from '@/components/admin/AdminShell'
 import AutoRefresh from '@/components/AutoRefresh'
 import QuickAction from '@/components/admin/QuickAction'
 import { timeAgo } from '@/lib/time'
+import { STATUS_LABEL, STATUS_LEFT_COLOR, STATUS_PILL, type OrderStatus } from '@/lib/order-status'
 
 export const dynamic = 'force-dynamic'
 
 type O = {
-  reference: string; status: string; price_total: number
+  reference: string; status: OrderStatus; price_total: number
   first_name: string; last_name: string; bag_name: string
   created_at: string; country: string | null
 }
@@ -19,22 +20,6 @@ const daysAgo = (d: string) => (Date.now() - new Date(d).getTime()) / 86400000
 
 function fmtRevenue(n: number) {
   return n.toLocaleString('fr-CA', { maximumFractionDigits: 0 })
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'En attente', payment_received: 'Paiement reçu',
-  confirmed: 'Confirmée', shipped: 'Expédiée', cancelled: 'Annulée',
-}
-const STATUS_LEFT: Record<string, string> = {
-  pending: '#b8965a', payment_received: '#3b82f6',
-  confirmed: '#10b981', shipped: '#043672', cancelled: '#ef4444',
-}
-const STATUS_PILL: Record<string, string> = {
-  pending:          'bg-[#b8965a]/10 text-[#9a7a3a] border-[#b8965a]/25',
-  payment_received: 'bg-blue-50 text-blue-700 border-blue-200',
-  confirmed:        'bg-emerald-50 text-emerald-700 border-emerald-200',
-  shipped:          'bg-[#043672]/08 text-[#043672] border-[#043672]/20',
-  cancelled:        'bg-red-50 text-red-500 border-red-200',
 }
 
 export default async function AdminHomePage() {
@@ -218,7 +203,7 @@ export default async function AdminHomePage() {
                     {/* Accent gauche — apparaît au survol (révèle le statut) */}
                     <span
                       className="absolute left-0 top-0 bottom-0 w-[3px] opacity-60 group-hover:opacity-100 transition-opacity duration-200"
-                      style={{ background: isLate ? '#ef4444' : STATUS_LEFT[o.status] ?? '#043672' }}
+                      style={{ background: isLate ? '#ef4444' : STATUS_LEFT_COLOR[o.status] ?? '#043672' }}
                     />
 
                     {/* Index éditorial — anchor numéroté */}
