@@ -5,13 +5,14 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { Home, Package, LayoutGrid, BarChart2 } from 'lucide-react'
+import { Home, Package, LayoutGrid, BarChart2, BookOpen } from 'lucide-react'
 
 const tabs = [
   { href: '/admin',              label: 'Accueil',      Icon: Home },
   { href: '/admin/commandes',    label: 'Commandes',    Icon: Package },
   { href: '/admin/inventaire',   label: 'Inventaire',   Icon: LayoutGrid },
   { href: '/admin/statistiques', label: 'Statistiques', Icon: BarChart2 },
+  { href: '/admin/aide',         label: 'Aide',         Icon: BookOpen },
 ]
 
 export default function AdminShell({ children, email }: { children: React.ReactNode; email?: string }) {
