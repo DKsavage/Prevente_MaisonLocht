@@ -289,6 +289,21 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 
 ---
 
+## En cours — Facturation (factures de vente)
+
+**Statut : brainstorming, pas commencé.** Demandé par l'**avocate** de la designeuse → but d'abord **légal** (preuve de vente, conditions, conformité), sert aussi à la **compta**.
+
+- **Forme retenue** : **facture PDF par vente**, numérotée (ex. `F-2026-001`), générée depuis les données de commande (on a déjà tout : cliente, article + pièce N°, prix, mode de paiement, conditions vente finale/pièce unique/ajustements à vie). Téléchargeable depuis l'admin ; option : jointe à l'email.
+- **BLOQUÉ sur les taxes** — à confirmer avec avocate/comptable :
+  - A) pas de taxes (sous seuil ~30 000 $/an) — facture simple, sans taxes.
+  - B) taxes **incluses** dans 285/328/395 — détailler TPS/TVQ + n° de taxe.
+  - C) taxes **en sus** — calculer et ajouter.
+  → Prévoir un **mode configurable** (activer les taxes plus tard sans tout refaire).
+- **Mentions obligatoires** : à faire valider par l'avocate (je ne donne pas de conseil juridique).
+- **Existant réutilisable** : export CSV des commandes (OrdersTable), toutes les données dans la table `orders`.
+
+---
+
 ## État du Projet — LIVRÉ & AMÉLIORÉ ✅
 
 **En ligne** : https://prevente.maisonlocht.com · **Admin** : /admin
