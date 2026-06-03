@@ -1,4 +1,5 @@
 import { getPaymentMethod, paymentInstructions } from './payment'
+import { emailImg } from './email-from'
 
 export type ConfirmationData = {
   firstName: string; bagName: string; quantity: number; priceTotal: number; lang: string
@@ -21,7 +22,7 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
 
   const pieceRows = pieces.map(p => {
     const num = String(p.pieceNum).padStart(2, '0')
-    const img = `${baseUrl}${p.src}`
+    const img = emailImg(p.src, baseUrl)
     return `
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px">
         <tr>

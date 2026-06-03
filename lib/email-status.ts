@@ -2,6 +2,7 @@
 // Le shell, l'en-tête, le pied de page, le bloc photos et le CTA sont mutualisés
 // entre les deux emails — seul le corps central diffère selon le type.
 import { carrierName, trackingUrl } from './carriers'
+import { emailImg } from './email-from'
 
 const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
@@ -36,7 +37,7 @@ function greeting(title: string, body: string) {
   </td></tr>`
 }
 
-function piecesBlock(pieces: StatusEmailData['pieces'], isFr: boolean) {
+function piecesBlock(pieces: StatusEmailData['pieces'], isFr: boolean, baseUrl: string) {
   if (pieces.length === 0) return ''
   return `
   <tr><td style="padding:0 40px 28px">
@@ -44,7 +45,7 @@ function piecesBlock(pieces: StatusEmailData['pieces'], isFr: boolean) {
     <table cellpadding="0" cellspacing="0"><tr>
       ${pieces.map(p => `
         <td style="padding-right:16px;vertical-align:top;text-align:center">
-          <img src="${p.image_url}" width="100" height="100" alt="${MODEL_NAMES[p.model] ?? p.model}"
+          <img src="${emailImg(p.image_url, baseUrl)}" width="100" height="100" alt="${MODEL_NAMES[p.model] ?? p.model}"
                style="display:block;width:100px;height:100px;object-fit:cover;border:1px solid rgba(4,54,114,0.12)" />
           <p style="margin:7px 0 0;font-family:Georgia,serif;font-size:13px;font-weight:300;color:#043672;font-style:italic">${MODEL_NAMES[p.model] ?? p.model}</p>
           <p style="margin:3px 0 0;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b8965a">N°${String(p.display_num).padStart(2, '00')}</p>
@@ -101,7 +102,7 @@ function paymentBody(d: StatusEmailData, isFr: boolean) {
         ? `Votre pièce est désormais entre nos mains — cousue et vérifiée à la main, elle sera préparée avec tout le soin qu'elle mérite.`
         : `Your piece is now in our hands — hand-sewn and inspected, it will be prepared with the greatest care.`,
     ),
-    piecesBlock(d.pieces, isFr),
+    piecesBlock(d.pieces, isFr, d.baseUrl),
     `
   <tr><td style="padding:${hasPieces ? '0' : '8px'} 40px 28px">
     <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #b8965a;background:#f0ebe0">
@@ -153,7 +154,7 @@ function shippedBody(d: StatusEmailData, isFr: boolean) {
         ? `Elle quitte nos mains pour rejoindre les vôtres. Voici tout ce qu’il vous faut pour suivre son arrivée.`
         : 'It leaves our hands to reach yours. Here is everything you need to track its arrival.',
     ),
-    piecesBlock(d.pieces, isFr),
+    piecesBlock(d.pieces, isFr, d.baseUrl),
     trackingSection,
     cta(`${d.baseUrl}/commande/${d.reference}`, isFr ? 'Voir ma commande' : 'View my order'),
     footer(isFr),
