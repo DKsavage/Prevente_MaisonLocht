@@ -4,6 +4,7 @@ import { useState, useTransition, useMemo, useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces } from '@/app/admin/actions'
+import { buildInvoiceHtml } from '@/lib/invoice'
 import { timeAgo } from '@/lib/time'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
 import {
@@ -177,6 +178,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const [msg, setMsg] = useState<string | null>(null)
   const [pieces, setPieces] = useState<PieceItem[]>([])
   const [piecesLoaded, setPiecesLoaded] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const late = isLate(order)
   const rowRef = useRef<HTMLDivElement>(null)
 
@@ -207,6 +209,17 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current) }, [])
 
   const copyAddress = () => { navigator.clipboard.writeText(fullAddress); feedback('Adresse copiée') }
+
+  const printInvoice = () => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    const html = buildInvoiceHtml(order, pieces)
+    iframe.onload = () => {
+      iframe.contentWindow?.print()
+      iframe.onload = null
+    }
+    iframe.srcdoc = html
+  }
 
   const saveNotes = () => startTransition(async () => {
     await updateNotes(order.reference, notes); router.refresh(); feedback('Note enregistrée')
@@ -497,12 +510,24 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                       </button>
                     </div>
                   </div>
+
+                  {/* Facture */}
+                  <div className="flex flex-col gap-1.5">
+                    <SectionLabel>Document de vente</SectionLabel>
+                    <button onClick={printInvoice}
+                      className="text-label text-[9px] tracking-[1px] px-4 py-2.5 border border-[#b8965a]/40 text-[#b8965a] hover:bg-[#b8965a] hover:text-white transition-all duration-200 self-start">
+                      ↓ Imprimer la facture
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* iframe caché — reçoit le HTML de la facture au moment de l'impression */}
+      <iframe ref={iframeRef} style={{ display: 'none' }} title="facture" />
     </div>
   )
 }
