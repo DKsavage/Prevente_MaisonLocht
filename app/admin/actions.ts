@@ -10,8 +10,6 @@ import { pieceNum } from '@/lib/models'
 import { EMAIL_FROM } from '@/lib/email-from'
 import { STATUSES, type OrderStatus } from '@/lib/order-status'
 
-export type { OrderStatus }
-
 // Vérifie qu'un admin est connecté avant toute mutation
 async function requireAdmin() {
   const auth = await createAuthClient()

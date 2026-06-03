@@ -2,7 +2,8 @@
 
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateOrderStatus, type OrderStatus } from '@/app/admin/actions'
+import { updateOrderStatus } from '@/app/admin/actions'
+import { type OrderStatus } from '@/lib/order-status'
 
 const NEXT: Partial<Record<string, {
   label: string; status: OrderStatus; style: string; confirm: (name: string) => string
