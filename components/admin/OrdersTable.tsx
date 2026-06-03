@@ -482,7 +482,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                           &laquo; {order.why_locht} &raquo;
                         </p>
                       </div>
-                      <NoteColis firstName={order.first_name} bagName={order.bag_name} reference={order.reference} why={order.why_locht} />
+                      <NoteColis firstName={order.first_name} bagName={order.bag_name} why={order.why_locht} />
                     </div>
                   )}
 
@@ -590,8 +590,8 @@ function StatusStepper({ currentStatus, onAdvance, isPending }: {
   )
 }
 
-function NoteColis({ firstName, bagName, reference, why }: {
-  firstName: string; bagName: string; reference: string; why: string
+function NoteColis({ firstName, bagName, why }: {
+  firstName: string; bagName: string; why: string
 }) {
   const [copied, setCopied] = useState(false)
   const note = `${firstName},\n\nTon ${bagName} est là.\nUnique — jamais reproduit.\n\nTu nous avais confié :\n« ${why} »\n\nC'est pour ça qu'il est à toi.\n\n— Maison Locht`

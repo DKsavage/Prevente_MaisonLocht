@@ -21,10 +21,6 @@ function fmtRevenue(n: number) {
   return n.toLocaleString('fr-CA', { maximumFractionDigits: 0 })
 }
 
-const STATUS_DOT: Record<string, string> = {
-  pending: 'bg-[#b8965a]', payment_received: 'bg-blue-500',
-  confirmed: 'bg-emerald-500', shipped: 'bg-[#043672]', cancelled: 'bg-red-400',
-}
 const STATUS_LABEL: Record<string, string> = {
   pending: 'En attente', payment_received: 'Paiement reçu',
   confirmed: 'Confirmée', shipped: 'Expédiée', cancelled: 'Annulée',
