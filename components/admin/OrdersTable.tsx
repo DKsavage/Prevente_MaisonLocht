@@ -203,12 +203,14 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const changeStatus = (status: OrderStatus) => {
     const confirmMsg: Partial<Record<OrderStatus, string>> = {
       payment_received: `Confirmer le paiement de ${order.first_name} ${order.last_name} ?\n\nEmail "Paiement confirmé" envoyé automatiquement.`,
-      shipped:          `Marquer comme expédiée pour ${order.first_name} ${order.last_name} ?\n\nEmail "En route" envoyé automatiquement.`,
+      shipped:          `Marquer comme expédiée pour ${order.first_name} ${order.last_name}${tracking ? ` (suivi ${tracking})` : ''} ?\n\nEmail "En route" envoyé automatiquement${tracking ? ' avec le numéro de suivi' : ''}.`,
       cancelled:        `Annuler la commande ${order.reference} ?\n\nLes pièces seront libérées.`,
     }
     const c = confirmMsg[status]
     if (c && !window.confirm(c)) return
     startTransition(async () => {
+      // Expédition : on enregistre le suivi saisi AVANT l'email (qui le relit en base)
+      if (status === 'shipped' && tracking) await updateTracking(order.reference, tracking, carrier)
       await updateOrderStatus(order.reference, status)
       router.refresh()
       feedback(status === 'payment_received' || status === 'shipped' ? 'Statut mis à jour · email envoyé' : 'Statut mis à jour')
@@ -216,7 +218,10 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   }
 
   const saveTracking = () => startTransition(async () => {
-    await updateTracking(order.reference, tracking, carrier); router.refresh(); feedback('Suivi enregistré')
+    await updateTracking(order.reference, tracking, carrier); router.refresh()
+    feedback(order.status === 'shipped'
+      ? 'Suivi mis à jour · « Renvoyer : Commande expédiée » pour notifier'
+      : 'Suivi enregistré · « Expédier & notifier » pour envoyer')
   })
 
   const sendEmail = (kind: 'payment' | 'shipped') => {
@@ -353,10 +358,20 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                       </select>
                       <input value={tracking} onChange={e => setTracking(e.target.value)} placeholder="N° de suivi"
                         className="flex-1 bg-white border border-[#043672]/10 focus:border-[#b8965a] outline-none px-3 py-2 text-[12px] min-w-0 transition-all duration-200" />
+                    </div>
+                    <div className="flex gap-2">
+                      {/* Enregistre seulement (préparation / correction d'un N°) */}
                       <button onClick={saveTracking} disabled={isPending}
-                        className="text-label text-[9px] tracking-[1px] px-3 py-2 bg-[#043672] text-white disabled:opacity-40 flex-shrink-0 hover:bg-[#0a4d9e] transition-all duration-200">
-                        OK
+                        className="text-label text-[9px] tracking-[1px] px-3 py-2 border border-[#043672]/20 text-[#043672] disabled:opacity-40 flex-shrink-0 hover:bg-[#043672]/06 transition-all duration-200">
+                        Enregistrer
                       </button>
+                      {/* En 1 clic : enregistre le N° + passe à Expédiée + envoie l'email "En route" avec le suivi */}
+                      {order.status !== 'shipped' && order.status !== 'cancelled' && (
+                        <button onClick={() => changeStatus('shipped')} disabled={isPending}
+                          className="text-label text-[9px] tracking-[1px] px-3 py-2 bg-[#043672] text-white disabled:opacity-40 flex-1 hover:bg-[#0a4d9e] transition-all duration-200">
+                          Expédier &amp; notifier →
+                        </button>
+                      )}
                     </div>
                     {tracking && trackingUrl(carrier, tracking) && (
                       <a href={trackingUrl(carrier, tracking)!} target="_blank" rel="noopener noreferrer"
@@ -537,23 +552,22 @@ function StatusStepper({ currentStatus, onAdvance, isPending }: {
       <SectionLabel>Progression commande</SectionLabel>
       <div className="flex items-start">
         {STATUS_FLOW.map((s, i) => {
-          const isPast = i < currentIdx, isCurrent = i === currentIdx, isNext = i === currentIdx + 1
+          const isPast = i < currentIdx, isCurrent = i === currentIdx, isFuture = i > currentIdx
           return (
             <div key={s} className="flex items-center flex-shrink-0">
               {i > 0 && <div className={`h-px w-4 mt-[-22px] flex-shrink-0 transition-colors duration-300 ${isPast ? 'bg-emerald-400' : 'bg-[#043672]/12'}`} />}
-              <button disabled={isPending || !isNext} onClick={() => onAdvance(s)}
-                title={isNext ? `Avancer → ${STATUS_LABEL[s]}` : STATUS_LABEL[s]}
-                className={`flex flex-col items-center gap-1.5 px-1.5 transition-opacity duration-200 ${isNext ? 'cursor-pointer' : 'cursor-default'} ${!isPast && !isCurrent && !isNext ? 'opacity-25' : ''}`}>
+              <button disabled={isPending || !isFuture} onClick={() => onAdvance(s)}
+                title={isFuture ? `Avancer → ${STATUS_LABEL[s]}` : STATUS_LABEL[s]}
+                className={`flex flex-col items-center gap-1.5 px-1.5 transition-opacity duration-200 ${isFuture ? 'cursor-pointer' : 'cursor-default'}`}>
                 <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-[11px] font-medium transition-all duration-300 ${
                   isPast    ? 'bg-emerald-50 border-emerald-400 text-emerald-600' :
                   isCurrent ? 'bg-[#043672] border-[#043672] text-white shadow-sm' :
-                  isNext    ? 'bg-white border-[#043672]/30 text-[#7a7a8a] hover:border-[#043672] hover:bg-[#043672]/04 hover:text-[#043672]' :
-                              'bg-white border-[#043672]/10 text-[#043672]/20'
+                              'bg-white border-[#043672]/30 text-[#7a7a8a] hover:border-[#043672] hover:bg-[#043672]/04 hover:text-[#043672]'
                 }`}>
                   {isPast ? '✓' : i + 1}
                 </div>
                 <span className={`text-[8px] tracking-[0.5px] uppercase font-medium text-center leading-tight max-w-[52px] transition-colors duration-200 ${
-                  isCurrent ? 'text-[#043672]' : isPast ? 'text-emerald-600' : isNext ? 'text-[#7a7a8a]' : 'text-[#043672]/22'
+                  isCurrent ? 'text-[#043672]' : isPast ? 'text-emerald-600' : 'text-[#7a7a8a]'
                 }`}>{STATUS_SHORT[s]}</span>
               </button>
             </div>
@@ -561,7 +575,7 @@ function StatusStepper({ currentStatus, onAdvance, isPending }: {
         })}
       </div>
       {currentIdx < STATUS_FLOW.length - 1 && (
-        <p className="text-[10px] text-[#7a7a8a]/70 font-light">Cliquer sur l&apos;étape suivante pour avancer.</p>
+        <p className="text-[10px] text-[#7a7a8a]/70 font-light">Clique une étape pour y avancer directement.</p>
       )}
     </div>
   )

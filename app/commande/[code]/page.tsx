@@ -99,8 +99,9 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
 
   return (
     <main className="min-h-screen bg-[#ede8df] py-12 px-6">
-      {/* Rafraîchit le statut automatiquement (sauf si terminé/annulé) */}
-      {!isCancelled && order.status !== 'shipped' && <AutoRefresh seconds={30} />}
+      {/* Rafraîchit le statut auto — maintenu même après expédition (le N° de suivi
+          peut être ajouté/corrigé après coup). Coupé seulement si la commande est annulée. */}
+      {!isCancelled && <AutoRefresh seconds={30} />}
       <div className="max-w-[560px] mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
