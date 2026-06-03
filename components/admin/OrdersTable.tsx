@@ -434,6 +434,15 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                     </div>
                   </div>
 
+                  {/* Facture */}
+                  <div className="flex flex-col gap-1.5">
+                    <SectionLabel>Document de vente</SectionLabel>
+                    <button onClick={printInvoice}
+                      className="text-label text-[9px] tracking-[1px] px-4 py-2.5 border border-[#b8965a]/40 text-[#b8965a] hover:bg-[#b8965a] hover:text-white transition-all duration-200 self-start">
+                      ↓ Imprimer la facture
+                    </button>
+                  </div>
+
                   {/* Feedback */}
                   <AnimatePresence>
                     {msg && (
@@ -534,14 +543,6 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                     </div>
                   </div>
 
-                  {/* Facture */}
-                  <div className="flex flex-col gap-1.5">
-                    <SectionLabel>Document de vente</SectionLabel>
-                    <button onClick={printInvoice}
-                      className="text-label text-[9px] tracking-[1px] px-4 py-2.5 border border-[#b8965a]/40 text-[#b8965a] hover:bg-[#b8965a] hover:text-white transition-all duration-200 self-start">
-                      ↓ Imprimer la facture
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
