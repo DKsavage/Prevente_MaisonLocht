@@ -1,81 +1,84 @@
-# 📋 Tuto — Dashboard Commandes
+# 📋 Guide — Gérer les commandes
 
-Guide d'utilisation de la section **Commandes** (`/admin/commandes`).
+Petit guide simple pour suivre et gérer les commandes depuis le tableau de bord.
 
 ---
 
-## 1. La page se met à jour seule
+## La page se rafraîchit toute seule
 
-Elle se rafraîchit **toutes les 30 secondes** automatiquement.
-Le bouton **↻** force un rafraîchissement immédiat.
+Pas besoin de recharger : la liste se met à jour automatiquement.
+Le bouton **↻** sert juste à rafraîchir tout de suite si tu veux.
 
-## 2. Trouver une commande
+## Retrouver une commande
 
-**Barre de recherche** — tape une **référence**, un **nom** ou un **email**.
+- **Barre de recherche** : tape un **nom**, un **email** ou un **numéro** de commande.
+- **Tri** : du plus récent au plus ancien, ou par montant.
+- **Les petites étiquettes** en haut filtrent la liste :
+  - **Toutes**
+  - **⚠ En retard** : commandes en attente de paiement depuis plus de 3 jours → à relancer.
+  - Une étiquette par statut (En attente, Payée, etc.).
 
-**Tri** (menu déroulant) :
-- Plus récentes (défaut) / Plus anciennes
-- Montant ↓ (plus cher d'abord) / Montant ↑
-
-**Filtres** (les puces) :
-- `Toutes (n)`
-- `⚠ En retard (n)` — apparaît seulement s'il y en a. = commande **en attente depuis +3 jours** (paiement jamais reçu → à relancer).
-- Une puce **par statut** (avec le compte). Clique pour ne voir que celles-là.
-
-**CSV (n)** — télécharge la liste **actuellement filtrée** en Excel (séparateur `;`). Pratique pour la compta.
-
-## 3. Le cycle d'une commande
+## Le parcours d'une commande
 
 ```
-En attente → Payée → Confirmée → Expédiée
-(pending)   (payment) (confirmed) (shipped)        + Annulée
+En attente  →  Payée  →  Confirmée  →  Expédiée
 ```
 
-| Passage | Email auto au client |
+À chaque étape, la cliente est tenue au courant :
+
+| Quand tu passes à… | La cliente reçoit… |
 |---|---|
-| → **Payée** | ✉️ « Paiement confirmé » |
-| → **Confirmée** | ❌ aucun (jalon interne) |
-| → **Expédiée** | ✉️ « En route » (avec le N° de suivi) |
+| **Payée** | un email « Paiement confirmé » |
+| **Confirmée** | rien (étape interne pour toi) |
+| **Expédiée** | un email « En route » avec le numéro de suivi |
 
-## 4. Faire avancer une commande
+## Faire avancer une commande
 
-**Clique une ligne** pour la déplier. Tu vois la **Progression commande** (les ronds) :
-- Rond **bleu** = statut actuel.
-- Ronds **suivants** = cliquables (tu peux **sauter directement**, ex. Payée → Expédiée).
-- Rond **vert ✓** = étapes passées.
+1. **Clique sur la ligne** d'une commande pour l'ouvrir.
+2. Tu vois la **Progression** (les ronds) :
+   - Le rond **bleu** = là où en est la commande.
+   - Les ronds **suivants** se cliquent pour avancer (tu peux même sauter une étape).
+   - Les ronds **verts ✓** = étapes déjà faites.
 
-> 💡 La petite pastille « Payée » sur la ligne **repliée** = raccourci quand la commande est en attente.
+> 💡 Sur la ligne fermée, le petit bouton **« Payée »** est un raccourci quand une commande attend son paiement.
 
-## 5. Expédier (le flux complet)
+## Expédier un colis
 
-Dans la commande dépliée → section **Expédition & suivi** :
+Ouvre la commande → partie **Expédition & suivi** :
 
-1. Choisis le **transporteur** + tape le **N° de suivi**.
-2. **« Expédier & notifier »** → en 1 clic : enregistre le suivi + passe à Expédiée + envoie l'email « En route » **avec le numéro**.
-3. **« Enregistrer »** (à côté) = sauve le N° **sans** envoyer (pour préparer ou **corriger** un numéro). Puis **« ↩ Renvoyer : Commande expédiée »** pour notifier le bon numéro.
+1. Choisis le **transporteur** et tape le **numéro de suivi**.
+2. Clique **« Expédier & notifier »** → ça enregistre le suivi, marque la commande expédiée, et envoie l'email à la cliente avec le numéro. **Tout en un clic.**
 
-> Le N° de suivi est **modifiable** à tout moment. La **référence** de commande (`LOCHT-…`) est permanente, jamais modifiable.
+**Tu t'es trompée de numéro ?**
+- Corrige-le, clique **« Enregistrer »**.
+- Puis **« ↩ Renvoyer : Commande expédiée »** pour renvoyer le bon numéro à la cliente.
 
-## 6. Communications client (renvois)
+> Le numéro de suivi se modifie quand tu veux. Le numéro de commande (LOCHT-…), lui, ne change jamais.
 
-- **↩ Renvoyer confirmation** — la confirmation originale + instructions de paiement.
-- **↩ Renvoyer : Paiement confirmé** / **: Commande expédiée**.
-- **⚠ Email correction** — email d'excuse si un mail est parti par erreur (rappelle que le paiement n'est pas encore reçu).
+## Renvoyer un email à la cliente
 
-## 7. La confirmation « clic-pour-armer »
+Dans la commande ouverte, partie **Communications client** :
 
-Tout bouton à conséquence : **1er clic** → il devient **doré « Confirmer ? »**. **2e clic** → l'action s'exécute. Si tu ne re-cliques pas en ~4 s, il s'annule tout seul. (Pas de popup bloquante.)
+- **↩ Renvoyer confirmation** — renvoie la confirmation + les instructions de paiement.
+- **↩ Renvoyer : Paiement confirmé** / **Commande expédiée**.
+- **⚠ Email correction** — petit mot d'excuse si un email est parti par erreur.
 
-## 8. Le reste de la fiche
+## Les boutons qui demandent confirmation
 
-- **Pièces** — photos des sacs commandés.
-- **Infos client** — email, téléphone, adresse (bouton **Copier** pour l'étiquette d'envoi).
-- **Ce qui l'a attiré** + **Note à glisser dans le colis** (bouton Copier — texte personnalisé généré à partir du message de la cliente).
-- **Note interne** — privée, jamais envoyée au client.
+Pour éviter les fausses manips, les boutons importants demandent **deux clics** :
+
+1. **1er clic** → le bouton devient **doré** et affiche **« Confirmer ? »**.
+2. **2e clic** → l'action se fait.
+
+Si tu changes d'avis, ne re-clique pas : au bout de quelques secondes le bouton redevient normal tout seul.
+
+## Le reste de la fiche commande
+
+- **Pièces** : les photos des sacs commandés.
+- **Infos cliente** : email, téléphone, adresse. Le bouton **Copier** copie l'adresse pour l'étiquette d'envoi.
+- **Ce qui l'a attiré** + **Note à glisser dans le colis** : un petit mot personnalisé déjà rédigé — bouton **Copier** pour l'imprimer et le mettre dans le paquet.
+- **Note interne** : tes notes privées. La cliente ne les voit jamais.
 
 ---
 
-## En cas de souci
-
-- **« Échec email »** sur un bouton → vérifier les logs Vercel (Runtime Logs). Voir `CLAUDE.md` → *Bugs résolus & gotchas*.
-- Un email reçu sans image → les `image_url` sont normalisés via `emailImg()` ; vérifier que la pièce a bien une image en inventaire.
+*Un doute ? Demande à Ricardo.* 💛
