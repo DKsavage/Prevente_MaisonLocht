@@ -50,9 +50,9 @@ export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
             <div className="flex items-baseline justify-between mb-5 pb-3 border-b border-[#043672]/10">
               <div className="flex items-baseline gap-4">
                 <h2 className="font-display text-[24px] font-light text-[#043672]">{model.name}</h2>
-                <span className="text-label text-[8px] text-[#7a7a8a] tracking-[2px]">{list.length} pièces</span>
+                <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">{list.length} pièces</span>
               </div>
-              <div className="hidden sm:flex items-center gap-3 text-label text-[8px] tracking-[1px]">
+              <div className="hidden sm:flex items-center gap-3 text-label text-[10px] tracking-[1px]">
                 <Legend dot="bg-emerald-500" n={c.available} label="dispo" />
                 <Legend dot="bg-[#b8965a]" n={c.reserved} label="réservées" />
                 <Legend dot="bg-[#043672]" n={c.sold} label="vendues" />
@@ -103,7 +103,7 @@ function AddBagCard({ model, modelName, nextNum }: { model: string; modelName: s
       <button onClick={() => setOpen(true)}
         className="aspect-square border border-dashed border-[#043672]/25 hover:border-[#b8965a] hover:bg-[#b8965a]/05 transition-colors flex flex-col items-center justify-center gap-2 text-[#7a7a8a] hover:text-[#b8965a]">
         <span className="text-[28px] font-light leading-none">+</span>
-        <span className="text-label text-[7px] tracking-[2px]">Ajouter {modelName.replace('Le ', '')}</span>
+        <span className="text-label text-[9px] tracking-[2px]">Ajouter {modelName.replace('Le ', '')}</span>
       </button>
     )
   }
@@ -114,21 +114,21 @@ function AddBagCard({ model, modelName, nextNum }: { model: string; modelName: s
       <input type="hidden" name="model" value={model} />
       <label className="relative flex-1 bg-[#f0ebe0] border border-dashed border-[#043672]/25 cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#b8965a] transition-colors">
         {preview ? <Image src={preview} alt="" fill className="object-cover" />
-          : <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px] text-center px-2">+ Photo</span>}
+          : <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px] text-center px-2">+ Photo</span>}
         <input name="image" type="file" accept="image/*" required hidden
           onChange={e => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)) }} />
       </label>
       <div className="flex items-center gap-1.5">
-        <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">N°</span>
+        <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">N°</span>
         <input name="displayNum" type="number" min={1} defaultValue={nextNum} required
           className="w-12 text-[11px] border border-[#043672]/20 px-1.5 py-1 bg-white" />
         <button type="submit" disabled={isPending}
-          className="flex-1 text-label text-[7px] tracking-[1px] py-1.5 bg-[#043672] text-white hover:bg-[#0a4d9e] disabled:opacity-50">
+          className="flex-1 text-label text-[9px] tracking-[1px] py-1.5 bg-[#043672] text-white hover:bg-[#0a4d9e] disabled:opacity-50">
           {isPending ? '…' : (msg ?? 'Ajouter')}
         </button>
       </div>
       <button type="button" onClick={() => { setOpen(false); setPreview(null) }}
-        className="text-label text-[7px] text-[#7a7a8a] hover:text-[#043672] tracking-[1px]">Annuler</button>
+        className="text-label text-[9px] text-[#7a7a8a] hover:text-[#043672] tracking-[1px]">Annuler</button>
     </form>
   )
 }
@@ -195,7 +195,7 @@ function PieceCard({ piece }: { piece: InvPiece }) {
       {/* Statut */}
       <div className={`flex items-center gap-1.5 px-2.5 py-1.5 ${info.cls}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${info.dot}`} />
-        <span className="text-label text-[7px] tracking-[1px]">{info.label}</span>
+        <span className="text-label text-[9px] tracking-[1px]">{info.label}</span>
       </div>
 
       {/* Panneau édition */}
@@ -206,17 +206,17 @@ function PieceCard({ piece }: { piece: InvPiece }) {
             {MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
           <div className="flex gap-1.5 items-center">
-            <span className="text-label text-[7px] text-[#7a7a8a] tracking-[1px]">N°</span>
+            <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">N°</span>
             <input type="number" min={1} value={num} onChange={e => setNum(e.target.value)}
               className="w-14 text-[11px] border border-[#043672]/20 px-2 py-1.5 bg-white" />
             <button onClick={saveReassign} disabled={isPending}
-              className="flex-1 text-label text-[7px] tracking-[1px] py-1.5 bg-[#043672] text-white hover:bg-[#0a4d9e] disabled:opacity-50">
+              className="flex-1 text-label text-[9px] tracking-[1px] py-1.5 bg-[#043672] text-white hover:bg-[#0a4d9e] disabled:opacity-50">
               Enregistrer
             </button>
           </div>
           {piece.status === 'available' && (
             <button onClick={() => { if (confirm('Supprimer cette pièce ?')) act(() => deletePiece(piece.id)) }} disabled={isPending}
-              className="text-label text-[7px] tracking-[1px] py-1.5 border border-red-200 text-red-500 hover:bg-red-50">
+              className="text-label text-[9px] tracking-[1px] py-1.5 border border-red-200 text-red-500 hover:bg-red-50">
               Supprimer
             </button>
           )}
@@ -224,24 +224,24 @@ function PieceCard({ piece }: { piece: InvPiece }) {
       )}
 
       {/* Actions statut rapides */}
-      {!editing && (piece.status !== 'available' || piece.status === 'available') && (
+      {!editing && (
         <div className="flex gap-px mt-1.5">
           {piece.status !== 'available' && (
             <button onClick={() => act(() => releasePiece(piece.id))} disabled={isPending}
-              className="flex-1 text-label text-[7px] tracking-[1px] py-2 border border-emerald-200 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors disabled:opacity-50">
+              className="flex-1 text-label text-[9px] tracking-[1px] py-2 border border-emerald-200 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors disabled:opacity-50">
               Libérer
             </button>
           )}
           {piece.status !== 'sold' && (
             <button onClick={() => act(() => setPieceStatus(piece.id, 'sold'))} disabled={isPending}
-              className="flex-1 text-label text-[7px] tracking-[1px] py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
-              Marquer vendue
+              className="flex-1 text-label text-[9px] tracking-[1px] py-2 border border-[#043672]/20 text-[#043672] hover:bg-[#043672] hover:text-white transition-colors disabled:opacity-50">
+              Vendue
             </button>
           )}
         </div>
       )}
 
-      {piece.order_ref && <span className="text-[8px] text-[#7a7a8a] font-mono text-center mt-1">{piece.order_ref}</span>}
+      {piece.order_ref && <span className="text-[9px] text-[#7a7a8a] font-mono text-center mt-1">{piece.order_ref}</span>}
     </div>
   )
 }
