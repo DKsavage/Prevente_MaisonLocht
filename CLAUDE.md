@@ -279,6 +279,16 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 
 ---
 
+## Bugs résolus & gotchas
+
+- **Crash `OrderStatus` (juin 2026)** — un fichier `'use server'` ne doit exporter QUE des fonctions async. `export type { OrderStatus }` dans `actions.ts` était compilé par Turbopack en export *valeur* → `ReferenceError: OrderStatus is not defined` à l'évaluation du module → **500 sur tous les server actions admin** (symptôme : "Échec email", pièces qui ne chargent pas). `tsc` ne le détecte pas. **Règle : jamais de `export type` dans un `'use server'` ; importer les types depuis `lib/`.**
+- **Images cassées en email** — `pieces.image_url` est mixte : URL Supabase complète OU chemin relatif `/images/…`. Toujours normaliser via `emailImg()` (`lib/email-from.ts`) avant un `<img>` d'email.
+- **Resend `emails.send()` ne throw pas** — renvoie `{ data, error }`. Vérifier `error` sinon échec silencieux.
+- **2 comptes Resend** — `dimitrikarel77@gmail.com` (domaine `maisonlocht.com` vérifié = **PROD/Vercel**) vs compte Lumina (`luminamodels.ca`). `.env.local` doit contenir la clé du compte dimitrikarel77, sinon 403 en local.
+- **Dev local sur hotspot iPhone (NAT64/IPv6)** — le middleware (runtime edge) peut renvoyer `fetch failed` vers Supabase + l'optimiseur d'images bloque les IP NAT64. Artefact **local uniquement**. Redémarrer le dev server ou passer sur un WiFi IPv4.
+
+---
+
 ## État du Projet — LIVRÉ & AMÉLIORÉ ✅
 
 **En ligne** : https://prevente.maisonlocht.com · **Admin** : /admin
