@@ -179,6 +179,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const [pieces, setPieces] = useState<PieceItem[]>([])
   const [piecesLoaded, setPiecesLoaded] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [mobileTab, setMobileTab] = useState<'actions' | 'infos'>('actions')
   const late = isLate(order)
   const rowRef = useRef<HTMLDivElement>(null)
 
@@ -190,6 +191,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
       })
     }
     if (expanded) setTimeout(() => rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80)
+    if (!expanded) setMobileTab('actions')
   }, [expanded, piecesLoaded, order.reference])
 
   const fullAddress = `${order.first_name} ${order.last_name}\n${order.address}\n${order.city}${order.province ? ', ' + order.province : ''} ${order.postal_code}\n${order.country ?? ''}`
@@ -346,11 +348,32 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
             className="border-t border-[#043672]/06"
           >
             <div className="px-4 pb-6 pt-4">
-              {/* 2 colonnes desktop — sur mobile : ACTIONS d'abord, infos ensuite */}
+
+              {/* ── Onglets mobile uniquement ── */}
+              <div className="md:hidden flex mb-5 border-b border-[#043672]/10">
+                <button onClick={() => setMobileTab('actions')}
+                  className={`flex-1 pb-2.5 text-[10px] tracking-[2px] uppercase font-medium transition-all duration-200 border-b-2 -mb-px ${
+                    mobileTab === 'actions'
+                      ? 'text-[#043672] border-[#b8965a]'
+                      : 'text-[#7a7a8a] border-transparent hover:text-[#043672]'
+                  }`}>
+                  Actions
+                </button>
+                <button onClick={() => setMobileTab('infos')}
+                  className={`flex-1 pb-2.5 text-[10px] tracking-[2px] uppercase font-medium transition-all duration-200 border-b-2 -mb-px ${
+                    mobileTab === 'infos'
+                      ? 'text-[#043672] border-[#b8965a]'
+                      : 'text-[#7a7a8a] border-transparent hover:text-[#043672]'
+                  }`}>
+                  Infos
+                </button>
+              </div>
+
+              {/* 2 colonnes desktop — onglets sur mobile */}
               <div className="grid md:grid-cols-[1fr_296px] lg:grid-cols-[1fr_320px] gap-6">
 
-                {/* ── Colonne droite : ACTIONS (order-1 = première sur mobile) ── */}
-                <div className="order-1 md:order-2 flex flex-col gap-5 md:border-l md:border-[#043672]/07 md:pl-6">
+                {/* ── Colonne droite : ACTIONS ── */}
+                <div className={`${mobileTab === 'actions' ? 'flex' : 'hidden md:flex'} flex-col gap-5 md:order-2 md:border-l md:border-[#043672]/07 md:pl-6`}>
 
                   <StatusStepper currentStatus={order.status} onAdvance={changeStatus} isPending={isPending} armed={armed} />
 
@@ -422,8 +445,8 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                   </AnimatePresence>
                 </div>
 
-                {/* ── Colonne gauche : INFOS (order-2 = seconde sur mobile) ── */}
-                <div className="order-2 md:order-1 flex flex-col gap-5">
+                {/* ── Colonne gauche : INFOS ── */}
+                <div className={`${mobileTab === 'infos' ? 'flex' : 'hidden md:flex'} flex-col gap-5 md:order-1`}>
 
                   {/* Photos — lazy load, hover zoom */}
                   {pieces.length > 0 && (
