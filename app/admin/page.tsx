@@ -6,6 +6,7 @@ import AutoRefresh from '@/components/AutoRefresh'
 import QuickAction from '@/components/admin/QuickAction'
 import { timeAgo } from '@/lib/time'
 import { STATUS_LABEL, STATUS_LEFT_COLOR, STATUS_PILL, type OrderStatus } from '@/lib/order-status'
+import { formatNumberFr } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,10 +18,6 @@ type O = {
 
 const isToday = (d: string) => new Date(d).toDateString() === new Date().toDateString()
 const daysAgo = (d: string) => (Date.now() - new Date(d).getTime()) / 86400000
-
-function fmtRevenue(n: number) {
-  return n.toLocaleString('fr-CA', { maximumFractionDigits: 0 })
-}
 
 export default async function AdminHomePage() {
   const auth = await createAuthClient()
@@ -122,7 +119,7 @@ export default async function AdminHomePage() {
             </p>
             <div className="flex items-baseline gap-3">
               <span className="font-display text-[56px] md:text-[64px] font-light text-white leading-none tracking-[-1px]">
-                {fmtRevenue(revenue)}
+                {formatNumberFr(revenue)}
               </span>
               <span className="text-label text-[11px] tracking-[2px] text-white/35">CAD</span>
             </div>

@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { createAuthClient } from '@/lib/supabase-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
-import { carrierName, trackingUrl } from '@/lib/carriers'
 import { buildConfirmationEmail } from '@/lib/email-confirmation'
+import { buildStatusEmail, statusEmailSubject } from '@/lib/email-status'
 import { pieceNum } from '@/lib/models'
 import { EMAIL_FROM } from '@/lib/email-from'
 import { STATUSES, type OrderStatus } from '@/lib/order-status'
@@ -91,198 +91,22 @@ async function sendStatusEmailInternal(reference: string, kind: 'payment' | 'shi
     supabase.from('pieces').select('model, image_url, display_num').eq('order_ref', reference),
   ])
   if (!order) throw new Error('Commande introuvable')
-  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
   const isFr = order.lang === 'fr'
   const testEmail = (process.env.RESEND_TEST_EMAIL ?? '').replace(/\s/g, '')
   const to = testEmail || order.email
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente.maisonlocht.com').replace(/\s/g, '').replace(/\/$/, '')
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente.maisonlocht.com').replace(/\s/g, '').replace(/\/$/, '')
 
-  // Objet email personnalisé — prénom en premier pour l'ouverture
-  const subject = kind === 'payment'
-    ? (isFr
-        ? `${order.first_name}, votre paiement est confirmé · Maison Locht`
-        : `${order.first_name}, your payment is confirmed · Maison Locht`)
-    : (isFr
-        ? `${order.first_name}, votre pièce est en route · Maison Locht`
-        : `${order.first_name}, your piece is on its way · Maison Locht`)
-
-  const trkUrl = trackingUrl(order.carrier, order.tracking_number)
-
-  // Photos des pièces — 100×100, bien visibles
-  const piecesBlock = (pieces ?? []).length > 0 ? `
-  <tr><td style="padding:0 40px 28px">
-    <p style="margin:0 0 14px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">
-      ${isFr ? 'Votre pièce' : 'Your piece'}
-    </p>
-    <table cellpadding="0" cellspacing="0"><tr>
-      ${(pieces ?? []).map(p => `
-        <td style="padding-right:16px;vertical-align:top;text-align:center">
-          <img src="${p.image_url}" width="100" height="100" alt="${modelNames[p.model] ?? p.model}"
-               style="display:block;width:100px;height:100px;object-fit:cover;border:1px solid rgba(4,54,114,0.12)" />
-          <p style="margin:7px 0 0;font-family:Georgia,serif;font-size:13px;font-weight:300;color:#043672;font-style:italic">
-            ${modelNames[p.model] ?? p.model}
-          </p>
-          <p style="margin:3px 0 0;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b8965a">
-            N°${String(p.display_num).padStart(2, '00')}
-          </p>
-        </td>`).join('')}
-    </tr></table>
-  </td></tr>` : ''
-
-  const html = kind === 'payment' ? `
-<!DOCTYPE html>
-<html lang="${order.lang}">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#ede8df;font-family:Helvetica,Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
-<tr><td align="center">
-<table width="580" cellpadding="0" cellspacing="0" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.08);max-width:580px;width:100%">
-
-  <!-- En-tête -->
-  <tr><td style="background:#043672;padding:36px 40px;text-align:center">
-    <p style="margin:0 0 12px;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:#d4aa6a">
-      ${isFr ? 'Paiement confirmé' : 'Payment confirmed'}
-    </p>
-    <h1 style="margin:0;font-family:Georgia,serif;font-size:28px;font-weight:300;color:#fff;letter-spacing:3px">Maison Locht</h1>
-    <p style="margin:8px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.35)">${reference}</p>
-  </td></tr>
-
-  <!-- Message personnel -->
-  <tr><td style="padding:36px 40px 8px">
-    <p style="margin:0;font-family:Georgia,serif;font-size:23px;font-weight:300;font-style:italic;color:#043672">
-      ${isFr ? `${order.first_name}, votre paiement est bien reçu.` : `${order.first_name}, your payment has been received.`}
-    </p>
-    <p style="margin:14px 0 0;font-size:14px;line-height:1.9;color:#5a5a6a">
-      ${isFr
-        ? `Votre pièce est désormais entre nos mains — cousue et vérifiée à la main, elle sera préparée avec tout le soin qu'elle mérite.`
-        : `Your piece is now in our hands — hand-sewn and inspected, it will be prepared with the greatest care.`}
-    </p>
-  </td></tr>
-
-  <!-- Photos -->
-  ${piecesBlock}
-
-  <!-- Prochaine étape — encadré bien visible -->
-  <tr><td style="padding:${(pieces ?? []).length > 0 ? '0' : '8px'} 40px 28px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #b8965a;background:#f0ebe0">
-      <tr><td style="padding:20px 24px">
-        <p style="margin:0 0 8px;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#b8965a">
-          ${isFr ? 'Prochaine étape' : 'What happens next'}
-        </p>
-        <p style="margin:0;font-size:14px;color:#1a1a2e;line-height:1.8">
-          ${isFr
-            ? 'Vous recevrez un email avec votre numéro de suivi dès que votre pièce sera expédiée.'
-            : 'You will receive an email with your tracking number as soon as your piece ships.'}
-        </p>
-      </td></tr>
-    </table>
-  </td></tr>
-
-  <!-- CTA principal — plein, bien visible -->
-  <tr><td style="padding:4px 40px 44px;text-align:center">
-    <a href="${siteUrl}/commande/${reference}"
-       style="display:inline-block;background:#043672;color:#fff;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:18px 48px;text-decoration:none">
-      ${isFr ? 'Suivre ma commande' : 'Track my order'} &rarr;
-    </a>
-  </td></tr>
-
-  <!-- Pied de page -->
-  <tr><td style="padding:24px 40px;background:#021f45;text-align:center">
-    <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">
-      ${isFr ? 'Pièce unique · ni reprise ni échange · ajustements possibles sur demande' : 'One-of-a-kind · no returns or exchanges · adjustments available on request'}
-    </p>
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>` : `
-<!DOCTYPE html>
-<html lang="${order.lang}">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#ede8df;font-family:Helvetica,Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
-<tr><td align="center">
-<table width="580" cellpadding="0" cellspacing="0" style="background:#faf7f2;border:1px solid rgba(4,54,114,0.08);max-width:580px;width:100%">
-
-  <!-- En-tête -->
-  <tr><td style="background:#043672;padding:36px 40px;text-align:center">
-    <p style="margin:0 0 12px;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:#d4aa6a">
-      ${isFr ? 'Votre pièce arrive' : 'Your piece is on its way'}
-    </p>
-    <h1 style="margin:0;font-family:Georgia,serif;font-size:28px;font-weight:300;color:#fff;letter-spacing:3px">Maison Locht</h1>
-    <p style="margin:8px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.35)">${reference}</p>
-  </td></tr>
-
-  <!-- Message personnel -->
-  <tr><td style="padding:36px 40px 8px">
-    <p style="margin:0;font-family:Georgia,serif;font-size:23px;font-weight:300;font-style:italic;color:#043672">
-      ${isFr ? `${order.first_name}, votre pièce est en route.` : `${order.first_name}, your piece is on its way.`}
-    </p>
-    <p style="margin:14px 0 0;font-size:14px;line-height:1.9;color:#5a5a6a">
-      ${isFr
-        ? `Elle quitte nos mains pour rejoindre les vôtres. Voici tout ce qu’il vous faut pour suivre son arrivée.`
-        : 'It leaves our hands to reach yours. Here is everything you need to track its arrival.'}
-    </p>
-  </td></tr>
-
-  <!-- Photos -->
-  ${piecesBlock}
-
-  <!-- Suivi — très proéminent (fond bleu foncé, numéro en gros) -->
-  ${order.tracking_number ? `
-  <tr><td style="padding:0 40px 28px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#043672">
-      <tr><td style="padding:28px 32px">
-        <p style="margin:0 0 6px;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#d4aa6a">
-          ${isFr ? 'Numéro de suivi' : 'Tracking number'}
-        </p>
-        ${carrierName(order.carrier) ? `<p style="margin:0 0 12px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.45)">${carrierName(order.carrier)}</p>` : ''}
-        <p style="margin:0 0 22px;font-family:Courier,monospace;font-size:22px;color:#fff;letter-spacing:3px;font-weight:600">
-          ${order.tracking_number}
-        </p>
-        ${trkUrl ? `
-        <a href="${trkUrl}"
-           style="display:inline-block;background:#d4aa6a;color:#021f45;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:15px 36px;text-decoration:none;font-weight:600">
-          ${isFr ? 'Suivre mon colis' : 'Track my parcel'} &rarr;
-        </a>` : ''}
-      </td></tr>
-    </table>
-  </td></tr>` : `
-  <tr><td style="padding:0 40px 28px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #b8965a;background:#f0ebe0">
-      <tr><td style="padding:20px 24px">
-        <p style="margin:0;font-size:14px;color:#1a1a2e;line-height:1.8">
-          ${isFr
-            ? 'Votre colis est en chemin. Le numéro de suivi sera disponible prochainement.'
-            : 'Your parcel is on its way. The tracking number will be available soon.'}
-        </p>
-      </td></tr>
-    </table>
-  </td></tr>`}
-
-  <!-- CTA secondaire -->
-  <tr><td style="padding:4px 40px 44px;text-align:center">
-    <a href="${siteUrl}/commande/${reference}"
-       style="display:inline-block;background:#043672;color:#fff;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:18px 48px;text-decoration:none">
-      ${isFr ? 'Voir ma commande' : 'View my order'} &rarr;
-    </a>
-  </td></tr>
-
-  <!-- Pied de page -->
-  <tr><td style="padding:24px 40px;background:#021f45;text-align:center">
-    <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">
-      ${isFr ? 'Pièce unique · ni reprise ni échange · ajustements possibles sur demande' : 'One-of-a-kind · no returns or exchanges · adjustments available on request'}
-    </p>
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>`
+  const subject = statusEmailSubject(kind, order.first_name, isFr)
+  const html = buildStatusEmail(kind, {
+    reference,
+    firstName:      order.first_name,
+    lang:           order.lang,
+    carrier:        order.carrier,
+    trackingNumber: order.tracking_number,
+    pieces:         pieces ?? [],
+    baseUrl,
+  })
 
   await resend.emails.send({ from: EMAIL_FROM, to, subject, html })
 }

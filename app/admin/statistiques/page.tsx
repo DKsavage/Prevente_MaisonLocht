@@ -2,13 +2,11 @@ import { createAuthClient } from '@/lib/supabase-auth'
 import { createServerClient } from '@/lib/supabase-server'
 import AdminShell from '@/components/admin/AdminShell'
 import AutoRefresh from '@/components/AutoRefresh'
+import { formatNumberFr } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
 
 const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
-
-// Séparateur de milliers français — cohérent avec le dashboard accueil
-const fmtNum = (n: number) => n.toLocaleString('fr-CA', { maximumFractionDigits: 0 })
 
 export default async function AdminStatsPage() {
   const auth = await createAuthClient()
@@ -154,8 +152,8 @@ export default async function AdminStatsPage() {
 
         {/* ── Bande hero — 3 chiffres clés ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 bg-[#043672]">
-          <HeroBand label="Revenus confirmés" value={fmtNum(revenue)} unit="CAD" />
-          <HeroBand label="Visiteurs" value={fmtNum(visitors)} unit="30 jours" divider />
+          <HeroBand label="Revenus confirmés" value={formatNumberFr(revenue)} unit="CAD" />
+          <HeroBand label="Visiteurs" value={formatNumberFr(visitors)} unit="30 jours" divider />
           <HeroBand label="Conversion" value={conversion} unit="%" divider />
         </div>
 
@@ -163,7 +161,7 @@ export default async function AdminStatsPage() {
         <div>
           <SectionTitle title="Trafic" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            <Card label="Pages vues (30j)" value={fmtNum(pageViews)} />
+            <Card label="Pages vues (30j)" value={formatNumberFr(pageViews)} />
             <Card label="Visiteurs aujourd'hui" value={String(visitorsToday)} />
             <Card label="Pages vues aujourd'hui" value={String(viewsToday)} />
             <Card label="Pages / visiteur" value={visitors > 0 ? (pageViews / visitors).toFixed(1) : '0'} />
@@ -208,8 +206,8 @@ export default async function AdminStatsPage() {
           <SectionTitle title="Ventes" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <Card label="Commandes totales" value={String(o.length)} />
-            <Card label="En attente paiement" value={`${fmtNum(pendingRevenue)} CAD`} />
-            <Card label="Panier moyen" value={`${fmtNum(avgBasket)} CAD`} />
+            <Card label="En attente paiement" value={`${formatNumberFr(pendingRevenue)} CAD`} />
+            <Card label="Panier moyen" value={`${formatNumberFr(avgBasket)} CAD`} />
             <Card label="Pièces vendues" value={String(inv.sold)} />
           </div>
         </div>
@@ -333,7 +331,7 @@ function Chart({ title, data, max, money }: {
               <span className={`text-[10px] tabular-nums transition-colors ${
                 isToday ? 'text-[#b8965a] font-medium' : 'text-[#7a7a8a] group-hover:text-[#043672]'
               }`}>
-                {money ? fmtNum(d.count) : d.count}
+                {money ? formatNumberFr(d.count) : d.count}
               </span>
               <div className="w-full bg-[#043672]/06 relative rounded-t-sm overflow-hidden" style={{ height: '120px' }}>
                 <div

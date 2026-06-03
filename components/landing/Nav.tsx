@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLang } from './LangContext'
 
@@ -90,9 +91,9 @@ export default function Nav() {
         }`}
       >
         {/* Logo */}
-        <a href="/" className="flex-shrink-0" aria-label="Maison Locht">
+        <Link href="/" className="flex-shrink-0" aria-label="Maison Locht">
           <Image src="/images/logo-bleu.png" alt="Maison Locht" width={140} height={32} className="h-7 w-auto object-contain" priority />
-        </a>
+        </Link>
 
         {/* Links desktop */}
         <ul className="hidden md:flex items-center gap-10 list-none">
