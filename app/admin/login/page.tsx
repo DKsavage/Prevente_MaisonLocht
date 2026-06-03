@@ -52,7 +52,7 @@ export default function AdminLogin() {
         </div>
 
         {/* Bas */}
-        <p className="relative z-10 text-[9px] text-white/15 tracking-[3px] uppercase">Espace privé</p>
+        <p className="relative z-10 text-[10px] text-white/15 tracking-[3px] uppercase">Espace privé</p>
       </div>
 
       {/* ── Panneau droit — formulaire ── */}
@@ -115,7 +115,7 @@ export default function AdminLogin() {
 
           </form>
 
-          <p className="mt-10 text-[9px] text-[#7a7a8a]/40 tracking-[2px] text-center uppercase">
+          <p className="mt-10 text-[10px] text-[#7a7a8a]/40 tracking-[2px] text-center uppercase">
             Maison Locht · Espace privé
           </p>
         </div>
