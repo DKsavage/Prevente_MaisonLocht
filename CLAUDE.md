@@ -119,6 +119,7 @@ lib/
 ├── schemas.ts (Zod) · models.ts · payment.ts · carriers.ts
 ├── email-from.ts · email-confirmation.ts · generate-ref.ts
 ├── countries.ts · time.ts (timeAgo)
+├── invoice.ts                         Génération HTML facture (invoiceNumber, buildInvoiceHtml)
 
 components/
 ├── landing/  Nav · Hero · Collection · Story · Commander · Footer
@@ -186,7 +187,7 @@ Seule exception acceptable : bottom nav mobile icons `text-[8px]`.
 
 **QuickAction** — progression statut inline sur la home admin. Appelle `updateOrderStatus` directement. Uniquement pour la progression positive (pas annulation).
 
-**OrdersTable** — export CSV délimiteur `;` (standard Excel européen). Date format `YYYY-MM-DD HH:mm`. Statuts en français.
+**OrdersTable** — export CSV délimiteur `;` (standard Excel européen). Date format `YYYY-MM-DD HH:mm`. Statuts en français. Sur mobile : onglets **Actions** / **Infos** dans la row expandée (desktop : 2 colonnes inchangées). Bouton "↓ Imprimer la facture" dans l'onglet Actions.
 
 **NoteColis** — dans OrdersTable expanded, visible si `order.why_locht`. Génère un texte personnalisé à glisser dans le colis.
 
@@ -289,18 +290,15 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 
 ---
 
-## En cours — Facturation (factures de vente)
+## Facturation (factures de vente) ✅
 
-**Statut : brainstorming, pas commencé.** Demandé par l'**avocate** de la designeuse → but d'abord **légal** (preuve de vente, conditions, conformité), sert aussi à la **compta**.
+**Livré.** Facture HTML print-optimized, imprimable en PDF depuis l'admin.
 
-- **Forme retenue** : **facture PDF par vente**, numérotée (ex. `F-2026-001`), générée depuis les données de commande (on a déjà tout : cliente, article + pièce N°, prix, mode de paiement, conditions vente finale/pièce unique/ajustements à vie). Téléchargeable depuis l'admin ; option : jointe à l'email.
-- **BLOQUÉ sur les taxes** — à confirmer avec avocate/comptable :
-  - A) pas de taxes (sous seuil ~30 000 $/an) — facture simple, sans taxes.
-  - B) taxes **incluses** dans 285/328/395 — détailler TPS/TVQ + n° de taxe.
-  - C) taxes **en sus** — calculer et ajouter.
-  → Prévoir un **mode configurable** (activer les taxes plus tard sans tout refaire).
-- **Mentions obligatoires** : à faire valider par l'avocate (je ne donne pas de conseil juridique).
-- **Existant réutilisable** : export CSV des commandes (OrdersTable), toutes les données dans la table `orders`.
+- **Technique** : iframe caché dans `OrderRow` — clic → HTML injecté → `iframe.contentWindow.print()` → dialogue impression → "Enregistrer PDF". Zéro dépendance externe.
+- **Numérotation** : `LOCHT-2026-001` → `F-2026-001` (via `lib/invoice.ts → invoiceNumber()`)
+- **Taxes** : mention neutre "Taxes incluses si applicables" — **toujours bloqué avocate/comptable**. Quand réponse reçue → modifier `lib/invoice.ts` uniquement.
+- **Entrée admin** : onglet **Actions** de la row expandée → "↓ Imprimer la facture"
+- **Mentions légales** : à faire valider par l'avocate avant usage officiel.
 
 ---
 
