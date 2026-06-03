@@ -194,6 +194,18 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
 
   const feedback = (text: string) => { setMsg(text); setTimeout(() => setMsg(null), 3000) }
 
+  // Confirmation « clic-pour-armer » — remplace window.confirm (bloquant + hors-charte).
+  // 1er clic : arme l'action (le bouton passe en doré « Confirmer ? »). 2e clic sous 4s : exécute.
+  const [armed, setArmed] = useState<string | null>(null)
+  const armTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const arm = (key: string, run: () => void) => {
+    if (armTimer.current) clearTimeout(armTimer.current)
+    if (armed === key) { setArmed(null); run(); return }
+    setArmed(key)
+    armTimer.current = setTimeout(() => setArmed(null), 4000)
+  }
+  useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current) }, [])
+
   const copyAddress = () => { navigator.clipboard.writeText(fullAddress); feedback('Adresse copiée') }
 
   const saveNotes = () => startTransition(async () => {
@@ -201,20 +213,16 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   })
 
   const changeStatus = (status: OrderStatus) => {
-    const confirmMsg: Partial<Record<OrderStatus, string>> = {
-      payment_received: `Confirmer le paiement de ${order.first_name} ${order.last_name} ?\n\nEmail "Paiement confirmé" envoyé automatiquement.`,
-      shipped:          `Marquer comme expédiée pour ${order.first_name} ${order.last_name}${tracking ? ` (suivi ${tracking})` : ''} ?\n\nEmail "En route" envoyé automatiquement${tracking ? ' avec le numéro de suivi' : ''}.`,
-      cancelled:        `Annuler la commande ${order.reference} ?\n\nLes pièces seront libérées.`,
-    }
-    const c = confirmMsg[status]
-    if (c && !window.confirm(c)) return
-    startTransition(async () => {
+    const run = () => startTransition(async () => {
       // Expédition : on enregistre le suivi saisi AVANT l'email (qui le relit en base)
       if (status === 'shipped' && tracking) await updateTracking(order.reference, tracking, carrier)
       await updateOrderStatus(order.reference, status)
       router.refresh()
       feedback(status === 'payment_received' || status === 'shipped' ? 'Statut mis à jour · email envoyé' : 'Statut mis à jour')
     })
+    // "confirmed" est un jalon interne sans conséquence → exécution immédiate
+    if (status === 'confirmed') { run(); return }
+    arm(`status:${status}`, run)
   }
 
   const saveTracking = () => startTransition(async () => {
@@ -226,28 +234,21 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
 
   const sendEmail = (kind: 'payment' | 'shipped') => {
     const label = kind === 'payment' ? 'Paiement confirmé' : 'Commande expédiée'
-    if (!window.confirm(`Renvoyer manuellement "${label}" à ${order.first_name} (${order.email}) ?`)) return
-    startTransition(async () => {
+    arm(`email:${kind}`, () => startTransition(async () => {
       try { await sendStatusEmail(order.reference, kind); feedback(`Email "${label}" envoyé`) }
       catch { feedback('Échec email') }
-    })
+    }))
   }
 
-  const resend = () => {
-    if (!window.confirm(`Renvoyer la confirmation à ${order.first_name} (${order.email}) ?`)) return
-    startTransition(async () => {
-      try { await resendConfirmation(order.reference); feedback('Confirmation renvoyée') }
-      catch { feedback('Échec email') }
-    })
-  }
+  const resend = () => arm('resend', () => startTransition(async () => {
+    try { await resendConfirmation(order.reference); feedback('Confirmation renvoyée') }
+    catch { feedback('Échec email') }
+  }))
 
-  const correction = () => {
-    if (!window.confirm(`Envoyer un email de CORRECTION à ${order.first_name} (${order.email}) ?\n\nExplique l'erreur et rappelle les instructions de paiement.`)) return
-    startTransition(async () => {
-      try { await sendCorrectionEmail(order.reference); feedback('Email de correction envoyé') }
-      catch { feedback('Échec envoi') }
-    })
-  }
+  const correction = () => arm('correction', () => startTransition(async () => {
+    try { await sendCorrectionEmail(order.reference); feedback('Email de correction envoyé') }
+    catch { feedback('Échec envoi') }
+  }))
 
   const dateExact = new Date(order.created_at).toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' })
   const date = timeAgo(order.created_at)
@@ -304,10 +305,10 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
 
         {order.status === 'pending' && (
           <button onClick={() => changeStatus('payment_received')} disabled={isPending}
-            className="flex-shrink-0 flex items-center gap-1.5 text-[9px] tracking-[1px] uppercase font-medium px-3 py-2 bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-200 disabled:opacity-40"
+            className={`flex-shrink-0 flex items-center gap-1.5 text-[9px] tracking-[1px] uppercase font-medium px-3 py-2 border transition-all duration-200 disabled:opacity-40 ${armed === 'status:payment_received' ? 'bg-[#b8965a] border-[#b8965a] text-white' : 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-500 hover:text-white hover:border-emerald-500'}`}
             title="Confirmer la réception du paiement">
-            <span>✓</span>
-            <span className="hidden sm:block">Payée</span>
+            <span>{armed === 'status:payment_received' ? '?' : '✓'}</span>
+            <span className="hidden sm:block">{armed === 'status:payment_received' ? 'Confirmer' : 'Payée'}</span>
           </button>
         )}
 
@@ -338,12 +339,12 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                 {/* ── Colonne droite : ACTIONS (order-1 = première sur mobile) ── */}
                 <div className="order-1 md:order-2 flex flex-col gap-5 md:border-l md:border-[#043672]/07 md:pl-6">
 
-                  <StatusStepper currentStatus={order.status} onAdvance={changeStatus} isPending={isPending} />
+                  <StatusStepper currentStatus={order.status} onAdvance={changeStatus} isPending={isPending} armed={armed} />
 
                   {order.status !== 'cancelled' && order.status !== 'shipped' && (
                     <button onClick={() => changeStatus('cancelled')} disabled={isPending}
-                      className="text-label text-[9px] tracking-[1px] px-3 py-1.5 border border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 disabled:opacity-40 self-start">
-                      Annuler la commande
+                      className={`text-label text-[9px] tracking-[1px] px-3 py-1.5 border transition-all duration-200 disabled:opacity-40 self-start ${armed === 'status:cancelled' ? 'border-red-500 bg-red-500 text-white' : 'border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500'}`}>
+                      {armed === 'status:cancelled' ? 'Confirmer l’annulation ?' : 'Annuler la commande'}
                     </button>
                   )}
 
@@ -368,8 +369,8 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                       {/* En 1 clic : enregistre le N° + passe à Expédiée + envoie l'email "En route" avec le suivi */}
                       {order.status !== 'shipped' && order.status !== 'cancelled' && (
                         <button onClick={() => changeStatus('shipped')} disabled={isPending}
-                          className="text-label text-[9px] tracking-[1px] px-3 py-2 bg-[#043672] text-white disabled:opacity-40 flex-1 hover:bg-[#0a4d9e] transition-all duration-200">
-                          Expédier &amp; notifier →
+                          className={`text-label text-[9px] tracking-[1px] px-3 py-2 text-white disabled:opacity-40 flex-1 transition-all duration-200 ${armed === 'status:shipped' ? 'bg-[#b8965a] hover:bg-[#b8965a]' : 'bg-[#043672] hover:bg-[#0a4d9e]'}`}>
+                          {armed === 'status:shipped' ? 'Confirmer l’envoi ?' : 'Expédier & notifier →'}
                         </button>
                       )}
                     </div>
@@ -385,14 +386,14 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                   <div className="flex flex-col gap-2">
                     <SectionLabel>Communications client</SectionLabel>
                     <div className="flex flex-col gap-1">
-                      <EmailBtn onClick={resend} disabled={isPending} title="Renvoie la confirmation originale avec instructions de paiement">↩ Renvoyer confirmation</EmailBtn>
-                      <EmailBtn onClick={() => sendEmail('payment')} disabled={isPending} title="Renvoie l'email Paiement confirmé">↩ Renvoyer : Paiement confirmé</EmailBtn>
-                      <EmailBtn onClick={() => sendEmail('shipped')} disabled={isPending} title="Renvoie l'email Commande expédiée">↩ Renvoyer : Commande expédiée</EmailBtn>
+                      <EmailBtn onClick={resend} disabled={isPending} armed={armed === 'resend'} title="Renvoie la confirmation originale avec instructions de paiement">↩ Renvoyer confirmation</EmailBtn>
+                      <EmailBtn onClick={() => sendEmail('payment')} disabled={isPending} armed={armed === 'email:payment'} title="Renvoie l'email Paiement confirmé">↩ Renvoyer : Paiement confirmé</EmailBtn>
+                      <EmailBtn onClick={() => sendEmail('shipped')} disabled={isPending} armed={armed === 'email:shipped'} title="Renvoie l'email Commande expédiée">↩ Renvoyer : Commande expédiée</EmailBtn>
                       <div className="h-px bg-[#043672]/07 my-0.5" />
                       <button onClick={correction} disabled={isPending}
                         title="Email d'excuse pour un envoi erroné"
-                        className="text-left text-label text-[9px] tracking-[1px] px-3 py-2 border border-[#b8965a]/30 text-[#b8965a] hover:bg-[#b8965a] hover:text-white transition-all duration-200 disabled:opacity-40">
-                        ⚠ Email correction (envoi erroné)
+                        className={`text-left text-label text-[9px] tracking-[1px] px-3 py-2 border transition-all duration-200 disabled:opacity-40 ${armed === 'correction' ? 'border-[#b8965a] bg-[#b8965a] text-white' : 'border-[#b8965a]/30 text-[#b8965a] hover:bg-[#b8965a] hover:text-white'}`}>
+                        {armed === 'correction' ? 'Confirmer l’envoi ?' : '⚠ Email correction (envoi erroné)'}
                       </button>
                     </div>
                   </div>
@@ -521,19 +522,19 @@ function Detail({ label, value, mono }: { label: string; value: string; mono?: b
   )
 }
 
-function EmailBtn({ onClick, disabled, title, children }: {
-  onClick: () => void; disabled: boolean; title?: string; children: React.ReactNode
+function EmailBtn({ onClick, disabled, title, armed, children }: {
+  onClick: () => void; disabled: boolean; title?: string; armed?: boolean; children: React.ReactNode
 }) {
   return (
     <button onClick={onClick} disabled={disabled} title={title}
-      className="text-left text-label text-[9px] tracking-[1px] px-3 py-2 border border-[#043672]/10 text-[#043672] hover:bg-[#043672] hover:text-white transition-all duration-200 disabled:opacity-40">
-      {children}
+      className={`text-left text-label text-[9px] tracking-[1px] px-3 py-2 border transition-all duration-200 disabled:opacity-40 ${armed ? 'border-[#b8965a] bg-[#b8965a] text-white' : 'border-[#043672]/10 text-[#043672] hover:bg-[#043672] hover:text-white'}`}>
+      {armed ? 'Confirmer ?' : children}
     </button>
   )
 }
 
-function StatusStepper({ currentStatus, onAdvance, isPending }: {
-  currentStatus: OrderStatus; onAdvance: (s: OrderStatus) => void; isPending: boolean
+function StatusStepper({ currentStatus, onAdvance, isPending, armed }: {
+  currentStatus: OrderStatus; onAdvance: (s: OrderStatus) => void; isPending: boolean; armed: string | null
 }) {
   const currentIdx = STATUS_FLOW.indexOf(currentStatus)
   if (currentStatus === 'cancelled') {
@@ -553,21 +554,23 @@ function StatusStepper({ currentStatus, onAdvance, isPending }: {
       <div className="flex items-start">
         {STATUS_FLOW.map((s, i) => {
           const isPast = i < currentIdx, isCurrent = i === currentIdx, isFuture = i > currentIdx
+          const isArmedStep = armed === `status:${s}`
           return (
             <div key={s} className="flex items-center flex-shrink-0">
               {i > 0 && <div className={`h-px w-4 mt-[-22px] flex-shrink-0 transition-colors duration-300 ${isPast ? 'bg-emerald-400' : 'bg-[#043672]/12'}`} />}
               <button disabled={isPending || !isFuture} onClick={() => onAdvance(s)}
-                title={isFuture ? `Avancer → ${STATUS_LABEL[s]}` : STATUS_LABEL[s]}
+                title={isArmedStep ? 'Re-clique pour confirmer' : isFuture ? `Avancer → ${STATUS_LABEL[s]}` : STATUS_LABEL[s]}
                 className={`flex flex-col items-center gap-1.5 px-1.5 transition-opacity duration-200 ${isFuture ? 'cursor-pointer' : 'cursor-default'}`}>
                 <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-[11px] font-medium transition-all duration-300 ${
+                  isArmedStep ? 'bg-[#b8965a] border-[#b8965a] text-white' :
                   isPast    ? 'bg-emerald-50 border-emerald-400 text-emerald-600' :
                   isCurrent ? 'bg-[#043672] border-[#043672] text-white shadow-sm' :
                               'bg-white border-[#043672]/30 text-[#7a7a8a] hover:border-[#043672] hover:bg-[#043672]/04 hover:text-[#043672]'
                 }`}>
-                  {isPast ? '✓' : i + 1}
+                  {isArmedStep ? '?' : isPast ? '✓' : i + 1}
                 </div>
                 <span className={`text-[8px] tracking-[0.5px] uppercase font-medium text-center leading-tight max-w-[52px] transition-colors duration-200 ${
-                  isCurrent ? 'text-[#043672]' : isPast ? 'text-emerald-600' : 'text-[#7a7a8a]'
+                  isArmedStep ? 'text-[#b8965a]' : isCurrent ? 'text-[#043672]' : isPast ? 'text-emerald-600' : 'text-[#7a7a8a]'
                 }`}>{STATUS_SHORT[s]}</span>
               </button>
             </div>
@@ -575,7 +578,7 @@ function StatusStepper({ currentStatus, onAdvance, isPending }: {
         })}
       </div>
       {currentIdx < STATUS_FLOW.length - 1 && (
-        <p className="text-[10px] text-[#7a7a8a]/70 font-light">Clique une étape pour y avancer directement.</p>
+        <p className="text-[10px] text-[#7a7a8a]/70 font-light">{armed?.startsWith('status:') ? 'Re-clique l’étape dorée pour confirmer.' : 'Clique une étape pour y avancer directement.'}</p>
       )}
     </div>
   )
