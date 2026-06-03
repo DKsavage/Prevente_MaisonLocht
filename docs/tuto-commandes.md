@@ -81,4 +81,4 @@ Si tu changes d'avis, ne re-clique pas : au bout de quelques secondes le bouton 
 
 ---
 
-*Un doute ? Demande à Ricardo.* 💛
+*Un doute ? Demande à Dimitri.* 💛

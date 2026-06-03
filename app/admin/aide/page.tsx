@@ -157,7 +157,7 @@ export default async function AdminHelpPage() {
         </section>
 
         <p className="text-[13px] text-[#7a7a8a] font-light text-center py-4">
-          Un doute ? Demande à Ricardo. 💛
+          Un doute ? Demande à Dimitri. 💛
         </p>
       </div>
     </AdminShell>
