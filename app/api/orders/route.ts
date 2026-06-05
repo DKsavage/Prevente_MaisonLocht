@@ -120,9 +120,11 @@ export async function POST(req: NextRequest) {
       console.error('[orders POST] email failed (commande tout de même enregistrée)', mailErr)
     }
 
-    // ── Notification interne à la designeuse (nouvelle commande) ──
-    const adminTo = testEmail || (process.env.ADMIN_NOTIFY_EMAIL ?? '').replace(/\s/g, '')
-    if (adminTo) {
+    // ── Notification interne (nouvelle commande) — supporte plusieurs emails séparés par virgule ──
+    const adminTo = testEmail
+      ? [testEmail]
+      : (process.env.ADMIN_NOTIFY_EMAIL ?? '').split(',').map(e => e.trim()).filter(Boolean)
+    if (adminTo.length > 0) {
       try {
         await resend.emails.send({
           from: FROM,

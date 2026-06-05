@@ -173,7 +173,7 @@ export async function getOrderPieces(reference: string) {
 }
 
 // Envoie un email de correction (erreur d'envoi précédent — paiement non encore reçu)
-export async function sendCorrectionEmail(reference: string) {
+export async function sendCorrectionEmail(reference: string, customNote?: string) {
   await requireAdmin()
   const supabase = createServerClient()
   const { data: order } = await supabase.from('orders').select('*').eq('reference', reference).single()
@@ -208,6 +208,7 @@ export async function sendCorrectionEmail(reference: string) {
           postalCode: order.postal_code, country: order.country,
           interacAnswer: order.interac_answer ?? undefined,
           errorCorrection: true,
+          correctionNote: customNote?.trim() || undefined,
         },
         reference, baseUrl,
       }),
@@ -216,6 +217,64 @@ export async function sendCorrectionEmail(reference: string) {
     console.error('[sendCorrectionEmail]', e)
     throw new Error('Échec envoi email correction')
   }
+}
+
+// Génère le HTML d'un email sans l'envoyer — pour aperçu admin
+export async function getEmailPreviewHtml(
+  reference: string,
+  kind: 'confirmation' | 'payment' | 'shipped' | 'correction',
+  correctionNote?: string
+): Promise<string> {
+  await requireAdmin()
+  const supabase = createServerClient()
+  const { data: order } = await supabase.from('orders').select('*').eq('reference', reference).single()
+  if (!order) throw new Error('Commande introuvable')
+
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://prevente.maisonlocht.com').replace(/\s/g, '').replace(/\/$/, '')
+
+  if (kind === 'payment' || kind === 'shipped') {
+    const { data: pieces } = await supabase.from('pieces').select('model, image_url, display_num').eq('order_ref', reference)
+    return buildStatusEmail(kind, {
+      reference,
+      firstName:      order.first_name,
+      lang:           order.lang,
+      carrier:        order.carrier,
+      trackingNumber: order.tracking_number,
+      pieces:         pieces ?? [],
+      baseUrl,
+    })
+  }
+
+  const { data: pieces } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
+  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
+  const prices:     Record<string, number>  = { kouna: 285, kami: 328, nafibe: 395 }
+  const piecesData = (pieces ?? []).map(p => ({
+    modelName: modelNames[p.model] ?? p.model,
+    pieceNum:  pieceNum(p),
+    price:     prices[p.model] ?? 0,
+    src:       p.image_url,
+  }))
+
+  return buildConfirmationEmail({
+    data: {
+      firstName:      order.first_name,
+      bagName:        order.bag_name,
+      quantity:       order.quantity,
+      priceTotal:     order.price_total,
+      lang:           order.lang,
+      pieces:         piecesData,
+      address:        order.address,
+      city:           order.city,
+      province:       order.province,
+      postalCode:     order.postal_code,
+      country:        order.country,
+      interacAnswer:   order.interac_answer ?? undefined,
+      errorCorrection: kind === 'correction',
+      correctionNote:  kind === 'correction' ? correctionNote?.trim() || undefined : undefined,
+    },
+    reference,
+    baseUrl,
+  })
 }
 
 // Libère manuellement une pièce (réservation non payée)

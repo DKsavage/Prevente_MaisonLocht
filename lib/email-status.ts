@@ -4,6 +4,15 @@
 import { carrierName, trackingUrl } from './carriers'
 import { emailImg } from './email-from'
 
+function esc(s: string | null | undefined): string {
+  return (s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
 const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
 export type StatusEmailKind = 'payment' | 'shipped'
@@ -97,7 +106,7 @@ function paymentBody(d: StatusEmailData, isFr: boolean) {
   return [
     header(isFr ? 'Paiement confirmé' : 'Payment confirmed', d.reference),
     greeting(
-      isFr ? `${d.firstName}, votre paiement est bien reçu.` : `${d.firstName}, your payment has been received.`,
+      isFr ? `${esc(d.firstName)}, votre paiement est bien reçu.` : `${esc(d.firstName)}, your payment has been received.`,
       isFr
         ? `Votre pièce est désormais entre nos mains — cousue et vérifiée à la main, elle sera préparée avec tout le soin qu'elle mérite.`
         : `Your piece is now in our hands — hand-sewn and inspected, it will be prepared with the greatest care.`,
@@ -149,7 +158,7 @@ function shippedBody(d: StatusEmailData, isFr: boolean) {
   return [
     header(isFr ? 'Votre pièce arrive' : 'Your piece is on its way', d.reference),
     greeting(
-      isFr ? `${d.firstName}, votre pièce est en route.` : `${d.firstName}, your piece is on its way.`,
+      isFr ? `${esc(d.firstName)}, votre pièce est en route.` : `${esc(d.firstName)}, your piece is on its way.`,
       isFr
         ? `Elle quitte nos mains pour rejoindre les vôtres. Voici tout ce qu’il vous faut pour suivre son arrivée.`
         : 'It leaves our hands to reach yours. Here is everything you need to track its arrival.',

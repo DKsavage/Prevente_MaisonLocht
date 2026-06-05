@@ -2,8 +2,9 @@
 
 import { useState, useTransition, useMemo, useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Eye, X, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces } from '@/app/admin/actions'
+import { updateOrderStatus, updateTracking, updateNotes, sendStatusEmail, resendConfirmation, sendCorrectionEmail, getOrderPieces, getEmailPreviewHtml } from '@/app/admin/actions'
 import { buildInvoiceHtml } from '@/lib/invoice'
 import { timeAgo } from '@/lib/time'
 import { CARRIERS, trackingUrl } from '@/lib/carriers'
@@ -180,6 +181,9 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   const [piecesLoaded, setPiecesLoaded] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [mobileTab, setMobileTab] = useState<'actions' | 'infos'>('actions')
+  const [preview, setPreview] = useState<{ html: string | null; label: string } | null>(null)
+  const [correctionOpen, setCorrectionOpen] = useState(false)
+  const [correctionNote, setCorrectionNote] = useState('')
   const late = isLate(order)
   const rowRef = useRef<HTMLDivElement>(null)
 
@@ -193,6 +197,13 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
     if (expanded) setTimeout(() => rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80)
     if (!expanded) setMobileTab('actions')
   }, [expanded, piecesLoaded, order.reference])
+
+  useEffect(() => {
+    if (!preview) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreview(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [preview])
 
   const fullAddress = `${order.first_name} ${order.last_name}\n${order.address}\n${order.city}${order.province ? ', ' + order.province : ''} ${order.postal_code}\n${order.country ?? ''}`
 
@@ -211,6 +222,20 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
   useEffect(() => () => { if (armTimer.current) clearTimeout(armTimer.current) }, [])
 
   const copyAddress = () => { navigator.clipboard.writeText(fullAddress); feedback('Adresse copiée') }
+
+  const openPreview = (kind: 'confirmation' | 'payment' | 'shipped' | 'correction', label: string) => {
+    setPreview({ html: null, label })
+    startTransition(async () => {
+      try {
+        const note = kind === 'correction' ? correctionNote : undefined
+        const html = await getEmailPreviewHtml(order.reference, kind, note)
+        setPreview({ html, label })
+      } catch {
+        setPreview(null)
+        feedback("Impossible de charger l'aperçu")
+      }
+    })
+  }
 
   const printInvoice = () => {
     const iframe = iframeRef.current
@@ -260,10 +285,14 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
     catch { feedback('Échec email') }
   }))
 
-  const correction = () => arm('correction', () => startTransition(async () => {
-    try { await sendCorrectionEmail(order.reference); feedback('Email de correction envoyé') }
-    catch { feedback('Échec envoi') }
-  }))
+  const sendCorrection = () => startTransition(async () => {
+    try {
+      await sendCorrectionEmail(order.reference, correctionNote)
+      feedback('Email de correction envoyé')
+      setCorrectionOpen(false)
+      setCorrectionNote('')
+    } catch { feedback('Échec envoi') }
+  })
 
   const dateExact = new Date(order.created_at).toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' })
   const date = timeAgo(order.created_at)
@@ -380,7 +409,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                   {order.status !== 'cancelled' && order.status !== 'shipped' && (
                     <button onClick={() => changeStatus('cancelled')} disabled={isPending}
                       className={`text-label text-[9px] tracking-[1px] px-3 py-1.5 border transition-all duration-200 disabled:opacity-40 self-start ${armed === 'status:cancelled' ? 'border-red-500 bg-red-500 text-white' : 'border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500'}`}>
-                      {armed === 'status:cancelled' ? 'Confirmer l’annulation ?' : 'Annuler la commande'}
+                      {armed === 'status:cancelled' ? "Confirmer l'annulation ?" : 'Annuler la commande'}
                     </button>
                   )}
 
@@ -406,7 +435,7 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                       {order.status !== 'shipped' && order.status !== 'cancelled' && (
                         <button onClick={() => changeStatus('shipped')} disabled={isPending}
                           className={`text-label text-[9px] tracking-[1px] px-3 py-2 text-white disabled:opacity-40 flex-1 transition-all duration-200 ${armed === 'status:shipped' ? 'bg-[#b8965a] hover:bg-[#b8965a]' : 'bg-[#043672] hover:bg-[#0a4d9e]'}`}>
-                          {armed === 'status:shipped' ? 'Confirmer l’envoi ?' : 'Expédier & notifier →'}
+                          {armed === 'status:shipped' ? "Confirmer l'envoi ?" : 'Expédier & notifier →'}
                         </button>
                       )}
                     </div>
@@ -422,15 +451,70 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                   <div className="flex flex-col gap-2">
                     <SectionLabel>Communications client</SectionLabel>
                     <div className="flex flex-col gap-1">
-                      <EmailBtn onClick={resend} disabled={isPending} armed={armed === 'resend'} title="Renvoie la confirmation originale avec instructions de paiement">↩ Renvoyer confirmation</EmailBtn>
-                      <EmailBtn onClick={() => sendEmail('payment')} disabled={isPending} armed={armed === 'email:payment'} title="Renvoie l'email Paiement confirmé">↩ Renvoyer : Paiement confirmé</EmailBtn>
-                      <EmailBtn onClick={() => sendEmail('shipped')} disabled={isPending} armed={armed === 'email:shipped'} title="Renvoie l'email Commande expédiée">↩ Renvoyer : Commande expédiée</EmailBtn>
+                      <EmailRow>
+                        <EmailBtn onClick={resend} disabled={isPending} armed={armed === 'resend'} title="Renvoie la confirmation originale avec instructions de paiement">↩ Renvoyer confirmation</EmailBtn>
+                        <PreviewBtn onClick={() => openPreview('confirmation', 'Confirmation')} disabled={isPending} />
+                      </EmailRow>
+                      <EmailRow>
+                        <EmailBtn onClick={() => sendEmail('payment')} disabled={isPending} armed={armed === 'email:payment'} title="Renvoie l'email Paiement confirmé">↩ Renvoyer : Paiement confirmé</EmailBtn>
+                        <PreviewBtn onClick={() => openPreview('payment', 'Paiement confirmé')} disabled={isPending} />
+                      </EmailRow>
+                      <EmailRow>
+                        <EmailBtn onClick={() => sendEmail('shipped')} disabled={isPending} armed={armed === 'email:shipped'} title="Renvoie l'email Commande expédiée">↩ Renvoyer : Commande expédiée</EmailBtn>
+                        <PreviewBtn onClick={() => openPreview('shipped', 'Commande expédiée')} disabled={isPending} />
+                      </EmailRow>
                       <div className="h-px bg-[#043672]/07 my-0.5" />
-                      <button onClick={correction} disabled={isPending}
-                        title="Email d'excuse pour un envoi erroné"
-                        className={`text-left text-label text-[9px] tracking-[1px] px-3 py-2 border transition-all duration-200 disabled:opacity-40 ${armed === 'correction' ? 'border-[#b8965a] bg-[#b8965a] text-white' : 'border-[#b8965a]/30 text-[#b8965a] hover:bg-[#b8965a] hover:text-white'}`}>
-                        {armed === 'correction' ? 'Confirmer l’envoi ?' : '⚠ Email correction (envoi erroné)'}
-                      </button>
+
+                      {/* Bouton correction — ouvre le formulaire inline */}
+                      {!correctionOpen ? (
+                        <EmailRow>
+                          <button
+                            onClick={() => setCorrectionOpen(true)}
+                            disabled={isPending}
+                            className="text-left text-label text-[9px] tracking-[1px] px-3 py-2 border border-[#b8965a]/30 text-[#b8965a] hover:bg-[#b8965a] hover:text-white disabled:opacity-40 cursor-pointer active:scale-[0.98] transition-all duration-200 flex-1"
+                          >
+                            ⚠ Email correction (envoi erroné)
+                          </button>
+                          <PreviewBtn onClick={() => openPreview('correction', 'Email correction')} disabled={isPending} />
+                        </EmailRow>
+                      ) : (
+                        /* Formulaire inline de correction */
+                        <div className="flex flex-col gap-2 border border-[#b8965a]/30 bg-[#b8965a]/04 p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-label text-[9px] tracking-[2px] uppercase text-[#b8965a]">Email correction</span>
+                            <button
+                              onClick={() => { setCorrectionOpen(false); setCorrectionNote('') }}
+                              className="text-[#7a7a8a] hover:text-[#043672] text-[11px] transition-colors cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                          <textarea
+                            value={correctionNote}
+                            onChange={e => setCorrectionNote(e.target.value)}
+                            placeholder="Message personnel optionnel — ex: Je suis vraiment désolée pour cet envoi erroné…"
+                            maxLength={300}
+                            rows={2}
+                            className="w-full bg-white border border-[#043672]/10 focus:border-[#b8965a] outline-none px-3 py-2 text-[11px] text-[#1a1a2e] placeholder:text-[#7a7a8a]/50 resize-none transition-all duration-200 font-light"
+                          />
+                          {correctionNote && (
+                            <p className="text-[9px] text-[#7a7a8a] text-right">{correctionNote.length}/300</p>
+                          )}
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={sendCorrection}
+                              disabled={isPending}
+                              className="flex-1 text-label text-[9px] tracking-[1px] px-3 py-2 bg-[#b8965a] text-white hover:bg-[#a07848] disabled:opacity-40 cursor-pointer active:scale-[0.98] transition-all duration-200"
+                            >
+                              {isPending ? '…' : 'Envoyer la correction →'}
+                            </button>
+                            <PreviewBtn
+                              onClick={() => openPreview('correction', 'Email correction')}
+                              disabled={isPending}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -552,6 +636,84 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
 
       {/* iframe caché — reçoit le HTML de la facture au moment de l'impression */}
       <iframe ref={iframeRef} style={{ display: 'none' }} title="facture" />
+
+      {/* Aperçu email — overlay fullscreen */}
+      <AnimatePresence>
+        {preview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[1000] flex flex-col"
+            style={{ background: 'rgba(2,12,28,0.88)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setPreview(null)}
+          >
+            {/* Barre supérieure */}
+            <div
+              className="flex items-center justify-between px-5 py-3.5 border-b flex-shrink-0"
+              style={{ borderColor: 'rgba(212,170,106,0.15)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Eye className="w-3.5 h-3.5 text-[#d4aa6a] flex-shrink-0" />
+                <span className="text-[9px] tracking-[3px] uppercase text-[#d4aa6a] flex-shrink-0">Aperçu</span>
+                <span className="text-[9px] tracking-[1px] uppercase text-white/25 flex-shrink-0">—</span>
+                <span className="text-[10px] tracking-[1px] uppercase text-white/70 flex-shrink-0">{preview.label}</span>
+                <span className="text-[9px] text-white/25 hidden sm:inline truncate">
+                  {order.reference} · {order.first_name} {order.last_name}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                <span className="text-[9px] text-white/25 hidden md:inline tracking-[1px]">Echap pour fermer</span>
+                <button
+                  onClick={() => setPreview(null)}
+                  aria-label="Fermer l'aperçu"
+                  className="flex items-center justify-center w-8 h-8 border border-white/12 text-white/45 hover:text-white hover:border-white/35 hover:bg-white/06 active:scale-95 transition-all duration-150 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenu */}
+            <div className="flex-1 overflow-auto py-8 px-4" onClick={e => e.stopPropagation()}>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+                className="mx-auto"
+                style={{ maxWidth: 620 }}
+              >
+                {preview.html === null ? (
+                  /* Skeleton pendant le chargement */
+                  <div className="bg-[#faf7f2] w-full animate-pulse" style={{ minHeight: 600 }}>
+                    <div className="h-28 bg-[#043672]/25" />
+                    <div className="px-10 py-8 space-y-4">
+                      <div className="h-5 bg-[#043672]/10 w-2/3 rounded-none" />
+                      <div className="h-3 bg-[#043672]/07 w-full" />
+                      <div className="h-3 bg-[#043672]/07 w-5/6" />
+                      <div className="h-3 bg-[#043672]/07 w-4/6" />
+                      <div className="mt-6 h-24 bg-[#043672]/06" />
+                      <div className="h-16 bg-[#021f45]/15 mt-4" />
+                      <div className="h-3 bg-[#043672]/07 w-full mt-4" />
+                      <div className="h-3 bg-[#043672]/07 w-3/4" />
+                    </div>
+                  </div>
+                ) : (
+                  <iframe
+                    srcDoc={preview.html}
+                    title="Aperçu email"
+                    className="w-full border-0"
+                    style={{ height: '82vh', minHeight: 600 }}
+                    sandbox="allow-same-origin"
+                  />
+                )}
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -576,8 +738,35 @@ function EmailBtn({ onClick, disabled, title, armed, children }: {
 }) {
   return (
     <button onClick={onClick} disabled={disabled} title={title}
-      className={`text-left text-label text-[9px] tracking-[1px] px-3 py-2 border transition-all duration-200 disabled:opacity-40 ${armed ? 'border-[#b8965a] bg-[#b8965a] text-white' : 'border-[#043672]/10 text-[#043672] hover:bg-[#043672] hover:text-white'}`}>
+      className={`text-left text-label text-[9px] tracking-[1px] px-3 py-2 border transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98] flex-1 ${
+        armed
+          ? 'border-[#b8965a] bg-[#b8965a] text-white'
+          : 'border-[#043672]/10 text-[#043672] hover:bg-[#043672] hover:text-white'
+      }`}>
       {armed ? 'Confirmer ?' : children}
+    </button>
+  )
+}
+
+function EmailRow({ children }: { children: React.ReactNode }) {
+  return <div className="flex items-center gap-1.5">{children}</div>
+}
+
+function PreviewBtn({ onClick, disabled, loading }: {
+  onClick: () => void; disabled: boolean; loading?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      aria-label="Aperçu de l'email"
+      title="Aperçu de l'email"
+      className="group flex items-center justify-center w-8 h-[34px] border border-[#043672]/10 text-[#7a7a8a] hover:border-[#b8965a]/45 hover:text-[#b8965a] hover:bg-[#b8965a]/05 disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer active:scale-95 transition-all duration-200 flex-shrink-0"
+    >
+      {loading
+        ? <Loader2 className="w-3 h-3 animate-spin text-[#b8965a]" />
+        : <Eye className="w-3 h-3 transition-transform duration-200 group-hover:scale-110" />
+      }
     </button>
   )
 }
@@ -627,7 +816,7 @@ function StatusStepper({ currentStatus, onAdvance, isPending, armed }: {
         })}
       </div>
       {currentIdx < STATUS_FLOW.length - 1 && (
-        <p className="text-[10px] text-[#7a7a8a]/70 font-light">{armed?.startsWith('status:') ? 'Re-clique l’étape dorée pour confirmer.' : 'Clique une étape pour y avancer directement.'}</p>
+        <p className="text-[10px] text-[#7a7a8a]/70 font-light">{armed?.startsWith('status:') ? "Re-clique l'étape dorée pour confirmer." : "Clique une étape pour y avancer directement."}</p>
       )}
     </div>
   )
