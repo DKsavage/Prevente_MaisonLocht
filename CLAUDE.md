@@ -104,6 +104,7 @@ app/
 │   ├── layout.tsx                 Métadonnées admin (noindex)
 │   ├── loading.tsx                Skeleton accueil
 │   └── actions.ts                 Server actions (statut, suivi, notes, emails, pièces)
+│                                  + getEmailPreviewHtml(ref, kind, correctionNote?) — aperçu HTML sans envoi
 ├── admin/commandes/loading.tsx
 ├── admin/inventaire/loading.tsx
 ├── admin/statistiques/loading.tsx
@@ -190,6 +191,10 @@ Seule exception acceptable : bottom nav mobile icons `text-[8px]`.
 **OrdersTable** — export CSV délimiteur `;` (standard Excel européen). Date format `YYYY-MM-DD HH:mm`. Statuts en français. Sur mobile : onglets **Actions** / **Infos** dans la row expandée (desktop : 2 colonnes inchangées). Bouton "↓ Imprimer la facture" dans l'onglet Actions.
 
 **NoteColis** — dans OrdersTable expanded, visible si `order.why_locht`. Génère un texte personnalisé à glisser dans le colis.
+
+**Aperçu email (OrdersTable)** — bouton Eye (lucide) à côté de chaque EmailBtn. Ouvre overlay fullscreen avec skeleton immédiat puis iframe `srcdoc`. État : `preview: { html: string | null; label: string } | null`. Escape ferme. `sandbox="allow-same-origin"` sur l'iframe — intentionnel, contenu escapé côté serveur via `esc()`.
+
+**Email correction** — `sendCorrectionEmail(reference, customNote?)` accepte un message personnel optionnel affiché dans un encadré "Un mot de Maison Locht". Formulaire inline dans l'onglet Actions (textarea + bouton Envoyer). Header ambre distinct du header navy standard.
 
 **RoutesWall** — supprimé (messages clients privés, ne pas afficher publiquement).
 
@@ -287,6 +292,9 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 - **Resend `emails.send()` ne throw pas** — renvoie `{ data, error }`. Vérifier `error` sinon échec silencieux.
 - **2 comptes Resend** — `dimitrikarel77@gmail.com` (domaine `maisonlocht.com` vérifié = **PROD/Vercel**) vs compte Lumina (`luminamodels.ca`). `.env.local` doit contenir la clé du compte dimitrikarel77, sinon 403 en local.
 - **Dev local sur hotspot iPhone (NAT64/IPv6)** — le middleware (runtime edge) peut renvoyer `fetch failed` vers Supabase + l'optimiseur d'images bloque les IP NAT64. Artefact **local uniquement**. Redémarrer le dev server ou passer sur un WiFi IPv4.
+- **Curly quotes dans OrdersTable.tsx** — le fichier contient des guillemets typographiques Unicode (U+2018/U+2019) dans les expressions JSX. Cause : copier-coller depuis éditeur rich text. Symptôme : cascade `Invalid character` + `AnimatePresence has no closing tag`. Fix : `python3 -c "open(p,'wb').write(open(p,'rb').read().replace(b'\xe2\x80\x98',b\"'\").replace(b'\xe2\x80\x99',b\"'\"))"`. Ne jamais coller de texte stylisé dans des expressions JSX.
+- **XSS dans templates email HTML** — tous les champs utilisateur (`first_name`, `address`, `city`, `why_locht`, etc.) doivent passer par `esc()` avant interpolation dans `buildConfirmationEmail` et `buildStatusEmail`. Fonction `esc()` définie localement dans chaque fichier email. Sans ça : XSS stored via `srcdoc` iframe admin (`allow-same-origin` → `window.parent` accessible).
+- **Preview email en local** — `npx tsx -e "import { buildConfirmationEmail } from './lib/email-confirmation'; import fs from 'fs'; fs.writeFileSync('/tmp/preview.html', buildConfirmationEmail({...}))"` puis `open /tmp/preview.html`. Valide le rendu sans envoyer de vrai email.
 
 ---
 
@@ -306,3 +314,10 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 
 **En ligne** : https://prevente.maisonlocht.com · **Admin** : /admin
 **Repo** : DKsavage/Prevente_MaisonLocht (privé) · **Branch principale** : main
+
+### Dernières livraisons (juin 2026)
+- Aperçu email admin (overlay + skeleton + Eye icon + Escape)
+- Email confirmation restructuré : 3 étapes éditoriales, montant 48px, champs copiables (`user-select:all` + `mailto:`)
+- Email correction redesigné : header ambre, note personnalisée depuis l'admin
+- Fix sécurité XSS : `esc()` sur tous les champs utilisateur dans les templates email
+- `lib/email-status.ts` : même fix `esc()` sur `firstName`
