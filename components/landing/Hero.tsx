@@ -73,7 +73,7 @@ export default function Hero() {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <section className="grid md:grid-cols-2 min-h-[88vh] border-b border-[#043672]/05">
+    <section className="grid md:grid-cols-2 min-h-[78vh] border-b border-[#043672]/05">
 
       {/* ── Côté texte ── */}
       <div className="flex flex-col justify-center gap-7 px-8 md:px-14 py-16 md:py-24 order-2 md:order-1">
@@ -127,7 +127,7 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.2, ease }}
-          className="relative w-[65%] md:w-[60%] aspect-[3/4] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
+          className="relative w-[88%] md:w-[82%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           data-cursor="hover"
@@ -149,7 +149,7 @@ export default function Hero() {
 
           {/* Photo secondaire — avance au hover */}
           <Image
-            src="/images/4mannequins.jpeg"
+            src="/images/bottom.jpeg"
             alt="Maison Locht — Les Cernes"
             fill
             className="object-cover object-top will-change-transform"
