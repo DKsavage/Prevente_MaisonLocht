@@ -73,7 +73,7 @@ export default function Hero() {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <section className="grid md:grid-cols-2 min-h-[78vh] border-b border-[#043672]/05">
+    <section className="grid md:grid-cols-[40%_60%] min-h-[78vh] border-b border-[#043672]/05">
 
       {/* ── Côté texte ── */}
       <div className="flex flex-col justify-center gap-7 px-8 md:px-14 py-16 md:py-24 order-2 md:order-1">
@@ -152,7 +152,7 @@ export default function Hero() {
             src="/images/bottom.jpeg"
             alt="Maison Locht — Les Cernes"
             fill
-            className="object-cover object-top will-change-transform"
+            className="object-cover object-[50%_65%] will-change-transform"
             style={{
               opacity: hovered ? 1 : 0,
               transform: hovered ? 'scale(1)' : 'scale(1.06)',
