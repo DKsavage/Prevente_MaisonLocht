@@ -90,6 +90,7 @@ export async function POST(req: NextRequest) {
       country:     data.country,
       lang:        data.lang,
       why_locht:   data.whyLocht ?? null,
+      head_size:   data.headSize ?? null,
       interac_answer: interacAnswer,
     })
 
@@ -152,7 +153,7 @@ function buildAdminNotification({ data, reference, interacAnswer, baseUrl }: {
   data: {
     firstName: string; lastName: string; email: string; phone?: string; bagName: string
     quantity: number; priceTotal: number; country: string; address: string; city: string
-    province?: string; postalCode: string
+    province?: string; postalCode: string; headSize?: string
   }
   reference: string
   interacAnswer: string | null
@@ -175,6 +176,7 @@ function buildAdminNotification({ data, reference, interacAnswer, baseUrl }: {
         <tr><td style="color:#7a7a8a;padding:4px 0">Courriel</td><td style="text-align:right;padding:4px 0">${data.email}</td></tr>
         ${data.phone ? `<tr><td style="color:#7a7a8a;padding:4px 0">Téléphone</td><td style="text-align:right;padding:4px 0">${data.phone}</td></tr>` : ''}
         <tr><td style="color:#7a7a8a;padding:4px 0">Pièces</td><td style="text-align:right;padding:4px 0">${data.bagName}</td></tr>
+        ${data.headSize ? `<tr><td style="color:#7a7a8a;padding:4px 0">Tour de tête</td><td style="text-align:right;padding:4px 0">${data.headSize}</td></tr>` : ''}
         <tr><td style="color:#7a7a8a;padding:4px 0">Total</td><td style="text-align:right;padding:4px 0;font-weight:600;color:#043672">${data.priceTotal} CAD</td></tr>
         <tr><td style="color:#7a7a8a;padding:4px 0">Pays</td><td style="text-align:right;padding:4px 0">${data.country}</td></tr>
         <tr><td style="color:#7a7a8a;padding:4px 0">Adresse</td><td style="text-align:right;padding:4px 0">${data.address}, ${data.city}${data.province ? ', ' + data.province : ''} ${data.postalCode}</td></tr>

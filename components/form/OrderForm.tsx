@@ -8,6 +8,7 @@ import { getPaymentMethod, INTERAC_EMAIL, BANK_DETAILS } from '@/lib/payment'
 import FormStep2 from './FormStep2'
 import FormStep3 from './FormStep3'
 import type { OrderFormData } from '@/lib/schemas'
+import { getModel } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -73,7 +74,9 @@ export default function OrderForm() {
         if (prev.some(p => p.id === piece.id)) return prev
         const next = prev.length >= 2 ? [piece] : [...prev, piece]
         const total = next.reduce((s, p) => s + p.price, 0)
-        const names = next.map(p => `${p.modelName} N°${String(p.pieceNum).padStart(2, '0')}`).join(' · ')
+        const names = next.map(p => getModel(p.model)?.category === 'cap'
+          ? p.modelName
+          : `${p.modelName} N°${String(p.pieceNum).padStart(2, '0')}`).join(' · ')
         update({ bagModel: next[0].model, bagName: names, quantity: next.length as 1 | 2, priceTotal: total })
         return next
       })
@@ -304,7 +307,7 @@ export default function OrderForm() {
       <AnimatePresence mode="wait">
         <motion.div key={step} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.35, ease }}>
           {step === 0 && <FormStep1 data={data} selections={selections} lang={lang} onChange={update} onSelectionsChange={setSelections} onNext={() => setStep(1)} />}
-          {step === 1 && <FormStep2 data={data} lang={lang} onChange={update} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
+          {step === 1 && <FormStep2 data={data} selections={selections} lang={lang} onChange={update} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
           {step === 2 && <FormStep3 data={data} selections={selections} lang={lang} loading={loading} onBack={() => setStep(1)} onSubmit={submit} onEdit={(s) => setStep(s)} />}
         </motion.div>
       </AnimatePresence>

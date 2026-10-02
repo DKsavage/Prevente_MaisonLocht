@@ -3,10 +3,9 @@ import { createServerClient } from '@/lib/supabase-server'
 import AdminShell from '@/components/admin/AdminShell'
 import AutoRefresh from '@/components/AutoRefresh'
 import { formatNumberFr } from '@/lib/format'
+import { MODELS } from '@/lib/models'
 
 export const dynamic = 'force-dynamic'
-
-const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
 export default async function AdminStatsPage() {
   const auth = await createAuthClient()
@@ -57,16 +56,16 @@ export default async function AdminStatsPage() {
   // ── Modèles ──
   const soldByModel: Record<string, number> = {}
   p.filter(x => x.order_ref).forEach(x => { soldByModel[x.model] = (soldByModel[x.model] ?? 0) + 1 })
-  const modelRanking = ['kouna', 'kami', 'nafibe']
-    .map(m => ({ model: m, name: MODEL_NAMES[m] ?? m, count: soldByModel[m] ?? 0 }))
+  const modelRanking = MODELS
+    .map(m => ({ model: m.id, name: m.name + (m.colorLabel ? ` · ${m.colorLabel.fr}` : ''), count: soldByModel[m.id] ?? 0 }))
     .sort((a, b) => b.count - a.count)
   const maxModel = Math.max(1, ...modelRanking.map(m => m.count))
 
   // ── Stock bas ──
   const availByModel: Record<string, number> = {}
   p.filter(x => x.status === 'available').forEach(x => { availByModel[x.model] = (availByModel[x.model] ?? 0) + 1 })
-  const lowStock = ['kouna', 'kami', 'nafibe']
-    .map(m => ({ name: MODEL_NAMES[m] ?? m, n: availByModel[m] ?? 0 }))
+  const lowStock = MODELS
+    .map(m => ({ name: m.name + (m.colorLabel ? ` · ${m.colorLabel.fr}` : ''), n: availByModel[m.id] ?? 0 }))
     .filter(m => m.n <= 2)
 
   // ── Pays ──

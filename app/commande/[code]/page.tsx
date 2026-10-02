@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase-server'
 import { COUNTRIES } from '@/lib/countries'
 import { carrierName, trackingUrl } from '@/lib/carriers'
+import { getModel, type ModelId } from '@/lib/models'
 import AutoRefresh from '@/components/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
@@ -31,6 +32,7 @@ const copy = {
     finalSale: 'Chaque création est définitive. Les ajustements sont assurés à vie.',
     piece: 'Pièce',
     whyLabel: 'Ce qui vous a attiré',
+    headSizeLabel: 'Tour de tête',
   },
   en: {
     eyebrow: 'Order tracking',
@@ -53,6 +55,7 @@ const copy = {
     finalSale: 'Each creation is final. Adjustments are guaranteed for life.',
     piece: 'Piece',
     whyLabel: 'What drew you here',
+    headSizeLabel: 'Head circumference',
   },
 }
 
@@ -63,7 +66,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
   const supabase = createServerClient()
   const { data: order } = await supabase
     .from('orders')
-    .select('reference, status, bag_name, quantity, price_total, first_name, city, country, lang, tracking_number, carrier, created_at, why_locht')
+    .select('reference, status, bag_name, quantity, price_total, first_name, city, country, lang, tracking_number, carrier, created_at, why_locht, head_size')
     .eq('reference', reference)
     .single()
 
@@ -182,7 +185,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
                     </div>
                     <div className="flex-1">
                       <span className="font-display text-[16px] font-light text-[#043672]">
-                        {p.model === 'kouna' ? 'Le Kouna' : p.model === 'kami' ? 'Le Kami' : 'Le Nafibe'}
+                        {getModel(p.model as ModelId)?.name ?? p.model}
                       </span>
                       <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] block">
                         {t.piece} N°{String(p.display_num ?? '').padStart(2, '0')}
@@ -191,6 +194,11 @@ export default async function TrackingPage({ params }: { params: Promise<{ code:
                   </div>
                 ))}
               </div>
+              {order.head_size && (
+                <p className="text-label text-[10px] text-[#7a7a8a] tracking-[2px] mt-4">
+                  {t.headSizeLabel} <span className="text-[#043672]">{order.head_size}</span>
+                </p>
+              )}
               <div className="flex justify-between items-baseline mt-5 pt-4 border-t border-[#043672]/06">
                 <span className="text-label text-[10px] text-[#7a7a8a] tracking-[3px]">{t.total}</span>
                 <span className="font-display text-[22px] font-light text-[#043672]">{order.price_total} <span className="text-[13px] text-[#7a7a8a]">CAD</span></span>

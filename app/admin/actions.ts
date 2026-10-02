@@ -6,7 +6,7 @@ import { createServerClient } from '@/lib/supabase-server'
 import { resend } from '@/lib/resend'
 import { buildConfirmationEmail } from '@/lib/email-confirmation'
 import { buildStatusEmail, statusEmailSubject } from '@/lib/email-status'
-import { pieceNum } from '@/lib/models'
+import { pieceNum, getModel, MODELS, type ModelId } from '@/lib/models'
 import { EMAIL_FROM } from '@/lib/email-from'
 import { STATUSES, type OrderStatus } from '@/lib/order-status'
 
@@ -129,12 +129,10 @@ export async function resendConfirmation(reference: string) {
 
   // Récupère les pièces (images) liées à la commande
   const { data: pieces } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
-  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
-  const prices: Record<string, number> = { kouna: 285, kami: 328, nafibe: 395 }
   const piecesData = (pieces ?? []).map(p => ({
-    modelName: modelNames[p.model] ?? p.model,
+    modelName: getModel(p.model as ModelId)?.name ?? p.model,
     pieceNum: pieceNum(p),
-    price: prices[p.model] ?? 0,
+    price: getModel(p.model as ModelId)?.price ?? 0,
     src: p.image_url,
   }))
 
@@ -154,6 +152,7 @@ export async function resendConfirmation(reference: string) {
           address: order.address, city: order.city, province: order.province,
           postalCode: order.postal_code, country: order.country,
           interacAnswer: order.interac_answer ?? undefined,
+          headSize: order.head_size ?? undefined,
         },
         reference, baseUrl,
       }),
@@ -180,12 +179,10 @@ export async function sendCorrectionEmail(reference: string, customNote?: string
   if (!order) throw new Error('Commande introuvable')
 
   const { data: pieces } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
-  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
-  const prices: Record<string, number> = { kouna: 285, kami: 328, nafibe: 395 }
   const piecesData = (pieces ?? []).map(p => ({
-    modelName: modelNames[p.model] ?? p.model,
+    modelName: getModel(p.model as ModelId)?.name ?? p.model,
     pieceNum: pieceNum(p),
-    price: prices[p.model] ?? 0,
+    price: getModel(p.model as ModelId)?.price ?? 0,
     src: p.image_url,
   }))
 
@@ -207,6 +204,7 @@ export async function sendCorrectionEmail(reference: string, customNote?: string
           address: order.address, city: order.city, province: order.province,
           postalCode: order.postal_code, country: order.country,
           interacAnswer: order.interac_answer ?? undefined,
+          headSize: order.head_size ?? undefined,
           errorCorrection: true,
           correctionNote: customNote?.trim() || undefined,
         },
@@ -246,12 +244,10 @@ export async function getEmailPreviewHtml(
   }
 
   const { data: pieces } = await supabase.from('pieces').select('id, model, image_url, display_num').eq('order_ref', reference)
-  const modelNames: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
-  const prices:     Record<string, number>  = { kouna: 285, kami: 328, nafibe: 395 }
   const piecesData = (pieces ?? []).map(p => ({
-    modelName: modelNames[p.model] ?? p.model,
+    modelName: getModel(p.model as ModelId)?.name ?? p.model,
     pieceNum:  pieceNum(p),
-    price:     prices[p.model] ?? 0,
+    price:     getModel(p.model as ModelId)?.price ?? 0,
     src:       p.image_url,
   }))
 
@@ -269,6 +265,7 @@ export async function getEmailPreviewHtml(
       postalCode:     order.postal_code,
       country:        order.country,
       interacAnswer:   order.interac_answer ?? undefined,
+      headSize:        order.head_size ?? undefined,
       errorCorrection: kind === 'correction',
       correctionNote:  kind === 'correction' ? correctionNote?.trim() || undefined : undefined,
     },
@@ -299,9 +296,9 @@ export async function setPieceStatus(pieceId: string, status: 'available' | 'res
 }
 
 // Réassigne une pièce à un autre modèle et/ou change son numéro d'affichage
-export async function reassignPiece(pieceId: string, model: 'kouna' | 'kami' | 'nafibe', displayNum: number) {
+export async function reassignPiece(pieceId: string, model: ModelId, displayNum: number) {
   await requireAdmin()
-  if (!['kouna', 'kami', 'nafibe'].includes(model)) throw new Error('Modèle invalide')
+  if (!MODELS.some(m => m.id === model)) throw new Error('Modèle invalide')
   const supabase = createServerClient()
   const { error } = await supabase.from('pieces')
     .update({ model, display_num: displayNum })
@@ -334,21 +331,41 @@ async function uploadImage(file: File, keyHint: string): Promise<string> {
   return supabase.storage.from('bags').getPublicUrl(path).data.publicUrl
 }
 
-// Ajoute une nouvelle pièce (avec upload d'image)
+// Ajoute une nouvelle pièce. Sans photo fournie, réutilise celle d'une pièce existante du
+// même modèle — utile pour les casquettes, où les unités d'une même couleur sont identiques.
 export async function addPiece(formData: FormData) {
   await requireAdmin()
-  const model = String(formData.get('model'))
+  const model = String(formData.get('model')) as ModelId
   const displayNum = parseInt(String(formData.get('displayNum')), 10) || 1
   const file = formData.get('image') as File | null
-  if (!['kouna', 'kami', 'nafibe'].includes(model)) throw new Error('Modèle invalide')
-  if (!file || file.size === 0) throw new Error('Image requise')
-
-  const id = `${model}-${Date.now().toString(36)}`
-  const imageUrl = await uploadImage(file, id)
+  const file2 = formData.get('image2') as File | null
+  const modelMeta = MODELS.find(m => m.id === model)
+  if (!modelMeta) throw new Error('Modèle invalide')
 
   const supabase = createServerClient()
+
+  if (modelMeta.maxUnits) {
+    const { count } = await supabase.from('pieces').select('id', { count: 'exact', head: true }).eq('model', model)
+    if ((count ?? 0) >= modelMeta.maxUnits) throw new Error(`Stock maximum atteint (${modelMeta.maxUnits} unités)`)
+  }
+
+  const id = `${model}-${Date.now().toString(36)}`
+  let imageUrl: string
+  let imageUrl2: string | null = null
+
+  if (file && file.size > 0) {
+    imageUrl = await uploadImage(file, id)
+    if (file2 && file2.size > 0) imageUrl2 = await uploadImage(file2, `${id}-2`)
+  } else {
+    const { data: existing } = await supabase.from('pieces')
+      .select('image_url, image_url_2').eq('model', model).limit(1).maybeSingle()
+    if (!existing) throw new Error('Image requise pour la première pièce de ce modèle')
+    imageUrl = existing.image_url
+    imageUrl2 = existing.image_url_2 ?? null
+  }
+
   const { error } = await supabase.from('pieces').insert({
-    id, model, image_url: imageUrl, status: 'available',
+    id, model, image_url: imageUrl, image_url_2: imageUrl2, status: 'available',
     display_num: displayNum, sort_order: displayNum,
   })
   if (error) throw error
@@ -356,7 +373,7 @@ export async function addPiece(formData: FormData) {
   revalidatePath('/')
 }
 
-// Change l'image d'une pièce existante
+// Change l'image (angle 1) d'une pièce existante
 export async function changePieceImage(pieceId: string, formData: FormData) {
   await requireAdmin()
   const file = formData.get('image') as File | null
@@ -364,6 +381,19 @@ export async function changePieceImage(pieceId: string, formData: FormData) {
   const imageUrl = await uploadImage(file, pieceId)
   const supabase = createServerClient()
   const { error } = await supabase.from('pieces').update({ image_url: imageUrl }).eq('id', pieceId)
+  if (error) throw error
+  revalidatePath('/admin/inventaire')
+  revalidatePath('/')
+}
+
+// Change l'image (angle 2, optionnel) d'une pièce existante
+export async function changePieceImage2(pieceId: string, formData: FormData) {
+  await requireAdmin()
+  const file = formData.get('image') as File | null
+  if (!file || file.size === 0) throw new Error('Image requise')
+  const imageUrl = await uploadImage(file, `${pieceId}-2`)
+  const supabase = createServerClient()
+  const { error } = await supabase.from('pieces').update({ image_url_2: imageUrl }).eq('id', pieceId)
   if (error) throw error
   revalidatePath('/admin/inventaire')
   revalidatePath('/')

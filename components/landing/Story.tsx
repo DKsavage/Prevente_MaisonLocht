@@ -10,12 +10,6 @@ const ease = [0.16, 1, 0.3, 1] as const
 const content = {
   fr: {
     eyebrow: "L'Histoire",
-    citation: [
-      'Les cernes ne mentent pas.',
-      "Ils portent ce qu'on a vécu,",
-      "ce qu'on a traversé.",
-    ],
-    author: 'Maison Locht · Fondatrice',
     facts: [
       { value: 'Belgo-Haïtienne', label: 'Origine' },
       { value: 'Sénégal · Congo · Guinée', label: 'Racines' },
@@ -32,12 +26,6 @@ const content = {
   },
   en: {
     eyebrow: 'The Story',
-    citation: [
-      "Dark circles don't lie.",
-      "They carry what we've lived,",
-      "what we've crossed.",
-    ],
-    author: 'Maison Locht · Founder',
     facts: [
       { value: 'Belgian-Haitian', label: 'Origin' },
       { value: 'Senegal · Congo · Guinea', label: 'Roots' },
@@ -70,9 +58,7 @@ function GoldRule() {
 export default function Story() {
   const { lang } = useLang()
   const t = content[lang]
-  const citationRef = useRef<HTMLQuoteElement>(null)
   const factsRef   = useRef<HTMLDivElement>(null)
-  const citInView  = useInView(citationRef, { once: true, margin: '0px 0px -80px 0px' })
   const factsInView = useInView(factsRef, { once: true, margin: '0px 0px -60px 0px' })
   const descRef    = useRef<HTMLDivElement>(null)
   const descInView = useInView(descRef, { once: true, margin: '0px 0px -60px 0px' })
@@ -82,7 +68,7 @@ export default function Story() {
 
       {/* ── Section bleue ── */}
       <div
-        className="relative bg-[#043672] overflow-hidden py-24 px-8 md:px-14 flex flex-col items-center gap-8"
+        className="relative bg-[#043672] overflow-hidden py-16 px-8 md:px-14 flex flex-col items-center gap-8"
         data-theme="dark"
       >
         {/* Halos */}
@@ -91,9 +77,6 @@ export default function Story() {
         {/* Texture grain */}
         <div className="absolute inset-0 opacity-[0.5] pointer-events-none mix-blend-overlay"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")` }} />
-        {/* Guillemet décoratif */}
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 font-display text-[180px] leading-none text-[#b8965a]/10 pointer-events-none select-none">&ldquo;</div>
-
         {/* Logo blanc */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -115,43 +98,6 @@ export default function Story() {
           {t.eyebrow}
           <span className="text-[9px] opacity-70">✦</span>
         </motion.div>
-
-        <GoldRule />
-
-        {/* Citation */}
-        <motion.blockquote
-          ref={citationRef}
-          className="font-display text-[32px] md:text-[44px] italic font-light text-white text-center leading-[1.3] max-w-[620px] tracking-[0.3px] relative z-10"
-          initial="hidden" animate={citInView ? 'visible' : 'hidden'}
-          variants={{ visible: { transition: { staggerChildren: 0.15 } } }}
-        >
-          {t.citation.map((line, i) => (
-            <motion.span
-              key={i}
-              className="block overflow-hidden"
-              variants={{ hidden: {}, visible: {} }}
-            >
-              <motion.span
-                className="block"
-                variants={{
-                  hidden: { y: '100%', opacity: 0 },
-                  visible: { y: 0, opacity: 1, transition: { duration: 0.9, ease } },
-                }}
-              >
-                {line}
-              </motion.span>
-            </motion.span>
-          ))}
-        </motion.blockquote>
-
-        {/* Auteur */}
-        <motion.p
-          className="text-label text-[9px] text-white/35 tracking-[4px] relative z-10"
-          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-          viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          {t.author}
-        </motion.p>
 
         <GoldRule />
 
@@ -179,7 +125,7 @@ export default function Story() {
       {/* ── Photo éditoriale plein-largeur ── */}
       <div className="relative w-full h-[55vw] max-h-[680px] min-h-[280px] overflow-hidden bg-[#021f45]">
         <Image
-          src="/images/4mannequins.jpeg"
+          src="/images/bottom.jpeg"
           alt="Maison Locht — Les Cernes"
           fill
           className="object-cover object-top"

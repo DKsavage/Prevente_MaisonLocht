@@ -18,6 +18,7 @@ export type ConfirmationData = {
   errorCorrection?: boolean
   correctionNote?: string
   whyLocht?: string
+  headSize?: string
 }
 
 // ─── Blocs réutilisables ──────────────────────────────────────────────────
@@ -331,6 +332,10 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
         ${isFr ? (isCorrection ? 'Votre commande' : 'Vos pi&#232;ces') : (isCorrection ? 'Your order' : 'Your pieces')}
       </p>
       ${pieceRows}
+      ${data.headSize ? `
+      <p style="margin:12px 0 0;font-size:11px;letter-spacing:1px;color:#7a7a8a">
+        ${isFr ? 'Tour de t&#234;te' : 'Head circumference'} : <span style="color:#043672">${esc(data.headSize)}</span>
+      </p>` : ''}
       <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid rgba(4,54,114,0.1)">
         <tr>
           <td style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#043672;padding-top:14px">Total</td>

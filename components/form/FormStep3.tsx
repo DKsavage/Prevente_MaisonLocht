@@ -6,6 +6,7 @@ import type { OrderFormData } from '@/lib/schemas'
 import type { SelectedPiece } from './FormStep1'
 import { COUNTRIES } from '@/lib/countries'
 import { getPaymentMethod } from '@/lib/payment'
+import { getModel } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -78,7 +79,9 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
         </div>
 
         <div className={`grid gap-5 ${selections.length === 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-[300px] mx-auto md:mx-0'}`}>
-          {selections.map((piece, i) => (
+          {selections.map((piece, i) => {
+            const isCap = getModel(piece.model)?.category === 'cap'
+            return (
             <motion.div
               key={piece.id}
               className="group relative"
@@ -89,7 +92,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
               <div className="relative aspect-[4/5] overflow-hidden bg-[#f0ebe0] shadow-[8px_8px_0_rgba(4,54,114,0.06)]">
                 <Image
                   src={piece.src}
-                  alt={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
+                  alt={isCap ? piece.modelName : `${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
                   fill className="object-cover"
                   sizes="(max-width: 768px) 45vw, 280px"
                   priority
@@ -97,26 +100,30 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
                 {/* Voile bas pour lisibilité */}
                 <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#021f45]/85 via-[#021f45]/20 to-transparent pointer-events-none" />
 
-                {/* Tag N° en haut */}
-                <div className="absolute top-3 left-3 bg-[#faf7f2]/90 backdrop-blur-sm px-2.5 py-1">
-                  <span className="text-label text-[9px] text-[#043672] tracking-[2px]">
-                    {t.piece} N°{String(piece.pieceNum).padStart(2, '0')}
-                  </span>
-                </div>
+                {/* Tag N° en haut (masqué pour les casquettes — pas de numéro d'unité) */}
+                {!isCap && (
+                  <div className="absolute top-3 left-3 bg-[#faf7f2]/90 backdrop-blur-sm px-2.5 py-1">
+                    <span className="text-label text-[9px] text-[#043672] tracking-[2px]">
+                      {t.piece} N°{String(piece.pieceNum).padStart(2, '0')}
+                    </span>
+                  </div>
+                )}
 
                 {/* Nom + prix en bas sur le voile */}
                 <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
                   <div className="flex flex-col">
                     <span className="font-display text-[22px] font-light text-white leading-none italic">{piece.modelName}</span>
                     <span className="text-label text-[9px] text-[#d4aa6a] tracking-[3px] mt-1.5 flex items-center gap-1.5">
-                      <span className="text-[6px]">✦</span>{lang === 'fr' ? 'Unique' : 'Unique'}
+                      <span className="text-[6px]">✦</span>
+                      {isCap ? (lang === 'fr' ? 'Édition limitée' : 'Limited edition') : (lang === 'fr' ? 'Unique' : 'Unique')}
                     </span>
                   </div>
                   <span className="font-display text-[16px] font-light text-white/90">{piece.price}<span className="text-[10px] text-white/50 ml-0.5">CAD</span></span>
                 </div>
               </div>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Engagement marque */}
@@ -157,6 +164,11 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
             <span className="text-[14px] text-[#043672] font-light">{data.firstName} {data.lastName}</span>
             <span className="text-[12px] text-[#7a7a8a] font-light">{data.email}</span>
             {data.phone && <span className="text-[12px] text-[#7a7a8a] font-light">{data.phone}</span>}
+            {data.headSize && (
+              <span className="text-[12px] text-[#7a7a8a] font-light">
+                {lang === 'fr' ? 'Tour de tête' : 'Head size'} : <span className="text-[#043672]">{data.headSize}</span>
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-col gap-3">

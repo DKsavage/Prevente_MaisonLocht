@@ -3,6 +3,7 @@
 // entre les deux emails — seul le corps central diffère selon le type.
 import { carrierName, trackingUrl } from './carriers'
 import { emailImg } from './email-from'
+import { getModel, type ModelId } from './models'
 
 function esc(s: string | null | undefined): string {
   return (s ?? '')
@@ -12,8 +13,6 @@ function esc(s: string | null | undefined): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
 }
-
-const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
 
 export type StatusEmailKind = 'payment' | 'shipped'
 
@@ -54,9 +53,9 @@ function piecesBlock(pieces: StatusEmailData['pieces'], isFr: boolean, baseUrl: 
     <table cellpadding="0" cellspacing="0"><tr>
       ${pieces.map(p => `
         <td style="padding-right:16px;vertical-align:top;text-align:center">
-          <img src="${emailImg(p.image_url, baseUrl)}" width="100" height="100" alt="${MODEL_NAMES[p.model] ?? p.model}"
+          <img src="${emailImg(p.image_url, baseUrl)}" width="100" height="100" alt="${getModel(p.model as ModelId)?.name ?? p.model}"
                style="display:block;width:100px;height:100px;object-fit:cover;border:1px solid rgba(4,54,114,0.12)" />
-          <p style="margin:7px 0 0;font-family:Georgia,serif;font-size:13px;font-weight:300;color:#043672;font-style:italic">${MODEL_NAMES[p.model] ?? p.model}</p>
+          <p style="margin:7px 0 0;font-family:Georgia,serif;font-size:13px;font-weight:300;color:#043672;font-style:italic">${getModel(p.model as ModelId)?.name ?? p.model}</p>
           <p style="margin:3px 0 0;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b8965a">N°${String(p.display_num).padStart(2, '00')}</p>
         </td>`).join('')}
     </tr></table>

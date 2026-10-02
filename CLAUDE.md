@@ -68,7 +68,9 @@ Héritage vivant — passé et présent, culture et liberté.
 | Le Kami | Le Moyen | 328 CAD |
 | Le Nafibe | Le Grand | 395 CAD |
 
-Règles produit : Max 2 par commande · Pièces uniques jamais reproduites · Vente finale, ajustements assurés à vie.
+Règles produit (sacs) : Max 2 par commande · Pièces uniques jamais reproduites · Vente finale, ajustements assurés à vie.
+
+**Catégorie Casquettes — Lucao** (105 CAD, taille unique) — 4 couleurs/motifs wax : Rouge, Vert, Marron, Bleu. Max 10 unités par couleur (identiques entre elles, pas de pièce unique). Rouge/Vert/Marron actifs ; Bleu créé mais sans stock (photo manquante). Chaque couleur = un `ModelId` dédié (`lucao-rouge`, etc.) avec `category:'cap'`, `maxUnits:10`, `groupName:'Lucao'` dans `lib/models.ts` — regroupées à l'affichage (swatch couleur + crossfade, pas de numérotation).
 
 ---
 
@@ -295,6 +297,7 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 - **Curly quotes dans OrdersTable.tsx** — le fichier contient des guillemets typographiques Unicode (U+2018/U+2019) dans les expressions JSX. Cause : copier-coller depuis éditeur rich text. Symptôme : cascade `Invalid character` + `AnimatePresence has no closing tag`. Fix : `python3 -c "open(p,'wb').write(open(p,'rb').read().replace(b'\xe2\x80\x98',b\"'\").replace(b'\xe2\x80\x99',b\"'\"))"`. Ne jamais coller de texte stylisé dans des expressions JSX.
 - **XSS dans templates email HTML** — tous les champs utilisateur (`first_name`, `address`, `city`, `why_locht`, etc.) doivent passer par `esc()` avant interpolation dans `buildConfirmationEmail` et `buildStatusEmail`. Fonction `esc()` définie localement dans chaque fichier email. Sans ça : XSS stored via `srcdoc` iframe admin (`allow-same-origin` → `window.parent` accessible).
 - **Preview email en local** — `npx tsx -e "import { buildConfirmationEmail } from './lib/email-confirmation'; import fs from 'fs'; fs.writeFileSync('/tmp/preview.html', buildConfirmationEmail({...}))"` puis `open /tmp/preview.html`. Valide le rendu sans envoyer de vrai email.
+- **Migration manuelle requise (casquettes + 2e photo, oct. 2026)** — aucun fichier SQL versionné, schéma géré dans le dashboard Supabase uniquement. Avant de déployer : ajouter `pieces.image_url_2 text null` et `orders.head_size text null` ; si un `CHECK` existe sur `pieces.model`, l'étendre aux ids `lucao-rouge`, `lucao-vert`, `lucao-marron`, `lucao-bleu`.
 
 ---
 
@@ -321,3 +324,11 @@ En test : `RESEND_TEST_EMAIL` redirige tous les emails vers une adresse de test.
 - Email correction redesigné : header ambre, note personnalisée depuis l'admin
 - Fix sécurité XSS : `esc()` sur tous les champs utilisateur dans les templates email
 - `lib/email-status.ts` : même fix `esc()` sur `firstName`
+
+### Dernières livraisons (oct. 2026)
+- Hero/Story : nouvelles photos (`collection-2.jpeg`, `bottom.jpeg`), titre H1 Hero retiré, citation "Les cernes ne mentent pas" + mention fondatrice retirées de Story
+- Catégorie **Casquettes** (Lucao, 4 couleurs, 105 CAD, max 10/couleur) — présentation swatch + crossfade, pas de numérotation d'unité (vs sacs)
+- 2e photo par pièce (`image_url_2`) — toggle dans `BagDrawer`, upload optionnel admin
+- Champ **tour de tête** (S/M/L + mesure exacte) dans le formulaire, conditionnel aux casquettes
+- Refactor : `modelNames`/`prices` dupliqués dans 6 fichiers → dérivés de `MODELS`/`getModel()` (lib/models.ts)
+- ⚠️ Nécessite migration Supabase manuelle avant déploiement (voir Bugs résolus & gotchas) + photos/pièces Lucao à uploader via `/admin/inventaire`

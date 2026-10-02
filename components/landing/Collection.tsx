@@ -6,16 +6,20 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLang } from './LangContext'
 import { useLenis } from './LenisProvider'
 import { usePieces } from './PiecesProvider'
-import { MODELS, pieceNum, type DbPiece } from '@/lib/models'
+import { MODELS, pieceNum, type DbPiece, type ModelCategory } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
 type Status = 'available' | 'reserved' | 'sold'
-type Piece  = { id: string; src: string; status: Status; num: number }
+type Piece  = { id: string; src: string; src2: string | null; status: Status; num: number }
 type Model  = {
   id: string; name: string
   format: { fr: string; en: string }
   price: number; dims: string; count: number
+  category: ModelCategory
+  groupName?: string
+  colorLabel?: { fr: string; en: string }
+  colorSwatch?: string
   pieces: Piece[]
 }
 
@@ -24,7 +28,7 @@ function buildModels(db: DbPiece[]): Model[] {
   return MODELS.map(m => {
     const pieces = db
       .filter(p => p.model === m.id)
-      .map(p => ({ id: p.id, src: p.image_url, status: p.status as Status, num: pieceNum(p) }))
+      .map(p => ({ id: p.id, src: p.image_url, src2: p.image_url_2, status: p.status as Status, num: pieceNum(p) }))
       .sort((a, b) => a.num - b.num)
     return {
       ...m,
@@ -34,13 +38,29 @@ function buildModels(db: DbPiece[]): Model[] {
   }).filter(m => m.pieces.length > 0)
 }
 
+// Regroupe les modèles par `groupName` (ex. les 4 couleurs du Lucao) pour l'affichage
+type Spotlight = { kind: 'single'; model: Model } | { kind: 'group'; groupName: string; models: Model[] }
+function groupSpotlights(models: Model[]): Spotlight[] {
+  const out: Spotlight[] = []
+  for (const m of models) {
+    if (!m.groupName) { out.push({ kind: 'single', model: m }); continue }
+    const existing = out.find(s => s.kind === 'group' && s.groupName === m.groupName) as Extract<Spotlight, { kind: 'group' }> | undefined
+    if (existing) existing.models.push(m)
+    else out.push({ kind: 'group', groupName: m.groupName, models: [m] })
+  }
+  return out
+}
+
 const copy = {
   fr: {
     eyebrow: 'La Collection', title: 'LOCHT 01 · LES CERNES', limit: 'Max 2 par commande',
-    unique: 'Pièce unique', order: 'Commander ce sac', reserved: 'Réservée',
-    available: 'disponibles', details: 'Voir les détails', close: 'Fermer',
+    unique: 'Pièce unique', limitedEdition: 'Édition limitée', order: 'Commander ce sac', orderCap: 'Commander cette casquette',
+    reserved: 'Réservée', available: 'disponibles', details: 'Voir les détails', close: 'Fermer',
     materials: 'Matières', materialsVal: 'Cuir végétal · Batik · Pagne tissé du Fouta',
-    dimensions: 'Dimensions', format: 'Format', piece: 'Pièce',
+    dimensions: 'Dimensions', format: 'Format', piece: 'Pièce', color: 'Couleur',
+    editionOf: '10 exemplaires', soldOut: 'Épuisé',
+    uniqueDisclaimer: 'Cette pièce est unique et ne sera jamais reproduite.',
+    editionDisclaimer: 'Fabriquée en édition limitée de 10 exemplaires par couleur.',
     strip: [
       { label: 'Pièces uniques', sub: 'jamais reproduites' },
       { label: 'Livraison mondiale', sub: 'printemps 2026' },
@@ -49,10 +69,13 @@ const copy = {
   },
   en: {
     eyebrow: 'The Collection', title: 'LOCHT 01 · LES CERNES', limit: 'Max 2 per order',
-    unique: 'One-of-a-kind', order: 'Order this bag', reserved: 'Reserved',
-    available: 'available', details: 'View details', close: 'Close',
+    unique: 'One-of-a-kind', limitedEdition: 'Limited edition', order: 'Order this bag', orderCap: 'Order this cap',
+    reserved: 'Reserved', available: 'available', details: 'View details', close: 'Close',
     materials: 'Materials', materialsVal: 'Vegetable leather · Batik · Woven Fouta pagne',
-    dimensions: 'Dimensions', format: 'Size', piece: 'Piece',
+    dimensions: 'Dimensions', format: 'Size', piece: 'Piece', color: 'Color',
+    editionOf: '10 pieces', soldOut: 'Sold out',
+    uniqueDisclaimer: 'This piece is one-of-a-kind and will never be reproduced.',
+    editionDisclaimer: 'Made in a limited edition of 10 pieces per colour.',
     strip: [
       { label: 'Unique pieces', sub: 'never reproduced' },
       { label: 'Worldwide delivery', sub: 'spring 2026' },
@@ -61,11 +84,26 @@ const copy = {
   },
 }
 
+function dispatchPreselect(piece: Piece, model: Model) {
+  window.dispatchEvent(new CustomEvent('preselect-bag', {
+    detail: {
+      id: piece.id,
+      model: model.id,
+      modelName: model.colorLabel ? `${model.name} · ${model.colorLabel.fr}` : model.name,
+      pieceNum: piece.num,
+      price: model.price,
+      src: piece.src,
+    }
+  }))
+}
+
 // ── Drawer ────────────────────────────────────────────────────
 function BagDrawer({ piece, model, c, lang, onClose }: {
   piece: Piece; model: Model; c: typeof copy['fr']; lang: string; onClose: () => void
 }) {
   const num = piece.num
+  const isCap = model.category === 'cap'
+  const [angle, setAngle] = useState<0 | 1>(0)
   const { stop, start } = useLenis()
 
   useEffect(() => {
@@ -97,9 +135,12 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-5 border-b border-[#043672]/08 flex-shrink-0 sticky top-0 bg-[#faf7f2] z-10">
           <div>
-            <p className="text-label text-[10px] text-[#b8965a] tracking-[4px]">{c.unique}</p>
+            <p className="text-label text-[10px] text-[#b8965a] tracking-[4px]">{isCap ? c.limitedEdition : c.unique}</p>
             <p className="font-display text-[20px] font-light text-[#043672] mt-0.5">
-              {model.name} <span className="text-[#7a7a8a] text-[15px]">N°{String(num).padStart(2, '0')}</span>
+              {model.name}{' '}
+              <span className="text-[#7a7a8a] text-[15px]">
+                {isCap ? (model.colorLabel ? (lang === 'fr' ? model.colorLabel.fr : model.colorLabel.en) : '') : `N°${String(num).padStart(2, '0')}`}
+              </span>
             </p>
           </div>
           <button onClick={onClose} className="w-9 h-9 flex items-center justify-center border border-[#043672]/15 hover:border-[#043672] text-[#7a7a8a] hover:text-[#043672] transition-all duration-200 text-xl" data-cursor="hover">×</button>
@@ -107,12 +148,22 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
 
         {/* Photo */}
         <div className="relative aspect-square w-full flex-shrink-0 bg-[#f0ebe0]">
-          <Image src={piece.src} alt={`${model.name} N°${String(num).padStart(2, '0')}`} fill className="object-cover" sizes="460px" priority />
+          <Image src={angle === 1 && piece.src2 ? piece.src2 : piece.src} alt={`${model.name} N°${String(num).padStart(2, '0')}`} fill className="object-cover" sizes="460px" priority />
           {piece.status !== 'available' && (
             <div className="absolute inset-0 bg-[#043672]/55 flex items-center justify-center">
               <span className="text-label text-[11px] text-white/80 tracking-[5px] -rotate-12">
                 {piece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : c.reserved}
               </span>
+            </div>
+          )}
+          {piece.src2 && (
+            <div className="absolute bottom-3 right-3 flex gap-1.5 z-10">
+              {[0, 1].map(i => (
+                <button key={i} onClick={() => setAngle(i as 0 | 1)}
+                  className="w-2 h-2 rounded-full transition-all duration-200"
+                  style={{ background: angle === i ? '#b8965a' : 'rgba(255,255,255,0.6)' }}
+                  data-cursor="hover" />
+              ))}
             </div>
           )}
         </div>
@@ -125,10 +176,13 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {[
+            {(isCap ? [
+              { label: c.color, value: model.colorLabel ? (lang === 'fr' ? model.colorLabel.fr : model.colorLabel.en) : '' },
+              { label: c.piece, value: c.editionOf },
+            ] : [
               { label: c.dimensions, value: model.dims },
               { label: c.piece, value: `N°${String(num).padStart(2, '0')} / ${String(model.count).padStart(2, '0')}` },
-            ].map(({ label, value }) => (
+            ]).map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-1.5">
                 <span className="text-label text-[10px] text-[#b8965a] tracking-[3px]">{label}</span>
                 <span className="text-[13px] text-[#043672] font-light">{value}</span>
@@ -136,24 +190,17 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
             ))}
           </div>
 
-          <div className="bg-[#f0ebe0] px-5 py-4 flex flex-col gap-1.5">
-            <span className="text-label text-[10px] text-[#b8965a] tracking-[3px]">{c.materials}</span>
-            <span className="text-[12px] text-[#043672] font-light">{c.materialsVal}</span>
-          </div>
+          {!isCap && (
+            <div className="bg-[#f0ebe0] px-5 py-4 flex flex-col gap-1.5">
+              <span className="text-label text-[10px] text-[#b8965a] tracking-[3px]">{c.materials}</span>
+              <span className="text-[12px] text-[#043672] font-light">{c.materialsVal}</span>
+            </div>
+          )}
 
           {piece.status === 'available' ? (
             <button
               onClick={() => {
-                window.dispatchEvent(new CustomEvent('preselect-bag', {
-                  detail: {
-                    id: piece.id,
-                    model: model.id,
-                    modelName: model.name,
-                    pieceNum: piece.num,
-                    price: model.price,
-                    src: piece.src,
-                  }
-                }))
+                dispatchPreselect(piece, model)
                 onClose()
                 setTimeout(() => {
                   document.getElementById('commander')?.scrollIntoView({ behavior: 'smooth' })
@@ -163,7 +210,7 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
               data-cursor="hover"
             >
               <span className="absolute inset-0 bg-[#0a4d9e] -translate-x-full group-hover:translate-x-0 transition-transform duration-[420ms] ease-[cubic-bezier(.16,1,.3,1)]" />
-              <span className="relative text-label text-[9px] tracking-[3px]">{c.order}</span>
+              <span className="relative text-label text-[9px] tracking-[3px]">{isCap ? c.orderCap : c.order}</span>
               <span className="relative text-sm group-hover:translate-x-1.5 transition-transform duration-300">→</span>
             </button>
           ) : (
@@ -173,7 +220,7 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
           )}
 
           <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed">
-            {lang === 'fr' ? 'Cette pièce est unique et ne sera jamais reproduite.' : 'This piece is one-of-a-kind and will never be reproduced.'}
+            {isCap ? c.editionDisclaimer : c.uniqueDisclaimer}
           </p>
         </div>
       </motion.div>
@@ -181,7 +228,7 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
   )
 }
 
-// ── Spotlight par modèle ──────────────────────────────────────
+// ── Spotlight par modèle (sacs — pièces uniques numérotées) ───
 function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
   model: Model; c: typeof copy['fr']; lang: string
   onOpenDrawer: (piece: Piece) => void; isFirst: boolean; index: number
@@ -309,6 +356,126 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
   )
 }
 
+// ── Spotlight de groupe (casquettes — variantes couleur) ──────
+// Une seule photo par couleur, swatch sélecteur + crossfade — pas de numérotation d'unité.
+function CapGroupSpotlight({ groupName, models, c, lang, onOpenDrawer, isFirst, index }: {
+  groupName: string; models: Model[]; c: typeof copy['fr']; lang: string
+  onOpenDrawer: (piece: Piece, model: Model) => void; isFirst: boolean; index: number
+}) {
+  const [activeIdx, setActiveIdx] = useState(() => {
+    const firstInStock = models.findIndex(m => m.count > 0)
+    return firstInStock >= 0 ? firstInStock : 0
+  })
+  const activeModel = models[activeIdx]
+  const activePiece = activeModel.pieces.find(p => p.status === 'available') ?? activeModel.pieces[0]
+  const totalAvailable = models.reduce((s, m) => s + m.count, 0)
+  const isRare = activeModel.count > 0 && activeModel.count <= 3
+  const isEven = index % 2 === 0
+  const price = models[0].price
+
+  return (
+    <div className={`border-t-2 border-[#043672]/10 ${isEven ? 'bg-[#faf7f2]' : 'bg-[#ede8df]'}`}>
+      <div className="grid md:grid-cols-2 min-h-[540px]">
+
+        {/* ── Gauche : photo couleur active, crossfade ── */}
+        <div
+          className="relative bg-[#f0ebe0] overflow-hidden cursor-none min-h-[360px] md:min-h-0"
+          data-cursor="hover"
+          onClick={() => onOpenDrawer(activePiece, activeModel)}
+        >
+          {models.map((m, i) => {
+            const p = m.pieces.find(pc => pc.status === 'available') ?? m.pieces[0]
+            return (
+              <div key={m.id} className="absolute inset-0 transition-opacity duration-[1100ms] ease-[cubic-bezier(.4,0,.2,1)]"
+                style={{ opacity: i === activeIdx ? 1 : 0, zIndex: i === activeIdx ? 1 : 0 }}>
+                <Image src={p.src} alt={`${groupName} · ${m.colorLabel?.fr ?? ''}`} fill className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw" priority={i === 0 && isFirst} />
+              </div>
+            )
+          })}
+
+          <div className="absolute top-5 left-5 z-10 bg-[#faf7f2]/85 backdrop-blur-sm px-3 py-1.5">
+            <span className="text-label text-[9px] text-[#043672] tracking-[2px]">{c.limitedEdition} · {c.editionOf}</span>
+          </div>
+
+          <div className="absolute inset-0 z-10 bg-[#043672]/0 hover:bg-[#043672]/70 transition-colors duration-500 flex items-center justify-center group">
+            <span className="text-label text-[9px] text-transparent group-hover:text-white tracking-[3px] translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+              {c.details} →
+            </span>
+          </div>
+        </div>
+
+        {/* ── Droite : info + swatches couleur ── */}
+        <div className={`flex flex-col justify-center gap-6 px-10 md:px-14 py-12 ${isEven ? 'bg-[#faf7f2]' : 'bg-[#ede8df]'}`}>
+
+          <motion.div className="flex flex-col gap-2"
+            initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.7, ease }}>
+            <span className="text-label text-[10px] text-[#b8965a] tracking-[5px]">
+              {lang === 'fr' ? activeModel.format.fr : activeModel.format.en}
+            </span>
+            <h3 className="font-display text-[48px] md:text-[56px] font-light text-[#043672] leading-none tracking-tight">
+              {groupName}
+            </h3>
+            <p className="text-label text-[9px] text-[#7a7a8a] tracking-[2px] mt-1">{activeModel.dims}</p>
+
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#043672]/06">
+              <span className="font-display text-[32px] font-light text-[#043672]">
+                {price} <span className="text-[16px] text-[#7a7a8a]">CAD</span>
+              </span>
+              <span className={`flex items-center gap-1.5 text-label text-[10px] tracking-[2px] ${totalAvailable === 0 ? 'text-[#7a7a8a]' : 'text-[#7a7a8a]'}`}>
+                {totalAvailable === 0 ? c.soldOut : `${totalAvailable} ${c.available}`}
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Swatches couleur */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {models.map((m, i) => {
+              const soldOut = m.count === 0
+              return (
+                <button key={m.id} onClick={() => setActiveIdx(i)}
+                  className="flex flex-col items-center gap-1.5 cursor-none" data-cursor="hover"
+                  title={m.colorLabel ? (lang === 'fr' ? m.colorLabel.fr : m.colorLabel.en) : ''}
+                >
+                  <span className="relative w-7 h-7 rounded-full block transition-all duration-200"
+                    style={{
+                      background: m.colorSwatch ?? '#ccc',
+                      outline: i === activeIdx ? '2px solid #b8965a' : '2px solid transparent',
+                      outlineOffset: '2px',
+                      opacity: soldOut ? 0.35 : 1,
+                    }} />
+                  <span className="text-label text-[8px] text-[#7a7a8a] tracking-[1px]">
+                    {soldOut ? c.soldOut : (m.colorLabel ? (lang === 'fr' ? m.colorLabel.fr : m.colorLabel.en) : '')}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {isRare && (
+            <span className="flex items-center gap-1.5 text-label text-[10px] text-[#b8965a] tracking-[2px] -mt-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
+              {activeModel.count} {c.available}
+            </span>
+          )}
+
+          {/* CTA */}
+          <button
+            onClick={() => onOpenDrawer(activePiece, activeModel)}
+            className="group relative inline-flex items-center justify-between bg-[#043672] text-white overflow-hidden px-6 py-4"
+            data-cursor="hover"
+          >
+            <span className="absolute inset-0 bg-[#0a4d9e] -translate-x-full group-hover:translate-x-0 transition-transform duration-[420ms] ease-[cubic-bezier(.16,1,.3,1)]" />
+            <span className="relative text-label text-[9px] tracking-[3px]">{c.details}</span>
+            <span className="relative text-sm group-hover:translate-x-1.5 transition-transform duration-300">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Section principale ────────────────────────────────────────
 export default function Collection() {
   const { lang } = useLang()
@@ -316,6 +483,7 @@ export default function Collection() {
   const [drawer, setDrawer] = useState<{ piece: Piece; model: Model } | null>(null)
   const { pieces } = usePieces()
   const models = buildModels(pieces)
+  const spotlights = groupSpotlights(models)
 
   return (
     <section id="collection" className="bg-[#faf7f2]">
@@ -348,9 +516,12 @@ export default function Collection() {
         <span className="text-label text-[9px] text-[#b8965a] tracking-[2px] border border-[#b8965a]/30 px-4 py-2 self-start">{c.limit}</span>
       </motion.div>
 
-      {models.map((model, i) => (
-        <ModelSpotlight key={model.id} model={model} c={c} lang={lang} isFirst={i === 0} index={i}
-          onOpenDrawer={(piece) => setDrawer({ piece, model })} />
+      {spotlights.map((s, i) => s.kind === 'single' ? (
+        <ModelSpotlight key={s.model.id} model={s.model} c={c} lang={lang} isFirst={i === 0} index={i}
+          onOpenDrawer={(piece) => setDrawer({ piece, model: s.model })} />
+      ) : (
+        <CapGroupSpotlight key={s.groupName} groupName={s.groupName} models={s.models} c={c} lang={lang} isFirst={i === 0} index={i}
+          onOpenDrawer={(piece, model) => setDrawer({ piece, model })} />
       ))}
 
       <AnimatePresence>

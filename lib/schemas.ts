@@ -3,7 +3,7 @@ import { z } from 'zod'
 // Une pièce unique sélectionnée
 export const pieceSchema = z.object({
   id:        z.string(),
-  model:     z.enum(['kouna', 'kami', 'nafibe']),
+  model:     z.enum(['kouna', 'kami', 'nafibe', 'lucao-rouge', 'lucao-vert', 'lucao-marron', 'lucao-bleu']),
   modelName: z.string(),
   pieceNum:  z.number().int().positive(),
   price:     z.number().positive(),
@@ -11,7 +11,7 @@ export const pieceSchema = z.object({
 })
 
 export const orderSchema = z.object({
-  bagModel:   z.enum(['kouna', 'kami', 'nafibe']),
+  bagModel:   z.enum(['kouna', 'kami', 'nafibe', 'lucao-rouge', 'lucao-vert', 'lucao-marron', 'lucao-bleu']),
   bagName:    z.string(),
   quantity:   z.number().int().min(1).max(2),
   priceTotal: z.number().positive(),
@@ -27,6 +27,7 @@ export const orderSchema = z.object({
   postalCode: z.string().min(2, 'Code postal requis').max(12),
   lang:       z.enum(['fr', 'en']),
   whyLocht:   z.string().max(500).optional(),
+  headSize:   z.string().max(20).optional(), // tour de tête — casquettes uniquement
   website:    z.string().optional(), // honeypot — doit rester vide
 })
 

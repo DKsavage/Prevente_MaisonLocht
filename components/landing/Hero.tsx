@@ -10,8 +10,6 @@ const content = {
   fr: {
     eyebrow: 'LOCHT 01',
     collection: 'Les Cernes',
-    title: ['Les routes', 'que l\'on', 'porte'],
-    titleItalic: 'porte',
     desc: 'Sacs artisanaux en cuir végétal, batik et pagne tissé du Fouta. Chaque pièce trace une route — hommage au monde.',
     tag: 'Pièce unique · jamais reproduite',
     cta: 'Découvrir la collection',
@@ -22,8 +20,6 @@ const content = {
   en: {
     eyebrow: 'LOCHT 01',
     collection: 'Les Cernes',
-    title: ['The roads', 'we', 'carry'],
-    titleItalic: 'carry',
     desc: 'Handcrafted bags in vegetable leather, batik and woven Fouta pagne. Each piece traces a route — a tribute to the world.',
     tag: 'One-of-a-kind · never reproduced',
     cta: 'Discover the collection',
@@ -89,32 +85,6 @@ export default function Hero() {
           <span className="text-label text-[10px] text-[#b8965a]/60 tracking-[5px] font-light">{t.collection}</span>
         </motion.div>
 
-        {/* Titre staggeré ligne par ligne */}
-        <motion.h1
-          className="font-display text-[54px] md:text-[72px] font-light leading-[1.01] text-[#043672] tracking-tight"
-          initial="hidden"
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-        >
-          {t.title.map((line, i) => (
-            <motion.span
-              key={i}
-              className={`block overflow-hidden`}
-              variants={{ hidden: {}, visible: {} }}
-            >
-              <motion.span
-                className={`block ${line === t.titleItalic ? 'italic' : ''}`}
-                variants={{
-                  hidden: { y: '100%', opacity: 0 },
-                  visible: { y: 0, opacity: 1, transition: { duration: 0.85, ease } },
-                }}
-              >
-                {line}
-              </motion.span>
-            </motion.span>
-          ))}
-        </motion.h1>
-
         {/* Description */}
         <motion.div {...fadeUp(0.52)} className="border-l-2 border-[#b8965a] pl-5 flex flex-col gap-2.5">
           <p className="text-[12.5px] leading-[1.9] text-[#7a7a8a] font-light max-w-[290px]">
@@ -164,7 +134,7 @@ export default function Hero() {
         >
           {/* Photo principale — recule au hover */}
           <Image
-            src="/images/collection.jpeg"
+            src="/images/collection-2.jpeg"
             alt="Collection Maison Locht"
             fill
             className="object-cover object-center will-change-transform"

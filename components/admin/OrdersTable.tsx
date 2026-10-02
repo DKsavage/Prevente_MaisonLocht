@@ -12,6 +12,7 @@ import {
   type OrderStatus, ALL_STATUS, STATUS_FLOW,
   STATUS_LABEL, STATUS_SHORT, STATUS_PILL, STATUS_LEFT_COLOR,
 } from '@/lib/order-status'
+import { getModel, type ModelId } from '@/lib/models'
 
 export type Order = {
   reference: string
@@ -34,6 +35,7 @@ export type Order = {
   tracking_number: string | null
   carrier: string | null
   interac_answer: string | null
+  head_size: string | null
   created_at: string
 }
 
@@ -168,8 +170,6 @@ function FilterChip({ active, onClick, label }: { active: boolean; onClick: () =
 }
 
 type PieceItem = { id: string; model: string; image_url: string; display_num: number }
-const MODEL_NAMES: Record<string, string> = { kouna: 'Le Kouna', kami: 'Le Kami', nafibe: 'Le Nafibe' }
-
 function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boolean; onToggle: () => void }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -549,11 +549,11 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                         {pieces.map(p => (
                           <div key={p.id} className="flex flex-col gap-1.5 group">
                             <div className="overflow-hidden w-24 h-24 border border-[#043672]/10 group-hover:border-[#b8965a]/40 transition-all duration-300">
-                              <img src={p.image_url} alt={MODEL_NAMES[p.model] ?? p.model}
+                              <img src={p.image_url} alt={getModel(p.model as ModelId)?.name ?? p.model}
                                 loading="lazy" decoding="async"
                                 className="w-24 h-24 object-cover transition-transform duration-500 group-hover:scale-105" />
                             </div>
-                            <p className="text-[10px] font-light text-[#043672] italic leading-tight">{MODEL_NAMES[p.model] ?? p.model}</p>
+                            <p className="text-[10px] font-light text-[#043672] italic leading-tight">{getModel(p.model as ModelId)?.name ?? p.model}</p>
                             <p className="text-label text-[8px] text-[#b8965a] tracking-[1px]">Pièce N°{String(p.display_num).padStart(2,'0')}</p>
                           </div>
                         ))}
@@ -569,6 +569,9 @@ function OrderRow({ order, expanded, onToggle }: { order: Order; expanded: boole
                       <Detail label="Pièces" value={order.bag_name} />
                       <Detail label="Quantité" value={String(order.quantity)} />
                       <Detail label="Total" value={`${order.price_total} CAD`} />
+                      {order.head_size && (
+                        <Detail label="Tour de tête" value={order.head_size} />
+                      )}
                       {order.interac_answer && (
                         <div className="flex gap-2 items-center mt-1.5">
                           <span className="text-[#7a7a8a] text-[11px] w-[72px] flex-shrink-0">Rép. Interac</span>

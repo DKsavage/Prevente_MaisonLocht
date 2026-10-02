@@ -2,25 +2,23 @@
 
 import Image from 'next/image'
 import { useState, useRef, useTransition } from 'react'
-import { setPieceStatus, releasePiece, reassignPiece, addPiece, changePieceImage, deletePiece } from '@/app/admin/actions'
-import { pieceNum } from '@/lib/models'
+import {
+  setPieceStatus, releasePiece, reassignPiece, addPiece,
+  changePieceImage, changePieceImage2, deletePiece,
+} from '@/app/admin/actions'
+import { pieceNum, MODELS, type ModelId } from '@/lib/models'
 
 export type InvPiece = {
   id: string
-  model: string
+  model: ModelId
   image_url: string
+  image_url_2: string | null
   status: 'available' | 'reserved' | 'sold'
   order_ref: string | null
   sort_order: number
   display_num: number | null
   orderPending?: boolean
 }
-
-const MODELS = [
-  { id: 'kouna', name: 'Le Kouna' },
-  { id: 'kami', name: 'Le Kami' },
-  { id: 'nafibe', name: 'Le Nafibe' },
-]
 
 function statusInfo(p: InvPiece) {
   if (p.status === 'available') return { label: 'Disponible', dot: 'bg-emerald-500', cls: 'text-emerald-700 bg-emerald-50' }
@@ -34,37 +32,70 @@ function statusInfo(p: InvPiece) {
   return { label: 'Réservée', dot: 'bg-[#b8965a]/60', cls: 'text-[#9a7a3a] bg-[#b8965a]/08' }
 }
 
+// Regroupe les modèles par `groupName` (ex. les 4 couleurs du Lucao sous un même en-tête)
+function groupModels() {
+  const groups: { name: string; models: typeof MODELS }[] = []
+  for (const m of MODELS) {
+    const key = m.groupName ?? m.name
+    let g = groups.find(g => g.name === key)
+    if (!g) { g = { name: key, models: [] }; groups.push(g) }
+    g.models.push(m)
+  }
+  return groups
+}
+
 export default function InventoryGrid({ pieces }: { pieces: InvPiece[] }) {
   return (
-    <div className="flex flex-col gap-12">
-      {MODELS.map(model => {
-        const list = pieces.filter(p => p.model === model.id)
-        const c = {
-          available: list.filter(p => p.status === 'available').length,
-          reserved: list.filter(p => p.status === 'reserved').length,
-          sold: list.filter(p => p.status === 'sold').length,
-        }
-        const nextNum = list.reduce((max, p) => Math.max(max, pieceNum(p)), 0) + 1
-        return (
-          <div key={model.id}>
-            <div className="flex items-baseline justify-between mb-5 pb-3 border-b border-[#043672]/10">
-              <div className="flex items-baseline gap-4">
-                <h2 className="font-display text-[24px] font-light text-[#043672]">{model.name}</h2>
-                <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">{list.length} pièces</span>
-              </div>
-              <div className="hidden sm:flex items-center gap-3 text-label text-[10px] tracking-[1px]">
-                <Legend dot="bg-emerald-500" n={c.available} label="dispo" />
-                <Legend dot="bg-[#b8965a]" n={c.reserved} label="réservées" />
-                <Legend dot="bg-[#043672]" n={c.sold} label="vendues" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-              {list.map(piece => <PieceCard key={piece.id} piece={piece} />)}
-              <AddBagCard model={model.id} modelName={model.name} nextNum={nextNum} />
-            </div>
+    <div className="flex flex-col gap-14">
+      {groupModels().map(group => (
+        <div key={group.name}>
+          <h2 className="font-display text-[26px] font-light text-[#043672] mb-5">{group.name}</h2>
+          <div className="flex flex-col gap-8">
+            {group.models.map(model => {
+              const list = pieces.filter(p => p.model === model.id)
+              const c = {
+                available: list.filter(p => p.status === 'available').length,
+                reserved: list.filter(p => p.status === 'reserved').length,
+                sold: list.filter(p => p.status === 'sold').length,
+              }
+              const nextNum = list.reduce((max, p) => Math.max(max, pieceNum(p)), 0) + 1
+              const atMax = !!model.maxUnits && list.length >= model.maxUnits
+              const label = model.colorLabel ? `${model.name} · ${model.colorLabel.fr}` : model.name
+              return (
+                <div key={model.id}>
+                  <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-[#043672]/10">
+                    <div className="flex items-baseline gap-4">
+                      {model.colorSwatch && (
+                        <span className="w-3.5 h-3.5 rounded-full border border-[#043672]/15 inline-block" style={{ background: model.colorSwatch }} />
+                      )}
+                      <h3 className="font-display text-[18px] font-light text-[#043672]">{label}</h3>
+                      <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
+                        {list.length}{model.maxUnits ? ` / ${model.maxUnits}` : ''} pièces
+                      </span>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-3 text-label text-[10px] tracking-[1px]">
+                      <Legend dot="bg-emerald-500" n={c.available} label="dispo" />
+                      <Legend dot="bg-[#b8965a]" n={c.reserved} label="réservées" />
+                      <Legend dot="bg-[#043672]" n={c.sold} label="vendues" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                    {list.map(piece => <PieceCard key={piece.id} piece={piece} />)}
+                    {!atMax && (
+                      <AddBagCard model={model.id} modelName={label} nextNum={nextNum} hasExisting={list.length > 0} />
+                    )}
+                    {atMax && (
+                      <div className="aspect-square border border-dashed border-[#043672]/15 flex items-center justify-center text-center px-3">
+                        <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">Stock complet ({model.maxUnits})</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
-        )
-      })}
+        </div>
+      ))}
     </div>
   )
 }
@@ -77,8 +108,12 @@ function Legend({ dot, n, label }: { dot: string; n: number; label: string }) {
   )
 }
 
-// Carte d'ajout intégrée à la grille — modèle pré-sélectionné, numéro auto
-function AddBagCard({ model, modelName, nextNum }: { model: string; modelName: string; nextNum: number }) {
+// Carte d'ajout intégrée à la grille — modèle pré-sélectionné, numéro auto.
+// Si des pièces existent déjà pour ce modèle, la photo est optionnelle : le serveur
+// réutilise celle d'une pièce existante (utile pour les casquettes, couleur identique).
+function AddBagCard({ model, modelName, nextNum, hasExisting }: {
+  model: string; modelName: string; nextNum: number; hasExisting: boolean
+}) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [msg, setMsg] = useState<string | null>(null)
@@ -103,7 +138,7 @@ function AddBagCard({ model, modelName, nextNum }: { model: string; modelName: s
       <button onClick={() => setOpen(true)}
         className="aspect-square border border-dashed border-[#043672]/25 hover:border-[#b8965a] hover:bg-[#b8965a]/05 transition-colors flex flex-col items-center justify-center gap-2 text-[#7a7a8a] hover:text-[#b8965a]">
         <span className="text-[28px] font-light leading-none">+</span>
-        <span className="text-label text-[9px] tracking-[2px]">Ajouter {modelName.replace('Le ', '')}</span>
+        <span className="text-label text-[9px] tracking-[2px] text-center px-2">Ajouter {modelName.replace('Le ', '')}</span>
       </button>
     )
   }
@@ -114,10 +149,17 @@ function AddBagCard({ model, modelName, nextNum }: { model: string; modelName: s
       <input type="hidden" name="model" value={model} />
       <label className="relative flex-1 bg-[#f0ebe0] border border-dashed border-[#043672]/25 cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#b8965a] transition-colors">
         {preview ? <Image src={preview} alt="" fill className="object-cover" />
-          : <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px] text-center px-2">+ Photo</span>}
-        <input name="image" type="file" accept="image/*" required hidden
+          : <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px] text-center px-2">
+              {hasExisting ? '+ Photo (optionnel)' : '+ Photo'}
+            </span>}
+        <input name="image" type="file" accept="image/*" required={!hasExisting} hidden
           onChange={e => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)) }} />
       </label>
+      {hasExisting && (
+        <p className="text-label text-[8px] text-[#7a7a8a] tracking-[1px] leading-snug">
+          Sans photo, la pièce reprend celle déjà en place pour ce modèle.
+        </p>
+      )}
       <div className="flex items-center gap-1.5">
         <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">N°</span>
         <input name="displayNum" type="number" min={1} defaultValue={nextNum} required
@@ -145,9 +187,10 @@ function IconBtn({ onClick, title, children, disabled }: { onClick: () => void; 
 function PieceCard({ piece }: { piece: InvPiece }) {
   const [isPending, startTransition] = useTransition()
   const [editing, setEditing] = useState(false)
-  const [model, setModel] = useState(piece.model)
+  const [model, setModel] = useState<ModelId>(piece.model)
   const [num, setNum] = useState(String(pieceNum(piece)))
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const image2InputRef = useRef<HTMLInputElement>(null)
   const info = statusInfo(piece)
   const displayN = pieceNum(piece)
 
@@ -156,7 +199,7 @@ function PieceCard({ piece }: { piece: InvPiece }) {
   })
 
   const saveReassign = () => act(async () => {
-    await reassignPiece(piece.id, model as 'kouna' | 'kami' | 'nafibe', parseInt(num, 10) || 1)
+    await reassignPiece(piece.id, model, parseInt(num, 10) || 1)
     setEditing(false)
   })
 
@@ -165,6 +208,13 @@ function PieceCard({ piece }: { piece: InvPiece }) {
     if (!file) return
     const fd = new FormData(); fd.append('image', file)
     act(() => changePieceImage(piece.id, fd))
+  }
+
+  const onImage2Pick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const fd = new FormData(); fd.append('image', file)
+    act(() => changePieceImage2(piece.id, fd))
   }
 
   return (
@@ -180,12 +230,21 @@ function PieceCard({ piece }: { piece: InvPiece }) {
           <span className="font-display text-[13px] font-light leading-none">{String(displayN).padStart(2, '0')}</span>
         </div>
 
+        {/* Indicateur 2e photo */}
+        {piece.image_url_2 && (
+          <div className="absolute bottom-0 right-0 bg-[#b8965a] text-white px-1.5 py-0.5">
+            <span className="text-[8px] tracking-[1px]">2 photos</span>
+          </div>
+        )}
+
         {/* Actions au hover */}
         <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <IconBtn onClick={() => imageInputRef.current?.click()} title="Changer la photo" disabled={isPending}>⟳</IconBtn>
+          <IconBtn onClick={() => imageInputRef.current?.click()} title="Changer la photo (angle 1)" disabled={isPending}>⟳</IconBtn>
+          <IconBtn onClick={() => image2InputRef.current?.click()} title="Photo angle 2 (optionnel)" disabled={isPending}>2</IconBtn>
           <IconBtn onClick={() => setEditing(e => !e)} title="Modifier modèle / numéro">✎</IconBtn>
         </div>
         <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={onImagePick} />
+        <input ref={image2InputRef} type="file" accept="image/*" hidden onChange={onImage2Pick} />
 
         {/* Voile pendant chargement */}
         {isPending && <div className="absolute inset-0 bg-[#faf7f2]/50 flex items-center justify-center">
@@ -201,9 +260,11 @@ function PieceCard({ piece }: { piece: InvPiece }) {
       {/* Panneau édition */}
       {editing && (
         <div className="flex flex-col gap-2 p-3 bg-[#faf7f2] border-x border-b border-[#b8965a]/30">
-          <select value={model} onChange={e => setModel(e.target.value)}
+          <select value={model} onChange={e => setModel(e.target.value as ModelId)}
             className="text-[11px] border border-[#043672]/20 px-2 py-1.5 bg-white">
-            {MODELS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            {MODELS.map(m => (
+              <option key={m.id} value={m.id}>{m.colorLabel ? `${m.name} · ${m.colorLabel.fr}` : m.name}</option>
+            ))}
           </select>
           <div className="flex gap-1.5 items-center">
             <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">N°</span>

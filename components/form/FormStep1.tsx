@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { OrderFormData } from '@/lib/schemas'
-import { MODELS, pieceNum, fetchPieces, type DbPiece, type ModelId, type PieceStatus } from '@/lib/models'
+import { MODELS, getModel, pieceNum, fetchPieces, type DbPiece, type ModelId, type PieceStatus } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -24,7 +24,7 @@ type GridPiece = SelectedPiece & { status: PieceStatus }
 const copy = {
   fr: {
     title: 'Choisissez vos pièces',
-    sub: 'Sélectionnez jusqu\'à 2 pièces. Chaque pièce est unique et ne sera jamais reproduite.',
+    sub: 'Sélectionnez jusqu\'à 2 pièces. Chaque sac est une pièce unique ; chaque casquette fait partie d\'une édition limitée de 10 exemplaires.',
     selected: 'sélectionnée', selectedPlural: 'sélectionnées',
     max: 'Maximum atteint — 2 pièces par commande',
     remove: 'Retirer',
@@ -33,10 +33,13 @@ const copy = {
     selectHint: 'Cliquer pour sélectionner',
     emptyHint: 'Aucune pièce sélectionnée',
     rare: 'disponibles',
+    limitedEdition: 'Édition limitée',
+    editionOf: '10 exemplaires',
+    soldOut: 'Épuisé',
   },
   en: {
     title: 'Choose your pieces',
-    sub: 'Select up to 2 pieces. Each piece is one-of-a-kind and will never be reproduced.',
+    sub: 'Select up to 2 pieces. Each bag is one-of-a-kind; each cap is part of a limited edition of 10.',
     selected: 'selected', selectedPlural: 'selected',
     max: 'Maximum reached — 2 pieces per order',
     remove: 'Remove',
@@ -45,6 +48,9 @@ const copy = {
     selectHint: 'Click to select',
     emptyHint: 'No pieces selected',
     rare: 'available',
+    limitedEdition: 'Limited edition',
+    editionOf: '10 pieces',
+    soldOut: 'Sold out',
   },
 }
 
@@ -72,12 +78,22 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
     pieces: dbPieces
       .filter(p => p.model === m.id)
       .map<GridPiece>(p => ({
-        id: p.id, model: p.model, modelName: m.name,
+        id: p.id, model: p.model, modelName: m.colorLabel ? `${m.name} · ${m.colorLabel.fr}` : m.name,
         pieceNum: pieceNum(p), price: m.price, src: p.image_url,
         status: p.status,
       }))
       .sort((a, b) => a.pieceNum - b.pieceNum),
   })).filter(g => g.pieces.length > 0)
+
+  // Regroupe les variantes couleur (ex. les 4 Lucao) sous un même en-tête
+  type GroupEntry = typeof grouped[number]
+  const sections: ({ kind: 'bag'; group: GroupEntry } | { kind: 'cap'; groupName: string; variants: GroupEntry[] })[] = []
+  for (const g of grouped) {
+    if (!g.meta.groupName) { sections.push({ kind: 'bag', group: g }); continue }
+    const existing = sections.find(s => s.kind === 'cap' && s.groupName === g.meta.groupName) as Extract<typeof sections[number], { kind: 'cap' }> | undefined
+    if (existing) existing.variants.push(g)
+    else sections.push({ kind: 'cap', groupName: g.meta.groupName, variants: [g] })
+  }
 
   const isSelected   = (id: string) => selections.some(s => s.id === id)
   const isFull       = selections.length >= MAX
@@ -94,13 +110,27 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
     }
   }
 
+  // Sélectionne/désélectionne une couleur de casquette (pas une unité précise)
+  const selectedForModel = (modelId: ModelId) => selections.find(s => s.model === modelId)
+  const pickColor = (variant: GroupEntry) => {
+    const existing = selectedForModel(variant.meta.id)
+    if (existing) { toggle(existing); return }
+    const avail = variant.pieces.find(p => p.status === 'available')
+    if (avail && !isFull) toggle(avail)
+  }
+
+  const pieceLabel = (p: SelectedPiece) => {
+    const isCap = getModel(p.model)?.category === 'cap'
+    return isCap ? p.modelName : `${p.modelName} N°${String(p.pieceNum).padStart(2, '0')}`
+  }
+
   const syncFormData = (next: SelectedPiece[]) => {
     if (next.length === 0) {
       onChange({ bagModel: undefined, bagName: undefined, quantity: 1, priceTotal: undefined })
       return
     }
     const total = next.reduce((s, p) => s + p.price, 0)
-    const names = next.map(p => `${p.modelName} N°${String(p.pieceNum).padStart(2, '0')}`).join(' · ')
+    const names = next.map(p => pieceLabel(p)).join(' · ')
     onChange({
       bagModel: next[0].model,
       bagName: names,
@@ -147,86 +177,13 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
 
       {/* Pièces par modèle */}
       <div className="flex flex-col gap-8">
-        {grouped.map(({ meta, pieces }, mi) => {
-          const available = pieces.filter(p => p.status === 'available').length
-          const isRare = available > 0 && available <= 3
-          return (
-            <div key={meta.id}>
-              {/* En-tête modèle */}
-              <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-[#043672]/08">
-                <div className="flex items-baseline gap-3">
-                  <span className="font-display text-[20px] font-light text-[#043672]">{meta.name}</span>
-                  <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
-                    {lang === 'fr' ? meta.format.fr : meta.format.en}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {isRare && (
-                    <span className="flex items-center gap-1.5 text-label text-[10px] text-[#b8965a] tracking-[2px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
-                      {available} {t.rare}
-                    </span>
-                  )}
-                  <span className="font-display text-[16px] font-light text-[#043672]">
-                    {meta.price} <span className="text-[11px] text-[#7a7a8a]">CAD</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Grille de pièces */}
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                {pieces.map((piece, pi) => {
-                  const sel = isSelected(piece.id)
-                  const taken = piece.status !== 'available'
-                  const disabled = taken || (isFull && !sel)
-                  return (
-                    <motion.button
-                      key={piece.id}
-                      onClick={() => !taken && toggle(piece)}
-                      disabled={disabled}
-                      className={`relative aspect-square overflow-hidden cursor-none transition-all duration-200 ${
-                        sel ? 'ring-2 ring-[#b8965a] ring-offset-1' : 'ring-0'
-                      } ${disabled ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
-                      whileHover={!disabled ? { scale: 1.05 } : {}}
-                      whileTap={!disabled ? { scale: 0.96 } : {}}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: taken ? 0.4 : (isFull && !sel ? 0.35 : 1), y: 0 }}
-                      transition={{ duration: 0.3, delay: (mi * 8 + pi) * 0.02, ease }}
-                      data-cursor="hover"
-                      title={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
-                    >
-                      <Image
-                        src={piece.src} alt={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
-                        fill className="object-cover" sizes="80px"
-                        style={{ filter: taken ? 'grayscale(1)' : 'none' }}
-                      />
-                      {/* Overlay sélectionné */}
-                      {sel && (
-                        <div className="absolute inset-0 bg-[#b8965a]/30 flex items-center justify-center">
-                          <span className="w-5 h-5 bg-[#b8965a] flex items-center justify-center text-white text-[10px]">✓</span>
-                        </div>
-                      )}
-                      {/* Overlay indisponible */}
-                      {taken && (
-                        <div className="absolute inset-0 bg-[#043672]/35 flex items-center justify-center">
-                          <span className="text-[6px] text-white/90 tracking-[1px] uppercase -rotate-12">
-                            {piece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : (lang === 'fr' ? 'Réservée' : 'Reserved')}
-                          </span>
-                        </div>
-                      )}
-                      {/* Numéro */}
-                      {!taken && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-[#043672]/60 py-0.5 text-center">
-                          <span className="text-[9px] text-white/70">N°{String(piece.pieceNum).padStart(2, '0')}</span>
-                        </div>
-                      )}
-                    </motion.button>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
+        {sections.map((section, mi) => section.kind === 'bag' ? (
+          <BagGroup key={section.group.meta.id} meta={section.group.meta} pieces={section.group.pieces}
+            mi={mi} lang={lang} t={t} isSelected={isSelected} isFull={isFull} toggle={toggle} />
+        ) : (
+          <CapGroup key={section.groupName} groupName={section.groupName} variants={section.variants}
+            lang={lang} t={t} selectedForModel={selectedForModel} pickColor={pickColor} isFull={isFull} />
+        ))}
       </div>
 
       {/* Résumé sélection */}
@@ -236,7 +193,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease }}
         >
-          {selections.map((p, i) => (
+          {selections.map((p) => (
             <div key={p.id} className="flex items-center gap-3">
               <div className="relative w-12 h-12 flex-shrink-0 bg-[#e0dbd3]">
                 <Image src={p.src} alt={p.modelName} fill className="object-cover" sizes="48px" />
@@ -246,7 +203,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
                   {p.modelName}
                 </span>
                 <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
-                  N°{String(p.pieceNum).padStart(2, '0')} · {p.price} CAD
+                  {pieceLabel(p) === p.modelName ? t.editionOf : `N°${String(p.pieceNum).padStart(2, '0')}`} · {p.price} CAD
                 </span>
               </div>
               <button
@@ -282,6 +239,154 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
           </span>
           <span className="relative text-sm group-hover:translate-x-1.5 transition-transform duration-300">→</span>
         </button>
+      </div>
+    </div>
+  )
+}
+
+type Copy = typeof copy['fr']
+type GroupMeta = typeof MODELS[number]
+
+// ── Groupe sac — grille de pièces uniques numérotées (inchangé) ──
+function BagGroup({ meta, pieces, mi, lang, t, isSelected, isFull, toggle }: {
+  meta: GroupMeta; pieces: GridPiece[]; mi: number; lang: 'fr' | 'en'; t: Copy
+  isSelected: (id: string) => boolean; isFull: boolean; toggle: (p: SelectedPiece) => void
+}) {
+  const available = pieces.filter(p => p.status === 'available').length
+  const isRare = available > 0 && available <= 3
+  return (
+    <div>
+      {/* En-tête modèle */}
+      <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-[#043672]/08">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-[20px] font-light text-[#043672]">{meta.name}</span>
+          <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
+            {lang === 'fr' ? meta.format.fr : meta.format.en}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          {isRare && (
+            <span className="flex items-center gap-1.5 text-label text-[10px] text-[#b8965a] tracking-[2px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#b8965a]" style={{ animation: 'urgency-pulse 1.8s ease-in-out infinite' }} />
+              {available} {t.rare}
+            </span>
+          )}
+          <span className="font-display text-[16px] font-light text-[#043672]">
+            {meta.price} <span className="text-[11px] text-[#7a7a8a]">CAD</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Grille de pièces */}
+      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+        {pieces.map((piece, pi) => {
+          const sel = isSelected(piece.id)
+          const taken = piece.status !== 'available'
+          const disabled = taken || (isFull && !sel)
+          return (
+            <motion.button
+              key={piece.id}
+              onClick={() => !taken && toggle(piece)}
+              disabled={disabled}
+              className={`relative aspect-square overflow-hidden cursor-none transition-all duration-200 ${
+                sel ? 'ring-2 ring-[#b8965a] ring-offset-1' : 'ring-0'
+              } ${disabled ? 'cursor-not-allowed' : 'hover:opacity-90'}`}
+              whileHover={!disabled ? { scale: 1.05 } : {}}
+              whileTap={!disabled ? { scale: 0.96 } : {}}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: taken ? 0.4 : (isFull && !sel ? 0.35 : 1), y: 0 }}
+              transition={{ duration: 0.3, delay: (mi * 8 + pi) * 0.02, ease }}
+              data-cursor="hover"
+              title={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
+            >
+              <Image
+                src={piece.src} alt={`${piece.modelName} N°${String(piece.pieceNum).padStart(2, '0')}`}
+                fill className="object-cover" sizes="80px"
+                style={{ filter: taken ? 'grayscale(1)' : 'none' }}
+              />
+              {/* Overlay sélectionné */}
+              {sel && (
+                <div className="absolute inset-0 bg-[#b8965a]/30 flex items-center justify-center">
+                  <span className="w-5 h-5 bg-[#b8965a] flex items-center justify-center text-white text-[10px]">✓</span>
+                </div>
+              )}
+              {/* Overlay indisponible */}
+              {taken && (
+                <div className="absolute inset-0 bg-[#043672]/35 flex items-center justify-center">
+                  <span className="text-[6px] text-white/90 tracking-[1px] uppercase -rotate-12">
+                    {piece.status === 'sold' ? (lang === 'fr' ? 'Vendue' : 'Sold') : (lang === 'fr' ? 'Réservée' : 'Reserved')}
+                  </span>
+                </div>
+              )}
+              {/* Numéro */}
+              {!taken && (
+                <div className="absolute bottom-0 left-0 right-0 bg-[#043672]/60 py-0.5 text-center">
+                  <span className="text-[9px] text-white/70">N°{String(piece.pieceNum).padStart(2, '0')}</span>
+                </div>
+              )}
+            </motion.button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Groupe casquette — swatches couleur, pas de numérotation ──
+function CapGroup({ groupName, variants, lang, t, selectedForModel, pickColor, isFull }: {
+  groupName: string; variants: { meta: GroupMeta; pieces: GridPiece[] }[]
+  lang: 'fr' | 'en'; t: Copy
+  selectedForModel: (id: ModelId) => SelectedPiece | undefined
+  pickColor: (v: { meta: GroupMeta; pieces: GridPiece[] }) => void
+  isFull: boolean
+}) {
+  const totalAvailable = variants.reduce((s, v) => s + v.pieces.filter(p => p.status === 'available').length, 0)
+  const price = variants[0].meta.price
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-[#043672]/08">
+        <div className="flex items-baseline gap-3">
+          <span className="font-display text-[20px] font-light text-[#043672]">{groupName}</span>
+          <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">{t.limitedEdition}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-label text-[10px] text-[#7a7a8a] tracking-[2px]">
+            {totalAvailable === 0 ? t.soldOut : `${totalAvailable} ${t.rare}`}
+          </span>
+          <span className="font-display text-[16px] font-light text-[#043672]">
+            {price} <span className="text-[11px] text-[#7a7a8a]">CAD</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 flex-wrap">
+        {variants.map(v => {
+          const available = v.pieces.filter(p => p.status === 'available').length
+          const soldOut = available === 0
+          const sel = !!selectedForModel(v.meta.id)
+          const disabled = soldOut || (isFull && !sel)
+          return (
+            <button key={v.meta.id} onClick={() => !disabled && pickColor(v)} disabled={disabled}
+              className={`flex flex-col items-center gap-1.5 cursor-none ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
+              data-cursor="hover"
+            >
+              <span className="relative w-10 h-10 rounded-full block transition-all duration-200"
+                style={{
+                  background: v.meta.colorSwatch ?? '#ccc',
+                  outline: sel ? '2px solid #b8965a' : '2px solid transparent',
+                  outlineOffset: '2px',
+                }}
+              >
+                {sel && (
+                  <span className="absolute inset-0 flex items-center justify-center text-white text-[12px]">✓</span>
+                )}
+              </span>
+              <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">
+                {soldOut ? t.soldOut : (v.meta.colorLabel ? (lang === 'fr' ? v.meta.colorLabel.fr : v.meta.colorLabel.en) : '')}
+              </span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

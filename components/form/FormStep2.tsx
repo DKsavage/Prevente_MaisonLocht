@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { orderSchema, type OrderFormData } from '@/lib/schemas'
 import { COUNTRIES, getPostalFormat, formatPostalCode } from '@/lib/countries'
 import AddressAutocomplete from './AddressAutocomplete'
+import { getModel } from '@/lib/models'
+import type { SelectedPiece } from './FormStep1'
 
 const ease = [0.16, 1, 0.3, 1] as const
 const CA_PROVINCES = ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT']
@@ -26,6 +28,14 @@ const copy = {
     selectCountry: 'Sélectionner un pays',
     selectProvince: 'Province',
     optional: 'optionnel',
+    headSize: 'Tour de tête',
+    sizes: [
+      { id: 'S', label: 'S', range: '54–56 cm' },
+      { id: 'M', label: 'M', range: '57–59 cm' },
+      { id: 'L', label: 'L', range: '60–62 cm' },
+    ],
+    knowExact: 'Je connais ma mesure exacte',
+    exactPlaceholder: 'ex: 57,5 cm',
   },
   en: {
     title: 'Your information',
@@ -43,11 +53,20 @@ const copy = {
     selectCountry: 'Select a country',
     selectProvince: 'Province',
     optional: 'optional',
+    headSize: 'Head circumference',
+    sizes: [
+      { id: 'S', label: 'S', range: '54–56 cm' },
+      { id: 'M', label: 'M', range: '57–59 cm' },
+      { id: 'L', label: 'L', range: '60–62 cm' },
+    ],
+    knowExact: 'I know my exact measurement',
+    exactPlaceholder: 'ex: 57.5 cm',
   },
 }
 
 type Props = {
   data: Partial<OrderFormData>
+  selections: SelectedPiece[]
   lang: 'fr' | 'en'
   onChange: (d: Partial<OrderFormData>) => void
   onNext: () => void
@@ -88,9 +107,11 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   )
 }
 
-export default function FormStep2({ data, lang, onChange, onNext, onBack }: Props) {
+export default function FormStep2({ data, selections, lang, onChange, onNext, onBack }: Props) {
   const t = copy[lang]
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [exactMode, setExactMode] = useState(() => !!data.headSize && !['S', 'M', 'L'].includes(data.headSize))
+  const hasCap = selections.some(s => getModel(s.model)?.category === 'cap')
 
   const set = (field: keyof OrderFormData, value: string) => onChange({ [field]: value })
 
@@ -253,6 +274,42 @@ export default function FormStep2({ data, lang, onChange, onNext, onBack }: Prop
           </motion.div>
         )}
       </Section>
+
+      {/* Tour de tête — casquettes uniquement */}
+      {hasCap && (
+        <Section label={t.headSize}>
+          <div className="flex flex-wrap items-stretch gap-3">
+            {t.sizes.map(s => (
+              <button key={s.id} type="button"
+                onClick={() => { setExactMode(false); set('headSize', s.id) }}
+                className={`flex flex-col items-center justify-center gap-0.5 px-5 py-3 border transition-colors duration-200 cursor-none ${
+                  !exactMode && data.headSize === s.id ? 'border-[#b8965a] bg-[#b8965a]/10' : 'border-[#043672]/15 hover:border-[#043672]/30'
+                }`}
+                data-cursor="hover"
+              >
+                <span className="font-display text-[18px] font-light text-[#043672]">{s.label}</span>
+                <span className="text-label text-[9px] text-[#7a7a8a] tracking-[1px]">{s.range}</span>
+              </button>
+            ))}
+            <button type="button" onClick={() => setExactMode(true)}
+              className={`flex items-center justify-center px-5 py-3 border text-label text-[9px] tracking-[1px] transition-colors duration-200 cursor-none ${
+                exactMode ? 'border-[#b8965a] bg-[#b8965a]/10 text-[#043672]' : 'border-[#043672]/15 text-[#7a7a8a] hover:border-[#043672]/30'
+              }`}
+              data-cursor="hover"
+            >
+              {t.knowExact} →
+            </button>
+          </div>
+          {exactMode && (
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <input type="text" placeholder={t.exactPlaceholder}
+                value={['S', 'M', 'L'].includes(data.headSize ?? '') ? '' : (data.headSize ?? '')}
+                onChange={e => set('headSize', e.target.value)}
+                className={baseBox} />
+            </motion.div>
+          )}
+        </Section>
+      )}
 
       {/* Pourquoi Maison Locht */}
       <Field label={t.why} optional lang={lang}>

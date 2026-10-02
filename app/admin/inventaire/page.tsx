@@ -13,7 +13,7 @@ export default async function AdminInventoryPage() {
   // Requêtes en parallèle → plus rapide
   const [piecesRes, ordersRes] = await Promise.all([
     supabase.from('pieces')
-      .select('id, model, image_url, status, order_ref, sort_order, display_num')
+      .select('id, model, image_url, image_url_2, status, order_ref, sort_order, display_num')
       .order('model', { ascending: true })
       .order('display_num', { ascending: true, nullsFirst: false })
       .order('sort_order', { ascending: true }),
