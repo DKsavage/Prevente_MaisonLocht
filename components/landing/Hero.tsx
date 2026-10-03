@@ -137,7 +137,7 @@ export default function Hero() {
             transition={{ duration: 1.3, delay: 0.5, ease: [0.23, 1, 0.32, 1] }}
           >
             <Image
-              src="/images/collection-2.jpeg"
+              src="/images/sac-tenu-zoom.jpg"
               alt="Collection Maison Locht"
               fill
               className="object-cover object-center"
