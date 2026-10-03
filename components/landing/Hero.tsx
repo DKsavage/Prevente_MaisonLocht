@@ -32,12 +32,12 @@ const content = {
 // Carrousel Hero — extensible (ajouter une entrée = une catégorie de plus, ex. casquettes)
 const heroSlides = {
   fr: [
+    { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Collection Maison Locht', position: 'object-center', label: 'La Collection' },
     { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Sac Maison Locht porté', position: 'object-center', label: 'Sacs artisanaux' },
-    { id: 'univers', src: '/images/bottom.jpeg', alt: 'Maison Locht — Les Cernes', position: 'object-[50%_60%]', label: "L'univers Maison Locht" },
   ],
   en: [
+    { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Maison Locht collection', position: 'object-center', label: 'The Collection' },
     { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Maison Locht bag, worn', position: 'object-center', label: 'Handcrafted bags' },
-    { id: 'univers', src: '/images/bottom.jpeg', alt: 'Maison Locht — Les Cernes', position: 'object-[50%_60%]', label: 'The Maison Locht world' },
   ],
 }
 
