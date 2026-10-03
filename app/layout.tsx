@@ -28,18 +28,18 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://prevente.maisonlocht.com'),
-  title: 'Maison Locht — Collection LES CERNES',
-  description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta. Pièces uniques, jamais reproduites.',
+  title: 'Maison Locht — Pré-vente 2026',
+  description: 'Pré-vente exclusive. Sacs et casquettes artisanaux, façonnés à la main. Sacs uniques, casquettes en édition limitée.',
   openGraph: {
-    title: 'Maison Locht — Collection LES CERNES',
-    description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta. Pièces uniques, jamais reproduites.',
+    title: 'Maison Locht — Pré-vente 2026',
+    description: 'Pré-vente exclusive. Sacs et casquettes artisanaux, façonnés à la main. Sacs uniques, casquettes en édition limitée.',
     locale: 'fr_CA',
-    images: [{ url: '/images/4mannequins.jpeg', width: 1200, height: 800, alt: 'Maison Locht — Collection LES CERNES' }],
+    images: [{ url: '/images/4mannequins.jpeg', width: 1200, height: 800, alt: 'Maison Locht — Pré-vente 2026' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Maison Locht — Collection LES CERNES',
-    description: 'Pré-vente exclusive. Sacs artisanaux en wax, pagnes et tissé fouta.',
+    title: 'Maison Locht — Pré-vente 2026',
+    description: 'Pré-vente exclusive. Sacs et casquettes artisanaux, façonnés à la main.',
     images: ['/images/4mannequins.jpeg'],
   },
 }

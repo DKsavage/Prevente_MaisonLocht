@@ -8,7 +8,7 @@ export default function Footer() {
         {/* Logo + tagline */}
         <div className="flex flex-col items-center md:items-start gap-3">
           <Image src="/images/logo-blanc.png" alt="Maison Locht" width={120} height={28} className="h-6 w-auto opacity-50" />
-          <p className="text-label text-[9px] tracking-[3px] text-white/25">LOCHT 01 · LES CERNES · 2026</p>
+          <p className="text-label text-[9px] tracking-[3px] text-white/25">Pré-vente · 2026</p>
         </div>
 
         {/* Mentions */}
@@ -16,7 +16,7 @@ export default function Footer() {
           <p className="text-[10px] leading-relaxed text-white/30 max-w-[300px]">
             Chaque création est définitive.<br />
             Les ajustements sont assurés à vie.<br />
-            Max 2 par commande · pièces uniques, jamais reproduites.
+            Max 2 par commande · sacs uniques, casquettes en édition limitée.
           </p>
           <p className="text-[9px] text-white/15 tracking-[1px] mt-1">
             © {new Date().getFullYear()} Maison Locht. Tous droits réservés.

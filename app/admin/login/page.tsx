@@ -47,7 +47,7 @@ export default function AdminLogin() {
             Les routes<br />tracées<br />dans le tissu.
           </p>
           <p className="mt-7 text-[10px] text-[#d4aa6a]/50 tracking-[4px] font-light uppercase">
-            Collection Locht 01 — Les Cernes
+            Pré-vente · 2026
           </p>
         </div>
 

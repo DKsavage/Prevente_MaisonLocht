@@ -8,20 +8,18 @@ import { usePieces } from './PiecesProvider'
 
 const content = {
   fr: {
-    eyebrow: 'LOCHT 01',
-    collection: 'Les Cernes',
-    desc: 'Sacs artisanaux en cuir végétal, batik et pagne tissé du Fouta. Chaque pièce trace une route — hommage au monde.',
-    tag: 'Pièce unique · jamais reproduite',
+    eyebrow: 'Pré-vente',
+    collection: '2026',
+    desc: 'Sacs et casquettes, pièces artisanales façonnées à la main. Chaque création trace une route, hommage au monde.',
     cta: 'Découvrir la collection',
     pulse: 'Pré-vente ouverte',
     badgeTxt: 'pièces disponibles',
     floatTag: 'Canada · 2026',
   },
   en: {
-    eyebrow: 'LOCHT 01',
-    collection: 'Les Cernes',
-    desc: 'Handcrafted bags in vegetable leather, batik and woven Fouta pagne. Each piece traces a route — a tribute to the world.',
-    tag: 'One-of-a-kind · never reproduced',
+    eyebrow: 'Pre-sale',
+    collection: '2026',
+    desc: 'Bags and caps, artisanal pieces shaped by hand. Each creation traces a route, a tribute to the world.',
     cta: 'Discover the collection',
     pulse: 'Pre-sale open',
     badgeTxt: 'pieces available',
@@ -32,11 +30,11 @@ const content = {
 // Carrousel Hero — extensible (ajouter une entrée = une catégorie de plus, ex. casquettes)
 const heroSlides = {
   fr: [
-    { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Collection Maison Locht', position: 'object-center', label: 'La Collection' },
+    { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Collection Maison Locht', position: 'object-center', label: 'Sacs · Casquettes' },
     { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Sac Maison Locht porté', position: 'object-center', label: 'Sacs artisanaux' },
   ],
   en: [
-    { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Maison Locht collection', position: 'object-center', label: 'The Collection' },
+    { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Maison Locht collection', position: 'object-center', label: 'Bags · Caps' },
     { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Maison Locht bag, worn', position: 'object-center', label: 'Handcrafted bags' },
   ],
 }
@@ -119,10 +117,6 @@ export default function Hero() {
           <p className="text-[12.5px] leading-[1.9] text-[#7a7a8a] font-light max-w-[290px]">
             {t.desc}
           </p>
-          <span className="text-label text-[9px] text-[#b8965a] tracking-[3px] flex items-center gap-2">
-            <span className="text-[9px]">✦</span>
-            {t.tag}
-          </span>
         </motion.div>
 
         {/* CTA */}
@@ -145,7 +139,7 @@ export default function Hero() {
       </div>
 
       {/* ── Côté image ── */}
-      <div className="relative bg-[#f0ebe0] flex items-center justify-center overflow-hidden order-1 md:order-2 min-h-[78vw] md:min-h-0">
+      <div className="relative bg-[#f0ebe0] flex items-center justify-center overflow-hidden order-1 md:order-2 min-h-[85vw] md:min-h-0">
 
         {/* Halos décoratifs */}
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(4,54,114,0.06)_0%,transparent_70%)] pointer-events-none" />
@@ -161,7 +155,7 @@ export default function Hero() {
             onMouseLeave={() => setAutoPaused(false)}
             onFocus={() => setAutoPaused(true)}
             onBlur={() => setAutoPaused(false)}
-            className="relative w-[92%] md:w-[88%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
+            className="relative w-[96%] md:w-[94%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
           >
             {/* Rideau de dévoilement — une seule fois à l'arrivée, pas répété aux changements de slide */}
             <motion.div
@@ -188,7 +182,7 @@ export default function Hero() {
                     className={`object-cover ${slide.position}`}
                     style={reduceMotion ? undefined : { animation: 'hero-breathe 28s ease-in-out infinite' }}
                     priority={i === 0}
-                    sizes="(max-width: 767px) 92vw, (max-width: 1279px) 52vw, 60vw"
+                    sizes="(max-width: 767px) 96vw, (max-width: 1279px) 56vw, 60vw"
                   />
                 </div>
               ))}

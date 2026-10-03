@@ -9,8 +9,8 @@ import { useLang } from './LangContext'
 const content = {
   fr: {
     announcement: 'Pré-vente exclusive',
-    label: 'LOCHT 01 · LES CERNES',
-    note: 'Pièces uniques · jamais reproduites',
+    note: 'Sacs uniques, casquettes en édition limitée',
+    footerTag: 'Pré-vente · 2026',
     links: [
       { label: 'Collection', href: '#collection' },
       { label: 'Histoire',   href: '#histoire' },
@@ -21,8 +21,8 @@ const content = {
   },
   en: {
     announcement: 'Exclusive pre-sale',
-    label: 'LOCHT 01 · LES CERNES',
-    note: 'One-of-a-kind · never reproduced',
+    note: 'One-of-a-kind bags, limited-edition caps',
+    footerTag: 'Pre-sale · 2026',
     links: [
       { label: 'Collection', href: '#collection' },
       { label: 'Story',      href: '#histoire' },
@@ -71,9 +71,8 @@ export default function Nav() {
               className="inline-flex items-center gap-3"
             >
               {t.announcement}
-              <span className="text-[#d4aa6a] font-normal">{t.label}</span>
               <span className="text-white/30">·</span>
-              {t.note}
+              <span className="text-[#d4aa6a] font-normal">{t.note}</span>
             </motion.span>
           </AnimatePresence>
         </p>
@@ -179,7 +178,7 @@ export default function Nav() {
 
             {/* Pied — lang + mention */}
             <div className="px-8 py-6 border-t border-white/08 flex items-center justify-between flex-shrink-0">
-              <span className="text-[10px] text-white/25 tracking-[3px] uppercase">Locht 01 · Les Cernes</span>
+              <span className="text-[10px] text-white/25 tracking-[3px] uppercase">{t.footerTag}</span>
               <button
                 onClick={() => { toggle(); }}
                 className="text-label text-[10px] text-white/50 hover:text-white border border-white/15 hover:border-[#d4aa6a]/50 px-3.5 py-1.5 transition-all duration-200"

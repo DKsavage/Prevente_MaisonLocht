@@ -1,4 +1,5 @@
 import type { Order } from '@/components/admin/OrdersTable'
+import { getModel, type ModelId } from '@/lib/models'
 
 type PieceItem = { id: string; model: string; display_num: number }
 
@@ -33,6 +34,20 @@ export function buildInvoiceHtml(order: Order, pieces: PieceItem[] = []): string
   const pieceList = pieces.length > 0
     ? pieces.map(p => `Pièce N°${String(p.display_num).padStart(2, '0')}`).join(', ')
     : '—'
+
+  // Mention "pièce unique" valable uniquement pour les sacs — les casquettes sont en édition limitée
+  const allBags = pieces.length > 0 && pieces.every(p => getModel(p.model as ModelId)?.category === 'bag')
+  const allCaps = pieces.length > 0 && pieces.every(p => getModel(p.model as ModelId)?.category === 'cap')
+  const articleSub = allCaps
+    ? 'Pré-vente 2026 · Édition limitée'
+    : allBags
+      ? 'Collection LOCHT 01 — Les Cernes · Pièce unique'
+      : 'Pré-vente 2026'
+  const uniqueCondition = allCaps
+    ? 'Chaque casquette est façonnée à la main, en édition limitée.'
+    : allBags
+      ? 'Chaque pièce est unique et ne sera jamais reproduite.'
+      : 'Chaque pièce est façonnée à la main, avec le même soin.'
 
   const addrLines = [
     esc(order.address),
@@ -158,7 +173,7 @@ tbody td:last-child { text-align: right; }
 <div class="header">
   <div>
     <p class="brand">Maison Locht</p>
-    <p class="brand-sub">Collection LOCHT 01 — Les Cernes</p>
+    <p class="brand-sub">Pré-vente 2026</p>
   </div>
   <div class="invoice-meta">
     <span class="invoice-label">Facture</span>
@@ -197,7 +212,7 @@ tbody td:last-child { text-align: right; }
     <tr>
       <td>
         <p class="article-name">${esc(order.bag_name)}</p>
-        <p class="article-sub">Collection LOCHT 01 — Les Cernes · Pièce unique</p>
+        <p class="article-sub">${esc(articleSub)}</p>
       </td>
       <td><span class="article-sub">${esc(pieceList)}</span></td>
       <td>${order.quantity}</td>
@@ -221,7 +236,7 @@ tbody td:last-child { text-align: right; }
   <p class="conditions-title">Conditions de vente</p>
   <ul>
     <li>Vente finale — aucun remboursement.</li>
-    <li>Chaque pièce est unique et ne sera jamais reproduite.</li>
+    <li>${esc(uniqueCondition)}</li>
     <li>Ajustements assurés à vie par Maison Locht.</li>
     <li>Maximum 2 pièces par commande.</li>
   </ul>

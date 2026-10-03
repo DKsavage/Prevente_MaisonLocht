@@ -19,8 +19,9 @@ const copy = {
     paymentTitle: 'Paiement par virement Interac',
     paymentDesc: 'Après confirmation, un code de référence et les instructions de paiement vous seront envoyés par courriel.',
     back: 'Retour', confirm: 'Confirmer la commande', loading: 'Envoi…',
-    unique: 'Pièce unique · jamais reproduite',
-    piece: 'Pièce', engagement: 'Chaque pièce est cousue à la main et ne sera jamais reproduite.',
+    piece: 'Pièce',
+    engagementBags: 'Chaque pièce est cousue à la main et ne sera jamais reproduite.',
+    engagementMixed: 'Chaque pièce est cousue à la main, avec le même soin.',
     finalSale: 'Chaque création est définitive. Les ajustements sont assurés à vie.',
   },
   en: {
@@ -31,8 +32,9 @@ const copy = {
     paymentTitle: 'Payment by Interac transfer',
     paymentDesc: 'After confirmation, a reference code and payment instructions will be sent to you by email.',
     back: 'Back', confirm: 'Confirm order', loading: 'Sending…',
-    unique: 'One-of-a-kind · never reproduced',
-    piece: 'Piece', engagement: 'Each piece is hand-sewn and will never be reproduced.',
+    piece: 'Piece',
+    engagementBags: 'Each piece is hand-sewn and will never be reproduced.',
+    engagementMixed: 'Each piece is hand-sewn, with the same care.',
     finalSale: 'Each creation is final. Adjustments are guaranteed for life.',
   },
 }
@@ -54,6 +56,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
   const countryName = COUNTRIES.find(c => c.code === data.country)
   const countryLabel = countryName ? (lang === 'fr' ? countryName.name : countryName.nameEn) : data.country
   const payMethod = getPaymentMethod(data.country ?? '')
+  const allBags = selections.every(p => getModel(p.model)?.category === 'bag')
 
   return (
     <motion.div
@@ -128,7 +131,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
 
         {/* Engagement marque */}
         <p className="text-label text-[10px] text-[#7a7a8a] tracking-[1px] text-center leading-relaxed pt-1">
-          {t.engagement}
+          {allBags ? t.engagementBags : t.engagementMixed}
         </p>
       </div>
 

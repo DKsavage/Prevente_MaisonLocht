@@ -288,7 +288,7 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
            </p>
            <h1 style="margin:0;font-family:Georgia,serif;font-size:30px;font-weight:300;color:#fff;letter-spacing:3px">Maison Locht</h1>
            <p style="margin:8px 0 0;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.4)">
-             LOCHT 01 &middot; Les Cernes
+             Pr&#233;-vente &middot; 2026
            </p>
          </td></tr>`}
 
@@ -387,15 +387,15 @@ export function buildConfirmationEmail({ data, reference, baseUrl }: {
     <tr><td style="padding:0 40px 28px;text-align:center">
       <p style="margin:0;font-size:10px;color:#7a7a8a;line-height:1.7">
         ${isFr
-          ? 'Pi&#232;ce unique &middot; ni reprise ni &#233;change. Des ajustements sur le sac restent possibles sur demande.'
-          : 'One-of-a-kind &middot; no returns or exchanges. Adjustments to the bag remain available on request.'}
+          ? 'Vente finale &middot; ni reprise ni &#233;change. Ajustements possibles sur demande pour les sacs.'
+          : 'Final sale &middot; no returns or exchanges. Adjustments available on request for bags.'}
       </p>
     </td></tr>
 
     <!-- Footer -->
     <tr><td style="padding:22px 40px;background:#021f45;text-align:center">
       <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">
-        ${isFr ? 'Pi&#232;ces uniques, jamais reproduites' : 'One-of-a-kind pieces, never reproduced'}
+        ${isFr ? 'Sacs uniques, casquettes en &#233;dition limit&#233;e' : 'One-of-a-kind bags, limited-edition caps'}
       </p>
     </td></tr>
 

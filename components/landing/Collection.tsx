@@ -53,7 +53,7 @@ function groupSpotlights(models: Model[]): Spotlight[] {
 
 const copy = {
   fr: {
-    eyebrow: 'La Collection', title: 'LOCHT 01 · LES CERNES', limit: 'Max 2 par commande',
+    eyebrow: 'La Collection', title: 'SACS · CASQUETTES', limit: 'Max 2 par commande',
     unique: 'Pièce unique', limitedEdition: 'Édition limitée', order: 'Commander ce sac', orderCap: 'Commander cette casquette',
     reserved: 'Réservée', available: 'disponibles', details: 'Voir les détails', close: 'Fermer',
     materials: 'Matières', materialsVal: 'Cuir végétal · Batik · Pagne tissé du Fouta',
@@ -62,13 +62,13 @@ const copy = {
     uniqueDisclaimer: 'Cette pièce est unique et ne sera jamais reproduite.',
     editionDisclaimer: 'Fabriquée en édition limitée de 10 exemplaires par couleur.',
     strip: [
-      { label: 'Pièces uniques', sub: 'jamais reproduites' },
+      { label: 'Sacs uniques', sub: 'casquettes en édition limitée' },
       { label: 'Livraison mondiale', sub: 'printemps 2026' },
-      { label: 'Max 2 par commande', sub: 'cuir végétal · batik · fouta' },
+      { label: 'Max 2 par commande', sub: 'pièces artisanales façonnées à la main' },
     ],
   },
   en: {
-    eyebrow: 'The Collection', title: 'LOCHT 01 · LES CERNES', limit: 'Max 2 per order',
+    eyebrow: 'The Collection', title: 'BAGS · CAPS', limit: 'Max 2 per order',
     unique: 'One-of-a-kind', limitedEdition: 'Limited edition', order: 'Order this bag', orderCap: 'Order this cap',
     reserved: 'Reserved', available: 'available', details: 'View details', close: 'Close',
     materials: 'Materials', materialsVal: 'Vegetable leather · Batik · Woven Fouta pagne',
@@ -77,9 +77,9 @@ const copy = {
     uniqueDisclaimer: 'This piece is one-of-a-kind and will never be reproduced.',
     editionDisclaimer: 'Made in a limited edition of 10 pieces per colour.',
     strip: [
-      { label: 'Unique pieces', sub: 'never reproduced' },
+      { label: 'One-of-a-kind bags', sub: 'limited-edition caps' },
       { label: 'Worldwide delivery', sub: 'spring 2026' },
-      { label: 'Max 2 per order', sub: 'vegetable leather · batik · fouta' },
+      { label: 'Max 2 per order', sub: 'artisanal pieces shaped by hand' },
     ],
   },
 }

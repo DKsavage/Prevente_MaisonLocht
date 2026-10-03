@@ -76,7 +76,7 @@ function footer(isFr: boolean) {
   return `
   <tr><td style="padding:24px 40px;background:#021f45;text-align:center">
     <p style="margin:0;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase">
-      ${isFr ? 'Pièce unique · ni reprise ni échange · ajustements possibles sur demande' : 'One-of-a-kind · no returns or exchanges · adjustments available on request'}
+      ${isFr ? 'Vente finale · ni reprise ni échange · ajustements possibles sur demande pour les sacs' : 'Final sale · no returns or exchanges · adjustments available on request for bags'}
     </p>
   </td></tr>`
 }
