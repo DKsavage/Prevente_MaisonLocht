@@ -143,7 +143,7 @@ export default function Hero() {
               className="object-cover object-center"
               style={reduceMotion ? undefined : { animation: 'hero-breathe 28s ease-in-out infinite' }}
               priority
-              sizes="(max-width: 768px) 70vw, 35vw"
+              sizes="(max-width: 767px) 88vw, (max-width: 1279px) 48vw, 60vw"
             />
           </motion.div>
         </motion.div>
