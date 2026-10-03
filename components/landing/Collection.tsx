@@ -66,6 +66,9 @@ const copy = {
       { label: 'Livraison mondiale', sub: 'printemps 2026' },
       { label: 'Max 2 par catégorie', sub: 'pièces artisanales façonnées à la main' },
     ],
+    exploreByCategory: 'Explorer par catégorie',
+    tileSacTitle: 'Les Sacs', tileCasqueTitle: 'Les Casquettes',
+    filterCue: 'Filtrer', resetFilter: 'Voir tout',
   },
   en: {
     eyebrow: 'The Collection', title: 'BAGS · CAPS', limit: 'Max 2 per category',
@@ -81,6 +84,9 @@ const copy = {
       { label: 'Worldwide delivery', sub: 'spring 2026' },
       { label: 'Max 2 per category', sub: 'artisanal pieces shaped by hand' },
     ],
+    exploreByCategory: 'Explore by category',
+    tileSacTitle: 'The Bags', tileCasqueTitle: 'The Caps',
+    filterCue: 'Filter', resetFilter: 'View all',
   },
 }
 
@@ -476,14 +482,81 @@ function CapGroupSpotlight({ groupName, models, c, lang, onOpenDrawer, isFirst, 
   )
 }
 
+// ── Trait or animé (entrée des tuiles de filtre) ───────────────
+function GoldRule() {
+  return (
+    <motion.span
+      className="block w-9 h-px bg-gradient-to-r from-[#d4aa6a] to-transparent origin-left"
+      initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }}
+      viewport={{ once: true }} transition={{ duration: 0.7, ease }}
+    />
+  )
+}
+
+// ── Tuile de filtre catégorie (sacs / casquettes) ──────────────
+function FilterTile({ src, title, sub, cue, selected, dimmed, index, onToggle }: {
+  src: string; title: string; sub: string; cue: string
+  selected: boolean; dimmed: boolean; index: number; onToggle: () => void
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={selected}
+      data-cursor="hover"
+      className="group relative block w-full text-left cursor-none outline-none"
+      initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }} transition={{ duration: 0.7, ease, delay: index * 0.12 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <div
+        className={`relative aspect-[16/10] md:aspect-[4/5] overflow-hidden bg-[#f0ebe0] outline-2 outline-offset-4 transition-[outline-color,opacity] duration-300 group-focus-visible:outline-[#b8965a] ${selected ? 'outline-[#b8965a]' : 'outline-transparent'} ${dimmed ? 'opacity-40' : 'opacity-100'}`}
+      >
+        <Image
+          src={src}
+          alt={title}
+          fill
+          className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.035]"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+        {/* Voile permanent — lisibilité garantie quelle que soit la photo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#021f45]/88 via-[#021f45]/32 to-transparent pointer-events-none" />
+        {/* Intensification au survol */}
+        <div className="absolute inset-0 bg-[#043672]/0 group-hover:bg-[#043672]/25 transition-colors duration-500 pointer-events-none" />
+
+        <div className="absolute inset-0 z-10 flex items-end p-6">
+          <div>
+            <span className="text-label text-[9px] text-[#d4aa6a] tracking-[3px] block">{sub}</span>
+            <GoldRule />
+            <h3 className="font-display text-[32px] md:text-[42px] font-light text-white leading-none mt-2.5" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.35)' }}>
+              {title}
+            </h3>
+          </div>
+        </div>
+
+        <span className="absolute top-5 right-5 z-10 text-label text-[9px] text-white tracking-[2px] bg-[#043672]/55 backdrop-blur-sm px-3 py-1.5 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+          {cue} →
+        </span>
+      </div>
+    </motion.button>
+  )
+}
+
 // ── Section principale ────────────────────────────────────────
 export default function Collection() {
   const { lang } = useLang()
   const c = copy[lang]
   const [drawer, setDrawer] = useState<{ piece: Piece; model: Model } | null>(null)
+  const [filter, setFilter] = useState<ModelCategory | null>(null)
   const { pieces } = usePieces()
   const models = buildModels(pieces)
   const spotlights = groupSpotlights(models)
+  const bagsAvailable = models.filter(m => m.category === 'bag').reduce((s, m) => s + m.count, 0)
+  const capsAvailable = models.filter(m => m.category === 'cap').reduce((s, m) => s + m.count, 0)
+  const visibleSpotlights = spotlights.filter(s => {
+    if (!filter) return true
+    return (s.kind === 'single' ? s.model.category : 'cap') === filter
+  })
 
   return (
     <section id="collection" className="bg-[#faf7f2]">
@@ -516,13 +589,58 @@ export default function Collection() {
         <span className="text-label text-[9px] text-[#b8965a] tracking-[2px] border border-[#b8965a]/30 px-4 py-2 self-start">{c.limit}</span>
       </motion.div>
 
-      {spotlights.map((s, i) => s.kind === 'single' ? (
-        <ModelSpotlight key={s.model.id} model={s.model} c={c} lang={lang} isFirst={i === 0} index={i}
-          onOpenDrawer={(piece) => setDrawer({ piece, model: s.model })} />
-      ) : (
-        <CapGroupSpotlight key={s.groupName} groupName={s.groupName} models={s.models} c={c} lang={lang} isFirst={i === 0} index={i}
-          onOpenDrawer={(piece, model) => setDrawer({ piece, model })} />
-      ))}
+      {/* Tuiles de filtre catégorie */}
+      <div className="max-w-[1180px] mx-auto px-8 md:px-14 pt-9 pb-3">
+        <span className="text-label text-[9px] text-[#7a7a8a] tracking-[2px]">{c.exploreByCategory}</span>
+      </div>
+      <div className="max-w-[1180px] mx-auto px-8 md:px-14 pb-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+        <FilterTile
+          src="/images/presentation-sac-2.jpg" title={c.tileSacTitle}
+          sub={`${bagsAvailable} ${c.available}`} cue={c.filterCue}
+          selected={filter === 'bag'} dimmed={filter !== null && filter !== 'bag'} index={0}
+          onToggle={() => setFilter(filter === 'bag' ? null : 'bag')}
+        />
+        <FilterTile
+          src="/images/presentation-casques.jpeg" title={c.tileCasqueTitle}
+          sub={`${capsAvailable} ${c.available}`} cue={c.filterCue}
+          selected={filter === 'cap'} dimmed={filter !== null && filter !== 'cap'} index={1}
+          onToggle={() => setFilter(filter === 'cap' ? null : 'cap')}
+        />
+      </div>
+      <div className="max-w-[1180px] mx-auto px-8 md:px-14 flex justify-end min-h-[28px]">
+        <AnimatePresence>
+          {filter && (
+            <motion.button
+              type="button" onClick={() => setFilter(null)} data-cursor="hover"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="text-label text-[9px] text-[#7a7a8a] hover:text-[#043672] tracking-[2px] flex items-center gap-1.5 cursor-none transition-colors"
+            >
+              <span aria-hidden="true" className="text-[13px] leading-none">×</span>
+              {c.resetFilter}
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {visibleSpotlights.map((s, i) => (
+          <motion.div
+            key={s.kind === 'single' ? s.model.id : s.groupName}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1], delay: i * 0.08 } }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.16, ease: [0.4, 0, 0, 1] } }}
+          >
+            {s.kind === 'single' ? (
+              <ModelSpotlight model={s.model} c={c} lang={lang} isFirst={i === 0} index={i}
+                onOpenDrawer={(piece) => setDrawer({ piece, model: s.model })} />
+            ) : (
+              <CapGroupSpotlight groupName={s.groupName} models={s.models} c={c} lang={lang} isFirst={i === 0} index={i}
+                onOpenDrawer={(piece, model) => setDrawer({ piece, model })} />
+            )}
+          </motion.div>
+        ))}
+      </AnimatePresence>
 
       <AnimatePresence>
         {drawer && (
