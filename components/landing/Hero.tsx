@@ -73,10 +73,10 @@ export default function Hero() {
   const [hovered, setHovered] = useState(false)
 
   return (
-    <section className="grid md:grid-cols-[40%_60%] xl:grid-cols-[20%_80%] min-h-[78vh] border-b border-[#043672]/05">
+    <section className="grid md:grid-cols-[42%_58%] xl:grid-cols-[32%_68%] min-h-[78vh] border-b border-[#043672]/05">
 
       {/* ── Côté texte ── */}
-      <div className="flex flex-col justify-center gap-7 px-8 md:px-14 xl:px-8 py-16 md:py-24 order-2 md:order-1">
+      <div className="flex flex-col justify-center gap-7 px-8 md:px-14 py-16 md:py-24 order-2 md:order-1">
 
         {/* Eyebrow */}
         <motion.div {...fadeUp(0.1)} className="flex items-center gap-4">
@@ -100,11 +100,11 @@ export default function Hero() {
         <motion.div {...fadeUp(0.65)} className="flex items-center flex-wrap gap-4 md:gap-6 mt-1">
           <a
             href="#collection"
-            className="group relative inline-flex items-center gap-3 xl:gap-2 bg-[#043672] text-white overflow-hidden px-8 py-[15px] xl:px-5 xl:py-3"
+            className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-[15px]"
             data-cursor="hover"
           >
             <span className="absolute inset-0 bg-[#0a4d9e] -translate-x-full group-hover:translate-x-0 transition-transform duration-[420ms] ease-[cubic-bezier(.16,1,.3,1)]" />
-            <span className="relative text-label text-[9px] tracking-[3px] xl:tracking-[1.5px]">{t.cta}</span>
+            <span className="relative text-label text-[9px] tracking-[3px]">{t.cta}</span>
             <span className="relative text-sm transition-transform duration-300 group-hover:translate-x-1.5">→</span>
           </a>
 
@@ -116,7 +116,7 @@ export default function Hero() {
       </div>
 
       {/* ── Côté image ── */}
-      <div className="relative bg-[#f0ebe0] flex items-center justify-center overflow-hidden order-1 md:order-2 min-h-[85vw] md:min-h-0">
+      <div className="relative bg-[#f0ebe0] flex items-center justify-center overflow-hidden order-1 md:order-2 min-h-[68vw] md:min-h-0">
 
         {/* Halos décoratifs */}
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(4,54,114,0.06)_0%,transparent_70%)] pointer-events-none" />
@@ -127,7 +127,7 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.2, ease }}
-          className="relative w-[94%] md:w-[82%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
+          className="relative w-[85%] md:w-[78%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           data-cursor="hover"
@@ -152,7 +152,7 @@ export default function Hero() {
             src="/images/bottom.jpeg"
             alt="Maison Locht — Les Cernes"
             fill
-            className="object-contain will-change-transform"
+            className="object-cover object-[50%_60%] will-change-transform"
             style={{
               opacity: hovered ? 1 : 0,
               transform: hovered ? 'scale(1)' : 'scale(1.06)',
