@@ -97,7 +97,7 @@ export default function Hero() {
 
   useEffect(() => {
     if (reduceMotion || autoPaused) return
-    const id = setInterval(() => setActive(a => (a + 1) % slides.length), 7000)
+    const id = setInterval(() => setActive(a => (a + 1) % slides.length), 6000)
     return () => clearInterval(id)
   }, [reduceMotion, autoPaused, slides.length])
 
@@ -114,13 +114,13 @@ export default function Hero() {
         </motion.div>
 
         {/* Repère typographique — seul grand moment Cormorant de la colonne */}
-        <motion.p {...fadeUp(0.28)} className="font-display text-[52px] md:text-[56px] font-light italic text-[#043672] leading-none">
+        <motion.p {...fadeUp(0.28)} className="font-display text-[64px] md:text-[56px] xl:text-[52px] font-light italic text-[#043672] leading-none">
           {t.collection}
         </motion.p>
 
         {/* Description */}
         <motion.div {...fadeUp(0.52)} className="border-l-2 border-[#b8965a] pl-5 flex flex-col gap-2.5">
-          <p className="text-[12.5px] leading-[1.9] text-[#7a7a8a] font-light max-w-[290px]">
+          <p className="text-[12.5px] leading-[1.9] text-[#7a7a8a] font-light max-w-[290px] xl:max-w-[340px] text-pretty">
             {t.desc}
           </p>
         </motion.div>
@@ -129,7 +129,7 @@ export default function Hero() {
         <motion.div {...fadeUp(0.65)} className="flex items-center flex-wrap gap-4 md:gap-6 mt-1">
           <a
             href="#collection"
-            className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-[15px]"
+            className="group relative inline-flex items-center gap-4 bg-[#043672] text-white overflow-hidden px-8 py-4 active:scale-[0.96] transition-transform duration-150"
             data-cursor="hover"
           >
             <span className="absolute inset-0 bg-[#0a4d9e] -translate-x-full group-hover:translate-x-0 transition-transform duration-[420ms] ease-[cubic-bezier(.16,1,.3,1)]" />
