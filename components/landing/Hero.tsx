@@ -200,7 +200,7 @@ export default function Hero() {
             <span className="text-label text-[9px] text-[#043672]/70 tracking-[3px]">
               {slides[active].label}
             </span>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center">
               {slides.map((slide, i) => (
                 <button
                   key={slide.id}
@@ -208,7 +208,7 @@ export default function Hero() {
                   onClick={() => setActive(i)}
                   aria-label={lang === 'fr' ? `Voir ${slide.label}` : `View ${slide.label}`}
                   aria-current={active === i}
-                  className="py-2 cursor-none"
+                  className="w-11 h-11 flex items-center justify-center cursor-none"
                   data-cursor="hover"
                 >
                   <span
