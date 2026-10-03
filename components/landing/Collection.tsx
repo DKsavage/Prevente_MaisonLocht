@@ -170,14 +170,13 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
             </div>
           )}
           {piece.src2 && (
-            <div className="absolute bottom-1 right-1 flex z-10">
+            <div className="absolute bottom-3 right-3 z-10 bg-[#faf7f2]/85 backdrop-blur-sm flex items-stretch divide-x divide-[#043672]/10">
               {[0, 1].map(i => (
                 <button key={i} onClick={() => setAngle(i as 0 | 1)}
                   aria-label={`${lang === 'fr' ? 'Angle' : 'Angle'} ${i + 1}`} aria-pressed={angle === i}
-                  className="relative w-11 h-11 flex items-center justify-center"
+                  className="min-w-[36px] min-h-[36px] flex items-center justify-center"
                   data-cursor="hover">
-                  <span className="w-2 h-2 rounded-full transition-all duration-200"
-                    style={{ background: angle === i ? '#b8965a' : 'rgba(255,255,255,0.6)' }} />
+                  <span className={`font-display text-[13px] transition-colors duration-200 ${angle === i ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>{i + 1}</span>
                 </button>
               ))}
             </div>
@@ -321,16 +320,15 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
             </span>
           </div>
 
-          {/* Changement d'angle — au-dessus du voile hover */}
+          {/* Changement d'angle — au-dessus du voile hover, même langage que compteur/tag */}
           {activePiece.src2 && (
-            <div className="absolute bottom-1 right-1 z-20 flex" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute bottom-5 right-5 z-20 bg-[#faf7f2]/85 backdrop-blur-sm flex items-stretch divide-x divide-[#043672]/10">
               {[0, 1].map(i => (
-                <button key={i} onClick={() => setAngle(i as 0 | 1)}
+                <button key={i} onClick={(e) => { e.stopPropagation(); setAngle(i as 0 | 1) }}
                   aria-label={`${lang === 'fr' ? 'Angle' : 'Angle'} ${i + 1}`} aria-pressed={angle === i}
-                  className="relative w-11 h-11 flex items-center justify-center cursor-none"
+                  className="min-w-[36px] min-h-[36px] flex items-center justify-center cursor-none"
                   data-cursor="hover">
-                  <span className="w-2 h-2 rounded-full transition-all duration-200"
-                    style={{ background: angle === i ? '#b8965a' : 'rgba(255,255,255,0.7)' }} />
+                  <span className={`font-display text-[13px] transition-colors duration-200 ${angle === i ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>{i + 1}</span>
                 </button>
               ))}
             </div>
