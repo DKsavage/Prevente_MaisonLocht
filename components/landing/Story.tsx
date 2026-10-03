@@ -23,6 +23,8 @@ const content = {
       { label: 'Héritage', value: '3 continents tissés en une seule pièce' },
     ],
     photoCaption: 'Collection LOCHT 01 · LES CERNES',
+    continues: 'Aujourd’hui, cette route continue.',
+    continuesLink: 'Voir la collection',
   },
   en: {
     eyebrow: 'The Story',
@@ -39,6 +41,8 @@ const content = {
       { label: 'Heritage', value: '3 continents woven into one piece' },
     ],
     photoCaption: 'Collection LOCHT 01 · LES CERNES',
+    continues: 'Today, that road continues.',
+    continuesLink: 'View the collection',
   },
 }
 
@@ -176,6 +180,18 @@ export default function Story() {
           </div>
         </div>
       </div>
+
+      {/* ── Ouverture vers la suite ── */}
+      <motion.div
+        className="bg-[#faf7f2] border-b border-[#043672]/06 px-8 md:px-14 py-8 flex items-center justify-center gap-4"
+        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
+        viewport={{ once: true }} transition={{ duration: 0.7, ease, delay: 0.1 }}
+      >
+        <p className="font-display text-[15px] italic font-light text-[#043672]/70">{t.continues}</p>
+        <a href="#collection" className="text-label text-[9px] text-[#b8965a] tracking-[2px] hover:text-[#043672] transition-colors duration-200 flex items-center gap-1.5">
+          {t.continuesLink} →
+        </a>
+      </motion.div>
     </section>
   )
 }

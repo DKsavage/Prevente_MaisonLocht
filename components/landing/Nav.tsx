@@ -13,7 +13,7 @@ const content = {
     footerTag: 'Pré-vente · 2026',
     links: [
       { label: 'Collection', href: '#collection' },
-      { label: 'Histoire',   href: '#histoire' },
+      { label: 'Origine',    href: '#histoire' },
       { label: 'Commander',  href: '#commander' },
     ],
     lang: 'EN',
@@ -25,7 +25,7 @@ const content = {
     footerTag: 'Pre-sale · 2026',
     links: [
       { label: 'Collection', href: '#collection' },
-      { label: 'Story',      href: '#histoire' },
+      { label: 'Origin',     href: '#histoire' },
       { label: 'Order',      href: '#commander' },
     ],
     lang: 'FR',
