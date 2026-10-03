@@ -154,7 +154,14 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
 
         {/* Photo */}
         <div className="relative aspect-square w-full flex-shrink-0 bg-[#f0ebe0]">
-          <Image src={angle === 1 && piece.src2 ? piece.src2 : piece.src} alt={`${model.name} N°${String(num).padStart(2, '0')}`} fill className="object-cover" sizes="460px" priority />
+          <Image src={piece.src} alt={`${model.name} N°${String(num).padStart(2, '0')}`} fill
+            className="object-cover transition-opacity duration-300 ease-[cubic-bezier(.4,0,.2,1)]"
+            style={{ opacity: angle === 0 ? 1 : 0 }} sizes="460px" priority />
+          {piece.src2 && (
+            <Image src={piece.src2} alt={`${model.name} N°${String(num).padStart(2, '0')} — angle 2`} fill
+              className="object-cover transition-opacity duration-300 ease-[cubic-bezier(.4,0,.2,1)]"
+              style={{ opacity: angle === 1 ? 1 : 0 }} sizes="460px" />
+          )}
           {piece.status !== 'available' && (
             <div className="absolute inset-0 bg-[#043672]/55 flex items-center justify-center">
               <span className="text-label text-[11px] text-white/80 tracking-[5px] -rotate-12">
@@ -163,12 +170,15 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
             </div>
           )}
           {piece.src2 && (
-            <div className="absolute bottom-3 right-3 flex gap-1.5 z-10">
+            <div className="absolute bottom-1 right-1 flex z-10">
               {[0, 1].map(i => (
                 <button key={i} onClick={() => setAngle(i as 0 | 1)}
-                  className="w-2 h-2 rounded-full transition-all duration-200"
-                  style={{ background: angle === i ? '#b8965a' : 'rgba(255,255,255,0.6)' }}
-                  data-cursor="hover" />
+                  aria-label={`${lang === 'fr' ? 'Angle' : 'Angle'} ${i + 1}`} aria-pressed={angle === i}
+                  className="relative w-11 h-11 flex items-center justify-center"
+                  data-cursor="hover">
+                  <span className="w-2 h-2 rounded-full transition-all duration-200"
+                    style={{ background: angle === i ? '#b8965a' : 'rgba(255,255,255,0.6)' }} />
+                </button>
               ))}
             </div>
           )}
@@ -241,6 +251,7 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
 }) {
   const firstAvailable = Math.max(0, model.pieces.findIndex(p => p.status === 'available'))
   const [active, setActive] = useState(firstAvailable)
+  const [angle, setAngle] = useState<0 | 1>(0)
   const isRare = model.count > 0 && model.count <= 3
   const activePiece = model.pieces[active]
   const isEven = index % 2 === 0
@@ -273,6 +284,22 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
             </div>
           ))}
 
+          {/* 2e angle de la pièce active */}
+          {activePiece.src2 && (
+            <div
+              className="absolute inset-0 transition-opacity duration-300 ease-[cubic-bezier(.4,0,.2,1)]"
+              style={{ opacity: angle === 1 ? 1 : 0, zIndex: angle === 1 ? 2 : 0 }}
+            >
+              <Image
+                src={activePiece.src2}
+                alt={`${model.name} N°${String(activePiece.num).padStart(2, '0')} — angle 2`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
+          )}
+
           {/* Compteur */}
           <div className="absolute top-5 left-5 z-10 bg-[#faf7f2]/80 backdrop-blur-sm px-3 py-1.5 flex items-center gap-2">
             <span className="font-display text-[14px] text-[#043672]">{String(active + 1).padStart(2, '0')}</span>
@@ -293,6 +320,21 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
               {c.details} →
             </span>
           </div>
+
+          {/* Changement d'angle — au-dessus du voile hover */}
+          {activePiece.src2 && (
+            <div className="absolute bottom-1 right-1 z-20 flex" onClick={(e) => e.stopPropagation()}>
+              {[0, 1].map(i => (
+                <button key={i} onClick={() => setAngle(i as 0 | 1)}
+                  aria-label={`${lang === 'fr' ? 'Angle' : 'Angle'} ${i + 1}`} aria-pressed={angle === i}
+                  className="relative w-11 h-11 flex items-center justify-center cursor-none"
+                  data-cursor="hover">
+                  <span className="w-2 h-2 rounded-full transition-all duration-200"
+                    style={{ background: angle === i ? '#b8965a' : 'rgba(255,255,255,0.7)' }} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Droite : info + thumbnails ── */}
@@ -308,6 +350,9 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
               {model.name}
             </h3>
             <p className="text-label text-[9px] text-[#7a7a8a] tracking-[2px] mt-1">{model.dims}</p>
+            {model.category === 'bag' && (
+              <span className="text-label text-[9px] text-[#b8965a] tracking-[2px] mt-1">{c.materialsVal}</span>
+            )}
 
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#043672]/06">
               <span className="font-display text-[32px] font-light text-[#043672]">
@@ -327,7 +372,7 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
               return (
                 <motion.button
                   key={piece.id}
-                  onClick={() => setActive(i)}
+                  onClick={() => { setActive(i); setAngle(0) }}
                   className="relative aspect-square overflow-hidden transition-all duration-200 cursor-none"
                   style={{ outline: i === active ? '2px solid #b8965a' : '2px solid transparent', outlineOffset: '2px' }}
                   whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
