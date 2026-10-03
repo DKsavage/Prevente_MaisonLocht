@@ -127,11 +127,7 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.2, ease }}
-          style={{
-            aspectRatio: hovered ? '985 / 1388' : '3 / 2',
-            transition: 'aspect-ratio 1100ms cubic-bezier(.4,0,.2,1)',
-          }}
-          className="relative w-[85%] md:w-[78%] xl:w-[86%] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
+          className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
           data-cursor="hover"
