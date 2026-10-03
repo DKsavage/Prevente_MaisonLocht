@@ -9,7 +9,7 @@ const ease = [0.16, 1, 0.3, 1] as const
 
 const content = {
   fr: {
-    eyebrow: "L'Histoire",
+    eyebrow: 'Origine',
     facts: [
       { value: 'Belgo-Haïtienne', label: 'Origine' },
       { value: 'Sénégal · Congo · Guinée', label: 'Racines' },
@@ -27,7 +27,7 @@ const content = {
     continuesLink: 'Voir la collection',
   },
   en: {
-    eyebrow: 'The Story',
+    eyebrow: 'Origin',
     facts: [
       { value: 'Belgian-Haitian', label: 'Origin' },
       { value: 'Senegal · Congo · Guinea', label: 'Roots' },
@@ -81,17 +81,6 @@ export default function Story() {
         {/* Texture grain */}
         <div className="absolute inset-0 opacity-[0.5] pointer-events-none mix-blend-overlay"
           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")` }} />
-        {/* Logo blanc */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease }}
-          className="mb-4"
-        >
-          <Image src="/images/logo-blanc.png" alt="Maison Locht" width={160} height={36} className="h-8 w-auto opacity-60" />
-        </motion.div>
-
         {/* Eyebrow */}
         <motion.div
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
