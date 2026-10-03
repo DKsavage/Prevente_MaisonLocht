@@ -29,6 +29,18 @@ const content = {
   },
 }
 
+// Carrousel Hero — extensible (ajouter une entrée = une catégorie de plus, ex. casquettes)
+const heroSlides = {
+  fr: [
+    { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Sac Maison Locht porté', position: 'object-center', label: 'Sacs artisanaux' },
+    { id: 'univers', src: '/images/bottom.jpeg', alt: 'Maison Locht — Les Cernes', position: 'object-[50%_60%]', label: "L'univers Maison Locht" },
+  ],
+  en: [
+    { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Maison Locht bag, worn', position: 'object-center', label: 'Handcrafted bags' },
+    { id: 'univers', src: '/images/bottom.jpeg', alt: 'Maison Locht — Les Cernes', position: 'object-[50%_60%]', label: 'The Maison Locht world' },
+  ],
+}
+
 const ease = [0.16, 1, 0.3, 1] as const
 
 const fadeUp = (delay = 0) => ({
@@ -67,10 +79,27 @@ function useCountUp(target: number, duration = 1400) {
 export default function Hero() {
   const { lang } = useLang()
   const t = content[lang]
+  const slides = heroSlides[lang]
   // Nombre réel de pièces disponibles (live, via la source partagée)
   const { availableCount } = usePieces()
   const { count, done, ref: badgeRef } = useCountUp(availableCount)
   const reduceMotion = useReducedMotion()
+
+  // ── Carrousel Hero : avance auto lente, pause au survol/focus/onglet masqué ──
+  const [active, setActive] = useState(0)
+  const [autoPaused, setAutoPaused] = useState(false)
+
+  useEffect(() => {
+    const onVisibility = () => setAutoPaused(document.visibilityState !== 'visible')
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
+  useEffect(() => {
+    if (reduceMotion || autoPaused) return
+    const id = setInterval(() => setActive(a => (a + 1) % slides.length), 7000)
+    return () => clearInterval(id)
+  }, [reduceMotion, autoPaused, slides.length])
 
   return (
     <section className="grid md:grid-cols-[42%_58%] xl:grid-cols-[32%_68%] min-h-[78vh] border-b border-[#043672]/05">
@@ -122,31 +151,75 @@ export default function Hero() {
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(4,54,114,0.06)_0%,transparent_70%)] pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.07)_0%,transparent_70%)] pointer-events-none" />
 
-        {/* Cadre photo */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.1, delay: 0.2, ease }}
-          className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
-        >
-          {/* Rideau de dévoilement — une seule fois à l'arrivée */}
+        {/* Carrousel photo */}
+        <div className="w-full flex flex-col items-center gap-5">
           <motion.div
-            className="absolute inset-0"
-            initial={reduceMotion ? { opacity: 0 } : { clipPath: 'inset(0% 100% 0% 0%)' }}
-            animate={reduceMotion ? { opacity: 1 } : { clipPath: 'inset(0% 0% 0% 0%)' }}
-            transition={{ duration: 1.3, delay: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.1, delay: 0.2, ease }}
+            onMouseEnter={() => setAutoPaused(true)}
+            onMouseLeave={() => setAutoPaused(false)}
+            onFocus={() => setAutoPaused(true)}
+            onBlur={() => setAutoPaused(false)}
+            className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
           >
-            <Image
-              src="/images/sac-tenu-zoom.jpg"
-              alt="Collection Maison Locht"
-              fill
-              className="object-cover object-center"
-              style={reduceMotion ? undefined : { animation: 'hero-breathe 28s ease-in-out infinite' }}
-              priority
-              sizes="(max-width: 767px) 88vw, (max-width: 1279px) 48vw, 60vw"
-            />
+            {/* Rideau de dévoilement — une seule fois à l'arrivée, pas répété aux changements de slide */}
+            <motion.div
+              className="absolute inset-0"
+              initial={reduceMotion ? { opacity: 0 } : { clipPath: 'inset(0% 100% 0% 0%)' }}
+              animate={reduceMotion ? { opacity: 1 } : { clipPath: 'inset(0% 0% 0% 0%)' }}
+              transition={{ duration: 1.3, delay: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            >
+              {slides.map((slide, i) => (
+                <div
+                  key={slide.id}
+                  className="absolute inset-0"
+                  style={{
+                    opacity: active === i ? 1 : 0,
+                    transform: `scale(${active === i ? 1 : 0.99})`,
+                    transition: 'opacity 900ms cubic-bezier(.16,1,.3,1), transform 900ms cubic-bezier(.16,1,.3,1)',
+                    zIndex: active === i ? 1 : 0,
+                  }}
+                >
+                  <Image
+                    src={slide.src}
+                    alt={slide.alt}
+                    fill
+                    className={`object-cover ${slide.position}`}
+                    style={reduceMotion ? undefined : { animation: 'hero-breathe 28s ease-in-out infinite' }}
+                    priority={i === 0}
+                    sizes="(max-width: 767px) 88vw, (max-width: 1279px) 48vw, 60vw"
+                  />
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
-        </motion.div>
+
+          {/* Navigation — traits or, légende, avance auto 7s */}
+          <motion.div {...fadeUp(1.9)} className="flex flex-col items-center gap-2.5">
+            <span className="text-label text-[9px] text-[#043672]/70 tracking-[3px]">
+              {slides[active].label}
+            </span>
+            <div className="flex items-center gap-3">
+              {slides.map((slide, i) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={lang === 'fr' ? `Voir ${slide.label}` : `View ${slide.label}`}
+                  aria-current={active === i}
+                  className="py-2 cursor-none"
+                  data-cursor="hover"
+                >
+                  <span
+                    className="block h-px bg-[#b8965a] transition-all duration-500"
+                    style={{ width: active === i ? 32 : 16, opacity: active === i ? 1 : 0.35 }}
+                  />
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        </div>
 
         {/* Badge count-up */}
         <motion.div
