@@ -145,7 +145,7 @@ export default function Hero() {
       </div>
 
       {/* ── Côté image ── */}
-      <div className="relative bg-[#f0ebe0] flex items-center justify-center overflow-hidden order-1 md:order-2 min-h-[68vw] md:min-h-0">
+      <div className="relative bg-[#f0ebe0] flex items-center justify-center overflow-hidden order-1 md:order-2 min-h-[78vw] md:min-h-0">
 
         {/* Halos décoratifs */}
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(4,54,114,0.06)_0%,transparent_70%)] pointer-events-none" />
@@ -161,7 +161,7 @@ export default function Hero() {
             onMouseLeave={() => setAutoPaused(false)}
             onFocus={() => setAutoPaused(true)}
             onBlur={() => setAutoPaused(false)}
-            className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
+            className="relative w-[92%] md:w-[88%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
           >
             {/* Rideau de dévoilement — une seule fois à l'arrivée, pas répété aux changements de slide */}
             <motion.div
@@ -188,7 +188,7 @@ export default function Hero() {
                     className={`object-cover ${slide.position}`}
                     style={reduceMotion ? undefined : { animation: 'hero-breathe 28s ease-in-out infinite' }}
                     priority={i === 0}
-                    sizes="(max-width: 767px) 88vw, (max-width: 1279px) 48vw, 60vw"
+                    sizes="(max-width: 767px) 92vw, (max-width: 1279px) 52vw, 60vw"
                   />
                 </div>
               ))}
