@@ -53,7 +53,7 @@ function groupSpotlights(models: Model[]): Spotlight[] {
 
 const copy = {
   fr: {
-    eyebrow: 'La Collection', title: 'SACS · CASQUETTES', limit: 'Max 2 par commande',
+    eyebrow: 'La Collection', title: 'SACS · CASQUETTES', limit: 'Max 2 par catégorie',
     unique: 'Pièce unique', limitedEdition: 'Édition limitée', order: 'Commander ce sac', orderCap: 'Commander cette casquette',
     reserved: 'Réservée', available: 'disponibles', details: 'Voir les détails', close: 'Fermer',
     materials: 'Matières', materialsVal: 'Cuir végétal · Batik · Pagne tissé du Fouta',
@@ -64,11 +64,11 @@ const copy = {
     strip: [
       { label: 'Sacs uniques', sub: 'casquettes en édition limitée' },
       { label: 'Livraison mondiale', sub: 'printemps 2026' },
-      { label: 'Max 2 par commande', sub: 'pièces artisanales façonnées à la main' },
+      { label: 'Max 2 par catégorie', sub: 'pièces artisanales façonnées à la main' },
     ],
   },
   en: {
-    eyebrow: 'The Collection', title: 'BAGS · CAPS', limit: 'Max 2 per order',
+    eyebrow: 'The Collection', title: 'BAGS · CAPS', limit: 'Max 2 per category',
     unique: 'One-of-a-kind', limitedEdition: 'Limited edition', order: 'Order this bag', orderCap: 'Order this cap',
     reserved: 'Reserved', available: 'available', details: 'View details', close: 'Close',
     materials: 'Materials', materialsVal: 'Vegetable leather · Batik · Woven Fouta pagne',
@@ -79,7 +79,7 @@ const copy = {
     strip: [
       { label: 'One-of-a-kind bags', sub: 'limited-edition caps' },
       { label: 'Worldwide delivery', sub: 'spring 2026' },
-      { label: 'Max 2 per order', sub: 'artisanal pieces shaped by hand' },
+      { label: 'Max 2 per category', sub: 'artisanal pieces shaped by hand' },
     ],
   },
 }

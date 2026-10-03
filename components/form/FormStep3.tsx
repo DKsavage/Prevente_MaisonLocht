@@ -81,7 +81,7 @@ export default function FormStep3({ data, selections, lang, loading, onBack, onS
           </button>
         </div>
 
-        <div className={`grid gap-5 ${selections.length === 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-[300px] mx-auto md:mx-0'}`}>
+        <div className={`grid gap-5 ${selections.length >= 2 ? 'grid-cols-2' : 'grid-cols-1 max-w-[300px] mx-auto md:mx-0'}`}>
           {selections.map((piece, i) => {
             const isCap = getModel(piece.model)?.category === 'cap'
             return (

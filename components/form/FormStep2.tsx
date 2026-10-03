@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { orderSchema, type OrderFormData } from '@/lib/schemas'
+import { orderBase, type OrderFormData } from '@/lib/schemas'
 import { COUNTRIES, getPostalFormat, formatPostalCode } from '@/lib/countries'
 import AddressAutocomplete from './AddressAutocomplete'
 import { getModel } from '@/lib/models'
@@ -124,7 +124,7 @@ export default function FormStep2({ data, selections, lang, onChange, onNext, on
     set('postalCode', formatPostalCode(e.target.value, data.country ?? ''))
 
   const validate = () => {
-    const result = orderSchema.pick({
+    const result = orderBase.pick({
       firstName: true, lastName: true, email: true,
       country: true, address: true, city: true, postalCode: true,
     }).safeParse(data)

@@ -238,7 +238,7 @@ tbody td:last-child { text-align: right; }
     <li>Vente finale — aucun remboursement.</li>
     <li>${esc(uniqueCondition)}</li>
     <li>Ajustements assurés à vie par Maison Locht.</li>
-    <li>Maximum 2 pièces par commande.</li>
+    <li>Maximum 2 pièces par catégorie (sacs / casquettes).</li>
   </ul>
 </div>
 

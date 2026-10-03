@@ -4,7 +4,8 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { OrderFormData } from '@/lib/schemas'
-import { MODELS, getModel, pieceNum, fetchPieces, type DbPiece, type ModelId, type PieceStatus } from '@/lib/models'
+import { MAX_PER_CATEGORY } from '@/lib/schemas'
+import { MODELS, getModel, pieceNum, fetchPieces, type DbPiece, type ModelId, type PieceStatus, type ModelCategory } from '@/lib/models'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -24,9 +25,10 @@ type GridPiece = SelectedPiece & { status: PieceStatus }
 const copy = {
   fr: {
     title: 'Choisissez vos pièces',
-    sub: 'Sélectionnez jusqu\'à 2 pièces. Chaque sac est une pièce unique ; chaque casquette fait partie d\'une édition limitée de 10 exemplaires.',
-    selected: 'sélectionnée', selectedPlural: 'sélectionnées',
-    max: 'Maximum atteint — 2 pièces par commande',
+    sub: 'Jusqu\'à 2 sacs et 2 casquettes par commande. Chaque sac est une pièce unique ; chaque casquette fait partie d\'une édition limitée de 10 exemplaires.',
+    maxBags: 'Maximum atteint — 2 sacs par commande',
+    maxCaps: 'Maximum atteint — 2 casquettes par commande',
+    bags: 'sacs', caps: 'casquettes',
     remove: 'Retirer',
     total: 'Total', next: 'Continuer',
     unique: 'Pièce unique',
@@ -39,9 +41,10 @@ const copy = {
   },
   en: {
     title: 'Choose your pieces',
-    sub: 'Select up to 2 pieces. Each bag is one-of-a-kind; each cap is part of a limited edition of 10.',
-    selected: 'selected', selectedPlural: 'selected',
-    max: 'Maximum reached — 2 pieces per order',
+    sub: 'Up to 2 bags and 2 caps per order. Each bag is one-of-a-kind; each cap is part of a limited edition of 10.',
+    maxBags: 'Maximum reached — 2 bags per order',
+    maxCaps: 'Maximum reached — 2 caps per order',
+    bags: 'bags', caps: 'caps',
     remove: 'Remove',
     total: 'Total', next: 'Continue',
     unique: 'One-of-a-kind',
@@ -66,7 +69,6 @@ type Props = {
 
 export default function FormStep1({ data, selections, lang, onChange, onSelectionsChange, onNext }: Props) {
   const t = copy[lang]
-  const MAX = 2
 
   // Pièces depuis la DB (statut réel)
   const [dbPieces, setDbPieces] = useState<DbPiece[]>([])
@@ -95,15 +97,21 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
     else sections.push({ kind: 'cap', groupName: g.meta.groupName, variants: [g] })
   }
 
-  const isSelected   = (id: string) => selections.some(s => s.id === id)
-  const isFull       = selections.length >= MAX
+  const isSelected = (id: string) => selections.some(s => s.id === id)
+
+  const categoryOf = (modelId: ModelId): ModelCategory => getModel(modelId)?.category ?? 'bag'
+  const countInCategory = (cat: ModelCategory) =>
+    selections.filter(s => categoryOf(s.model) === cat).length
+  const isFullFor = (cat: ModelCategory) => countInCategory(cat) >= MAX_PER_CATEGORY
+  const isBagFull = isFullFor('bag')
+  const isCapFull = isFullFor('cap')
 
   const toggle = (piece: SelectedPiece) => {
     if (isSelected(piece.id)) {
       const next = selections.filter(s => s.id !== piece.id)
       onSelectionsChange(next)
       syncFormData(next)
-    } else if (!isFull) {
+    } else if (!isFullFor(categoryOf(piece.model))) {
       const next = [...selections, piece]
       onSelectionsChange(next)
       syncFormData(next)
@@ -116,7 +124,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
     const existing = selectedForModel(variant.meta.id)
     if (existing) { toggle(existing); return }
     const avail = variant.pieces.find(p => p.status === 'available')
-    if (avail && !isFull) toggle(avail)
+    if (avail && !isCapFull) toggle(avail)
   }
 
   const pieceLabel = (p: SelectedPiece) => {
@@ -134,7 +142,7 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
     onChange({
       bagModel: next[0].model,
       bagName: names,
-      quantity: next.length as 1 | 2,
+      quantity: next.length as 1 | 2 | 3 | 4,
       priceTotal: total,
     })
   }
@@ -148,29 +156,25 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
         <p className="text-[12px] text-[#7a7a8a] font-light">{t.sub}</p>
       </div>
 
-      {/* Compteur sélection */}
-      <div className="flex items-center gap-3">
-        {[0, 1].map(i => (
-          <div
-            key={i}
-            className={`w-8 h-8 border-2 flex items-center justify-center transition-all duration-300 ${
-              selections[i] ? 'border-[#b8965a] bg-[#b8965a]/10' : 'border-[#043672]/15'
-            }`}
-          >
-            {selections[i] && <span className="text-[#b8965a] text-[11px]">✓</span>}
-          </div>
-        ))}
+      {/* Compteur sélection — par catégorie */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <span className="text-label text-[9px] tracking-[3px] text-[#7a7a8a]">
-          {selections.length}/{MAX}
-          {' '}
-          {selections.length === 1 ? t.selected : t.selectedPlural}
+          {countInCategory('bag')}/{MAX_PER_CATEGORY} {t.bags} · {countInCategory('cap')}/{MAX_PER_CATEGORY} {t.caps}
         </span>
-        {isFull && (
+        {isBagFull && (
           <motion.span
             initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
             className="text-label text-[10px] text-[#b8965a] tracking-[2px]"
           >
-            {t.max}
+            {t.maxBags}
+          </motion.span>
+        )}
+        {isCapFull && (
+          <motion.span
+            initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
+            className="text-label text-[10px] text-[#b8965a] tracking-[2px]"
+          >
+            {t.maxCaps}
           </motion.span>
         )}
       </div>
@@ -179,10 +183,10 @@ export default function FormStep1({ data, selections, lang, onChange, onSelectio
       <div className="flex flex-col gap-8">
         {sections.map((section, mi) => section.kind === 'bag' ? (
           <BagGroup key={section.group.meta.id} meta={section.group.meta} pieces={section.group.pieces}
-            mi={mi} lang={lang} t={t} isSelected={isSelected} isFull={isFull} toggle={toggle} />
+            mi={mi} lang={lang} t={t} isSelected={isSelected} isFull={isBagFull} toggle={toggle} />
         ) : (
           <CapGroup key={section.groupName} groupName={section.groupName} variants={section.variants}
-            lang={lang} t={t} selectedForModel={selectedForModel} pickColor={pickColor} isFull={isFull} />
+            lang={lang} t={t} selectedForModel={selectedForModel} pickColor={pickColor} isFull={isCapFull} />
         ))}
       </div>
 

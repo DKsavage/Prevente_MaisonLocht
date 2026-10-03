@@ -16,7 +16,7 @@ export default function Footer() {
           <p className="text-[10px] leading-relaxed text-white/30 max-w-[300px]">
             Chaque création est définitive.<br />
             Les ajustements sont assurés à vie.<br />
-            Max 2 par commande · sacs uniques, casquettes en édition limitée.
+            Max 2 par catégorie · sacs uniques, casquettes en édition limitée.
           </p>
           <p className="text-[9px] text-white/15 tracking-[1px] mt-1">
             © {new Date().getFullYear()} Maison Locht. Tous droits réservés.
