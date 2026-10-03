@@ -122,6 +122,14 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
 }
+@keyframes hero-breathe {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.035); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="hero-breathe"] { animation: none !important; }
+}
 
 /* Utilitaires Maison Locht */
 @layer utilities {

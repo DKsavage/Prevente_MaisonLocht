@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import { useLang } from './LangContext'
 import { usePieces } from './PiecesProvider'
@@ -70,6 +70,7 @@ export default function Hero() {
   // Nombre réel de pièces disponibles (live, via la source partagée)
   const { availableCount } = usePieces()
   const { count, done, ref: badgeRef } = useCountUp(availableCount)
+  const reduceMotion = useReducedMotion()
 
   return (
     <section className="grid md:grid-cols-[42%_58%] xl:grid-cols-[32%_68%] min-h-[78vh] border-b border-[#043672]/05">
@@ -128,14 +129,23 @@ export default function Hero() {
           transition={{ duration: 1.1, delay: 0.2, ease }}
           className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
         >
-          <Image
-            src="/images/collection-2.jpeg"
-            alt="Collection Maison Locht"
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="(max-width: 768px) 70vw, 35vw"
-          />
+          {/* Rideau de dévoilement — une seule fois à l'arrivée */}
+          <motion.div
+            className="absolute inset-0"
+            initial={reduceMotion ? { opacity: 0 } : { clipPath: 'inset(0% 100% 0% 0%)' }}
+            animate={reduceMotion ? { opacity: 1 } : { clipPath: 'inset(0% 0% 0% 0%)' }}
+            transition={{ duration: 1.3, delay: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <Image
+              src="/images/collection-2.jpeg"
+              alt="Collection Maison Locht"
+              fill
+              className="object-cover object-center"
+              style={reduceMotion ? undefined : { animation: 'hero-breathe 28s ease-in-out infinite' }}
+              priority
+              sizes="(max-width: 768px) 70vw, 35vw"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Badge count-up */}
