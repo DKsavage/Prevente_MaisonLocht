@@ -27,14 +27,16 @@ const content = {
   },
 }
 
-// Carrousel Hero — extensible (ajouter une entrée = une catégorie de plus, ex. casquettes)
+// Carrousel Hero — extensible (ajouter une entrée = une catégorie de plus)
 const heroSlides = {
   fr: [
     { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Collection Maison Locht', position: 'object-center', label: 'Sacs · Casquettes' },
+    { id: 'casquettes', src: '/images/lucao-portee-rue.jpg', alt: 'Casquette Lucao portée en ville', position: 'object-center', label: 'Casquettes' },
     { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Sac Maison Locht porté', position: 'object-center', label: 'Sacs artisanaux' },
   ],
   en: [
     { id: 'collection', src: '/images/collection-2.jpeg', alt: 'Maison Locht collection', position: 'object-center', label: 'Bags · Caps' },
+    { id: 'casquettes', src: '/images/lucao-portee-rue.jpg', alt: 'Lucao cap worn in the city', position: 'object-center', label: 'Caps' },
     { id: 'sacs', src: '/images/sac-tenu-zoom.jpg', alt: 'Maison Locht bag, worn', position: 'object-center', label: 'Handcrafted bags' },
   ],
 }
@@ -109,8 +111,12 @@ export default function Hero() {
         <motion.div {...fadeUp(0.1)} className="flex items-center gap-4">
           <span className="block w-6 h-px bg-[#b8965a]" />
           <span className="text-label text-[10px] text-[#b8965a] tracking-[6px]">{t.eyebrow}</span>
-          <span className="text-label text-[10px] text-[#b8965a]/60 tracking-[5px] font-light">{t.collection}</span>
         </motion.div>
+
+        {/* Repère typographique — seul grand moment Cormorant de la colonne */}
+        <motion.p {...fadeUp(0.28)} className="font-display text-[52px] md:text-[56px] font-light italic text-[#043672] leading-none">
+          {t.collection}
+        </motion.p>
 
         {/* Description */}
         <motion.div {...fadeUp(0.52)} className="border-l-2 border-[#b8965a] pl-5 flex flex-col gap-2.5">
