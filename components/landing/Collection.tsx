@@ -174,9 +174,9 @@ function BagDrawer({ piece, model, c, lang, onClose }: {
               {[0, 1].map(i => (
                 <button key={i} onClick={() => setAngle(i as 0 | 1)}
                   aria-label={`${lang === 'fr' ? 'Angle' : 'Angle'} ${i + 1}`} aria-pressed={angle === i}
-                  className="min-w-[36px] min-h-[36px] flex items-center justify-center"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center"
                   data-cursor="hover">
-                  <span className={`font-display text-[13px] transition-colors duration-200 ${angle === i ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>{i + 1}</span>
+                  <span className={`font-display text-[16px] transition-colors duration-200 ${angle === i ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>{i + 1}</span>
                 </button>
               ))}
             </div>
@@ -257,11 +257,11 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
 
   return (
     <div className={`border-t-2 border-[#043672]/10 ${isEven ? 'bg-[#faf7f2]' : 'bg-[#ede8df]'}`}>
-      <div className="grid md:grid-cols-2 min-h-[540px]">
+      <div className="grid md:grid-cols-2">
 
         {/* ── Gauche : image full-bleed ── */}
         <div
-          className="relative bg-[#f0ebe0] overflow-hidden cursor-none min-h-[360px] md:min-h-0"
+          className="relative bg-[#f0ebe0] overflow-hidden cursor-none aspect-[4/5]"
           data-cursor="hover"
           onClick={() => onOpenDrawer(activePiece)}
         >
@@ -326,9 +326,9 @@ function ModelSpotlight({ model, c, lang, onOpenDrawer, isFirst, index }: {
               {[0, 1].map(i => (
                 <button key={i} onClick={(e) => { e.stopPropagation(); setAngle(i as 0 | 1) }}
                   aria-label={`${lang === 'fr' ? 'Angle' : 'Angle'} ${i + 1}`} aria-pressed={angle === i}
-                  className="min-w-[36px] min-h-[36px] flex items-center justify-center cursor-none"
+                  className="min-w-[40px] min-h-[40px] flex items-center justify-center cursor-none"
                   data-cursor="hover">
-                  <span className={`font-display text-[13px] transition-colors duration-200 ${angle === i ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>{i + 1}</span>
+                  <span className={`font-display text-[16px] transition-colors duration-200 ${angle === i ? 'text-[#b8965a]' : 'text-[#7a7a8a]'}`}>{i + 1}</span>
                 </button>
               ))}
             </div>
@@ -424,11 +424,11 @@ function CapGroupSpotlight({ groupName, models, c, lang, onOpenDrawer, isFirst, 
 
   return (
     <div className={`border-t-2 border-[#043672]/10 ${isEven ? 'bg-[#faf7f2]' : 'bg-[#ede8df]'}`}>
-      <div className="grid md:grid-cols-2 min-h-[540px]">
+      <div className="grid md:grid-cols-2">
 
         {/* ── Gauche : photo couleur active, crossfade ── */}
         <div
-          className="relative bg-[#f0ebe0] overflow-hidden cursor-none min-h-[360px] md:min-h-0"
+          className="relative bg-[#f0ebe0] overflow-hidden cursor-none aspect-[4/5]"
           data-cursor="hover"
           onClick={() => onOpenDrawer(activePiece, activeModel)}
         >
