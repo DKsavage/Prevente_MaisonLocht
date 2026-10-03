@@ -137,8 +137,8 @@ export default function Hero() {
             <span className="relative text-sm transition-transform duration-300 group-hover:translate-x-1.5">→</span>
           </a>
 
-          <span className="flex items-center gap-2 text-label text-[9px] text-[#7a7a8a] tracking-[2px]">
-            <span className="w-[5px] h-[5px] rounded-full bg-[#b8965a] animate-pulse" />
+          <span className="flex items-center gap-2 text-label text-[10px] text-[#b8965a] tracking-[3px]">
+            <span className="w-[6px] h-[6px] rounded-full bg-[#b8965a] animate-pulse" />
             {t.pulse}
           </span>
         </motion.div>
