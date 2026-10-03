@@ -70,7 +70,6 @@ export default function Hero() {
   // Nombre réel de pièces disponibles (live, via la source partagée)
   const { availableCount } = usePieces()
   const { count, done, ref: badgeRef } = useCountUp(availableCount)
-  const [hovered, setHovered] = useState(false)
 
   return (
     <section className="grid md:grid-cols-[42%_58%] xl:grid-cols-[32%_68%] min-h-[78vh] border-b border-[#043672]/05">
@@ -122,42 +121,19 @@ export default function Hero() {
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-[radial-gradient(circle,rgba(4,54,114,0.06)_0%,transparent_70%)] pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(184,150,90,0.07)_0%,transparent_70%)] pointer-events-none" />
 
-        {/* Cadre photo avec crossfade au hover */}
+        {/* Cadre photo */}
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, delay: 0.2, ease }}
-          className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden cursor-none"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          data-cursor="hover"
+          className="relative w-[85%] md:w-[78%] xl:w-[86%] aspect-[3/2] border border-[#043672]/08 shadow-[20px_20px_0_rgba(4,54,114,0.05)] overflow-hidden"
         >
-          {/* Photo principale — recule au hover */}
           <Image
             src="/images/collection-2.jpeg"
             alt="Collection Maison Locht"
             fill
-            className="object-cover object-center will-change-transform"
-            style={{
-              opacity: hovered ? 0 : 1,
-              transform: hovered ? 'scale(1.06)' : 'scale(1)',
-              transition: 'opacity 1100ms cubic-bezier(.4,0,.2,1), transform 1100ms cubic-bezier(.4,0,.2,1)',
-            }}
+            className="object-cover object-center"
             priority
-            sizes="(max-width: 768px) 70vw, 35vw"
-          />
-
-          {/* Photo secondaire — avance au hover */}
-          <Image
-            src="/images/bottom.jpeg"
-            alt="Maison Locht — Les Cernes"
-            fill
-            className="object-contain will-change-transform"
-            style={{
-              opacity: hovered ? 1 : 0,
-              transform: hovered ? 'scale(1)' : 'scale(1.06)',
-              transition: 'opacity 1100ms cubic-bezier(.4,0,.2,1), transform 1100ms cubic-bezier(.4,0,.2,1)',
-            }}
             sizes="(max-width: 768px) 70vw, 35vw"
           />
         </motion.div>
